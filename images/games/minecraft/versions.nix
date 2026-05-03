@@ -45,6 +45,8 @@ let
         "chunky"
         "bluemap"
         "luckperms"
+        "simple-voice-chat"
+        "spark"
       ];
     };
   };

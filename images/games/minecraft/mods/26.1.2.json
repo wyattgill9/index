@@ -43,6 +43,14 @@
     "hash": "sha512-uoMix1aWgPQPQWJpNiP0iMF98OjTlKruILvI4aMJeqswk4luqW5oOaNvgXwWV77Ym6UBMW+jmAoVpcBhji0ang==",
     "url": "https://cdn.modrinth.com/data/4WWQxlQP/versions/P8k080Af/servercore-fabric-1.5.16%2B26.1.jar"
   },
+  "simple-voice-chat": {
+    "hash": "sha512-4yYe3fIKcJSQhsNH+VZxMH88WV4lZEekAiJ4Mga4mWJQ1vZrLFZ71WZm2HFiUztBkjfeR6NQIXbcKMrjYLxi+Q==",
+    "url": "https://cdn.modrinth.com/data/9eGKb6K1/versions/eGxtLv6D/voicechat-fabric-2.6.16%2B26.1.2.jar"
+  },
+  "spark": {
+    "hash": "sha512-4Gl2Y2icVFm37ZLyHYawGRu+f2MnrH6Jcq2fYxjveoypPaOoSVRZ7m8UQ8rf92VrFQ6g78gfjPEwDJMBSDovsw==",
+    "url": "https://cdn.modrinth.com/data/l6YH9Als/versions/J1GUYyGQ/spark-1.10.172-fabric.jar"
+  },
   "vmp-fabric": {
     "hash": "sha512-JKDfJAeJOxz7VeJ9wcH+8AjfU1GNEYqjJFkk03tkKifXtq/elQ+/XQfEERxErCZNmuVrjYxqm1Ws37kboKFfFg==",
     "url": "https://cdn.modrinth.com/data/wnEe9KBa/versions/9f7J0dAp/vmp-fabric-mc26.1.2-0.2.0%2Bbeta.7.234-all.jar"

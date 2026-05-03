@@ -17,5 +17,6 @@
   minecraft-mod-bluemap = ./services/minecraft/mods/bluemap.nix;
   minecraft-mod-distant-horizons = ./services/minecraft/mods/distant-horizons.nix;
   minecraft-mod-luckperms = ./services/minecraft/mods/luckperms.nix;
+  minecraft-mod-simple-voice-chat = ./services/minecraft/mods/simple-voice-chat.nix;
   remote-desktop = ./services/remote-desktop.nix;
 }
