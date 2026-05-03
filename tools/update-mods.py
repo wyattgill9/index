@@ -77,17 +77,19 @@ def resolve(
     loader: str,
     resolved: dict[str, dict] | None = None,
 ) -> dict[str, dict]:
-    """Resolve mod identifiers to {url, hash} dicts, including transitive required deps."""
+    """Resolve mod identifiers to slug -> {url, hash} dicts, including transitive required deps."""
     if resolved is None:
         resolved = {}
 
+    seen_pids: set[str] = set()
     queue = list(ids_or_slugs)
     while queue:
         ref = queue.pop(0)
         proj = get_project(ref)
         pid = proj["id"]
-        if pid in resolved:
+        if pid in seen_pids:
             continue
+        seen_pids.add(pid)
 
         versions = get_versions(pid, game_versions, loader)
         version = pick_version(versions)
@@ -96,7 +98,7 @@ def resolve(
             continue
 
         f = primary_file(version)
-        resolved[pid] = {
+        resolved[proj["slug"]] = {
             "url": f["url"],
             "hash": hex_to_sri(f["hashes"]["sha512"]),
         }
@@ -104,7 +106,7 @@ def resolve(
 
         for dep in version.get("dependencies", []):
             dep_id = dep.get("project_id")
-            if dep.get("dependency_type") == "required" and dep_id and dep_id not in resolved:
+            if dep.get("dependency_type") == "required" and dep_id and dep_id not in seen_pids:
                 queue.append(dep_id)
 
     return resolved
@@ -118,7 +120,7 @@ def generate(manifest_path: Path, output_dir: Path, only_version: str | None):
     common_slugs = common_cfg.get("mods", [])
     common_game_versions = common_cfg.get("game_versions", [])
 
-    common_pids: set[str] = set()
+    common_slug_set: set[str] = set()
     if common_slugs:
         print("common:", file=sys.stderr)
         common_resolved = resolve(common_slugs, common_game_versions, loader)
@@ -126,39 +128,40 @@ def generate(manifest_path: Path, output_dir: Path, only_version: str | None):
         # Evict mods whose picked version doesn't span ALL common game versions.
         # These get resolved per-version instead.
         evicted = []
-        for pid in list(common_resolved.keys()):
-            proj = get_project(pid)
-            versions = get_versions(pid, common_game_versions, loader)
+        for slug in list(common_resolved.keys()):
+            proj = get_project(slug)
+            versions = get_versions(proj["id"], common_game_versions, loader)
             version = pick_version(versions)
             if version is None:
-                evicted.append(pid)
+                evicted.append(slug)
                 continue
             supported = set(version["game_versions"])
             missing = [gv for gv in common_game_versions if gv not in supported]
             if missing:
-                print(f"  evict {proj['slug']}: does not cover {missing}", file=sys.stderr)
-                evicted.append(pid)
+                print(f"  evict {slug}: does not cover {missing}", file=sys.stderr)
+                evicted.append(slug)
 
-        for pid in evicted:
-            del common_resolved[pid]
+        for slug in evicted:
+            del common_resolved[slug]
 
-        common_pids = set(common_resolved.keys())
-        write_json(output_dir / "common.json", list(common_resolved.values()))
+        common_slug_set = set(common_resolved.keys())
+        write_json(output_dir / "common.json", common_resolved)
 
     for game_version, slugs in manifest.get("versions", {}).items():
         if only_version and game_version != only_version:
             continue
         print(f"{game_version}:", file=sys.stderr)
         resolved = resolve(slugs, [game_version], loader)
-        for pid in common_pids:
-            resolved.pop(pid, None)
-        write_json(output_dir / f"{game_version}.json", list(resolved.values()))
+        for slug in common_slug_set:
+            resolved.pop(slug, None)
+        write_json(output_dir / f"{game_version}.json", resolved)
 
 
-def write_json(path: Path, mods: list[dict]):
-    mods.sort(key=lambda m: m["url"])
-    path.write_text(json.dumps(mods, indent=2, sort_keys=True) + "\n")
-    print(f"  wrote {path} ({len(mods)} mods)", file=sys.stderr)
+def write_json(path: Path, catalog: dict[str, dict]):
+    """Write {slug: {url, hash}} sorted by slug for deterministic diffs."""
+    sorted_catalog = dict(sorted(catalog.items()))
+    path.write_text(json.dumps(sorted_catalog, indent=2, sort_keys=True) + "\n")
+    print(f"  wrote {path} ({len(catalog)} mods)", file=sys.stderr)
 
 
 def main():
