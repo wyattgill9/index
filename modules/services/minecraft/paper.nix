@@ -10,6 +10,7 @@
 ix.mkMinecraftLoader {
   inherit config lib pkgs;
   name = "paper";
+  dropDir = "plugins";
   urlFor =
     cfg:
     "https://api.papermc.io/v2/projects/paper/versions/${cfg.minecraftVersion}/builds/${toString cfg.build}/downloads/paper-${cfg.minecraftVersion}-${toString cfg.build}.jar";

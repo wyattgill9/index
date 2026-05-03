@@ -10,6 +10,7 @@
 ix.mkMinecraftLoader {
   inherit config lib pkgs;
   name = "fabric";
+  dropDir = "mods";
   urlFor =
     cfg:
     "https://meta.fabricmc.net/v2/versions/loader/${cfg.minecraftVersion}/${cfg.loaderVersion}/${cfg.installerVersion}/server/jar";

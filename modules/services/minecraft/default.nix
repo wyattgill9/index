@@ -1,8 +1,10 @@
 # Minecraft server runtime.
 #
 # Loader-agnostic. Provides systemd unit, server.properties templating, mods,
-# Java runtime, port. `serverJar` is required: a loader module (`./fabric.nix`,
-# `./paper.nix`, `./vanilla.nix`, ...) supplies it via module merging.
+# Java runtime, port. `serverJar` and `dropDir` are slots filled by a loader
+# module (`./fabric.nix`, `./paper.nix`, `./vanilla.nix`, ...) via module
+# merging. `dropDir` is where `mods` jars get symlinked: fabric uses `mods`,
+# paper uses `plugins`.
 {
   config,
   ix,
@@ -26,7 +28,7 @@ let
     ix.toProperties (cfg.serverProperties // { server-port = cfg.port; })
   );
 
-  modLinks = lib.concatMapStrings (mod: "ln -sf ${mod} ${dataDir}/mods/\n") cfg.mods;
+  modLinks = lib.concatMapStrings (mod: "ln -sf ${mod} ${dataDir}/${cfg.dropDir}/\n") cfg.mods;
 
   javaArgs = [
     "${cfg.javaPackage}/bin/java"
@@ -49,6 +51,12 @@ in
       description = "Server jar to launch. Set by a loader module (fabric/paper/vanilla).";
     };
 
+    dropDir = mkOption {
+      type = types.str;
+      default = "mods";
+      description = "Subdirectory under the data dir where `mods` jars are symlinked. Loaders set this: fabric → `mods`, paper → `plugins`.";
+    };
+
     memory = mkOption {
       type = types.str;
       default = "2G";
@@ -57,6 +65,7 @@ in
     mods = mkOption {
       type = types.listOf types.package;
       default = [ ];
+      description = "Extra jars to symlink into `dropDir`. Fabric mods or Paper plugins, depending on the loader.";
     };
 
     javaPackage = mkOption {
@@ -122,7 +131,7 @@ in
         Restart = "on-failure";
       };
       preStart = ''
-        mkdir -p ${dataDir}/mods
+        mkdir -p ${dataDir}/${cfg.dropDir}
         ln -sf ${propsFile} ${dataDir}/server.properties
         echo "eula=true" > ${dataDir}/eula.txt
         ${modLinks}

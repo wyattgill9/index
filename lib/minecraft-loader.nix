@@ -13,6 +13,7 @@
   pkgs,
   name,
   urlFor,
+  dropDir ? "mods",
   extraOptions ? { },
 }:
 let
@@ -30,6 +31,7 @@ in
 
   config = lib.mkIf cfg.enable {
     services.minecraft.enable = lib.mkDefault true;
+    services.minecraft.dropDir = lib.mkDefault dropDir;
     services.minecraft.serverJar = pkgs.fetchurl {
       url = urlFor cfg;
       inherit (cfg) hash;
