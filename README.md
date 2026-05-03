@@ -58,6 +58,8 @@ ix-images.lib.mkIxImage {
       luckperms = { mysql = true; };
       bluemap = { mysql = true; };
       distanthorizons = { maxRenderDistance = 512; };
+      simple-voice-chat = {};
+      spark = {};
     };
     fabric = {
       enable = true;
