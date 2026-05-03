@@ -48,12 +48,14 @@ ix-images.lib.mkIxImage {
       view-distance = 32;
       simulation-distance = 12;
       max-players = 20;
-      spawn-protection = 25000;
     };
     folia = {
       enable = true;
       version = "1.21.4";
       build = 97;
+    };
+    serverFiles."bukkit.yml" = {
+      settings.spawn-radius = 25000;
     };
     mods = {
       distanthorizons = { maxRenderDistance = 512; };

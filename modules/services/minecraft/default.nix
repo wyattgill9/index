@@ -75,6 +75,16 @@ let
     ) cfg.configFiles
   );
 
+  serverFileLinks = lib.concatStringsSep "\n" (
+    lib.mapAttrsToList (
+      path: value:
+      let
+        file = (formatFor path).generate (builtins.baseNameOf path) value;
+      in
+      "mkdir -p ${dataDir}/${builtins.dirOf path}\nln -sf ${file} ${dataDir}/${path}"
+    ) cfg.serverFiles
+  );
+
   javaArgs = [
     "${cfg.javaPackage}/bin/java"
     "-Xms${cfg.memory}"
@@ -167,6 +177,12 @@ in
       description = "Config files to place under config/. Keys are relative paths (format inferred from extension: .toml, .json, .yaml, .yml, .properties). Values are Nix attrsets.";
     };
 
+    serverFiles = mkOption {
+      type = types.attrsOf types.attrs;
+      default = { };
+      description = "Files to place relative to the server root. For loader configs like bukkit.yml, spigot.yml, paper-global.yml. Format inferred from extension.";
+    };
+
     port = mkOption {
       type = types.port;
       default = 25565;
@@ -215,6 +231,7 @@ in
         echo "eula=true" > ${dataDir}/eula.txt
         ${modLinks}
         ${configLinks}
+        ${serverFileLinks}
       '';
     };
   };
