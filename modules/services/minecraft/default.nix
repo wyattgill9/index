@@ -30,9 +30,28 @@ let
 
   modLinks = lib.concatMapStrings (mod: "ln -sf ${mod} ${dataDir}/${cfg.dropDir}/\n") cfg.mods;
 
+  # Infer serialization format from file extension.
+  formatFor =
+    path:
+    let
+      ext = lib.last (lib.splitString "." path);
+    in
+    {
+      toml = pkgs.formats.toml { };
+      json = pkgs.formats.json { };
+      yaml = pkgs.formats.yaml { };
+      yml = pkgs.formats.yaml { };
+      properties = pkgs.formats.keyValue { };
+    }
+    .${ext}
+      or (throw "configFiles: unsupported extension .${ext} on '${path}'");
+
   configLinks = lib.concatStringsSep "\n" (
     lib.mapAttrsToList (
-      path: file:
+      path: value:
+      let
+        file = (formatFor path).generate (builtins.baseNameOf path) value;
+      in
       "mkdir -p ${dataDir}/config/${builtins.dirOf path}\nln -sf ${file} ${dataDir}/config/${path}"
     ) cfg.configFiles
   );
@@ -118,9 +137,9 @@ in
     };
 
     configFiles = mkOption {
-      type = types.attrsOf types.package;
+      type = types.attrsOf types.attrs;
       default = { };
-      description = "Config files to symlink under the server's config/ directory. Keys are relative paths, values are derivations. Mod modules produce these using pkgs.formats.toml, pkgs.formats.yaml, etc.";
+      description = "Config files to place under config/. Keys are relative paths (format inferred from extension: .toml, .json, .yaml, .yml, .properties). Values are Nix attrsets.";
     };
 
     extraModSlugs = mkOption {
@@ -148,6 +167,28 @@ in
         WorkingDirectory = dataDir;
         ExecStart = lib.escapeShellArgs javaArgs;
         Restart = "on-failure";
+        StateDirectory = "minecraft";
+
+        CapabilityBoundingSet = [ "" ];
+        DeviceAllow = [ "" ];
+        LockPersonality = true;
+        PrivateDevices = true;
+        PrivateTmp = true;
+        PrivateUsers = true;
+        ProtectClock = true;
+        ProtectControlGroups = true;
+        ProtectHome = true;
+        ProtectHostname = true;
+        ProtectKernelLogs = true;
+        ProtectKernelModules = true;
+        ProtectKernelTunables = true;
+        ProtectProc = "invisible";
+        RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" ];
+        RestrictNamespaces = true;
+        RestrictRealtime = true;
+        RestrictSUIDSGID = true;
+        SystemCallArchitectures = "native";
+        UMask = "0077";
       };
       preStart = ''
         mkdir -p ${dataDir}/${cfg.dropDir}

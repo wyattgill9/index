@@ -74,6 +74,53 @@ For minecraft this means:
 - Enabling a loader auto-enables the runtime via `mkDefault`.
 - Enabling two loaders is a module-merge conflict → loud eval error.
 
+## Mod modules
+
+Mods with configuration get their own NixOS module at `modules/services/minecraft/mods/<name>.nix`. Each declares options under `services.minecraft.mod.<name>`, injects its Modrinth slug via `extraModSlugs`, and sets config files. Enabling the mod is a single flag.
+
+```nix
+# modules/services/minecraft/mods/distant-horizons.nix
+{ config, lib, ... }:
+let
+  cfg = config.services.minecraft.mod.distant-horizons;
+in
+{
+  options.services.minecraft.mod.distant-horizons = {
+    enable = lib.mkEnableOption "Distant Horizons LOD generation";
+    maxRenderDistance = lib.mkOption {
+      type = lib.types.int;
+      default = 256;
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+    services.minecraft.extraModSlugs = [ "distanthorizons" ];
+    services.minecraft.configFiles."DistantHorizons.toml" = {
+      server.maxRenderDistance = cfg.maxRenderDistance;
+    };
+  };
+}
+```
+
+Usage in an image: `services.minecraft.mod.distant-horizons.enable = true;`
+
+The slug must also appear in `manifest.json` so `tools/update-mods.py` includes it in the per-version catalog. Simple mods without configuration (lithium, krypton) stay as raw slugs in the loader's `mods` list and do not need a mod module.
+
+Register each mod module in `modules/default.nix` as `minecraft-mod-<name>`.
+
+### Config file format inference
+
+`configFiles` keys are relative paths under `config/`. The serialization format is inferred from the file extension: `.toml`, `.json`, `.yaml`/`.yml`, `.properties`. Values are plain Nix attrsets. Mod modules never import `pkgs.formats` directly.
+
+```nix
+services.minecraft.configFiles."SomeMod.toml" = { section.key = "value"; };
+services.minecraft.configFiles."other.yml" = { setting = true; };
+```
+
+### Writable vs read-only configs
+
+Config files are symlinked to the Nix store (read-only). Some mods write to their config at runtime. If a mod needs a writable config, the mod module should copy instead of symlink. This is not yet implemented but is a known gap (see nix-minecraft's `files` vs `symlinks` pattern for reference).
+
 ## Cross-cutting helpers (`specialArgs.ix`)
 
 Helpers shared across modules go in `lib/` and are exposed to every module through `specialArgs.ix`. Modules consume them as ordinary module args:

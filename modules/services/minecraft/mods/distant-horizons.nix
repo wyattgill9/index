@@ -1,8 +1,7 @@
 # Distant Horizons: server-side LOD generation for clients running DH.
-{ config, lib, pkgs, ... }:
+{ config, lib, ... }:
 let
   cfg = config.services.minecraft.mod.distant-horizons;
-  toml = pkgs.formats.toml { };
 in
 {
   options.services.minecraft.mod.distant-horizons = {
@@ -19,7 +18,7 @@ in
 
   config = lib.mkIf cfg.enable {
     services.minecraft.extraModSlugs = [ "distanthorizons" ];
-    services.minecraft.configFiles."DistantHorizons.toml" = toml.generate "DistantHorizons.toml" {
+    services.minecraft.configFiles."DistantHorizons.toml" = {
       server = {
         inherit (cfg) serverSideLodGeneration maxRenderDistance;
       };
