@@ -1,6 +1,6 @@
 # ix/images
 
-Pre-built OCI images for ix VMs, plus composable NixOS modules.
+Pre-built OCI images for ix VMs, plus composable NixOS modules. All images target AMD EPYC Gen 5 (Turin, Zen 5). The base layer sets `nixpkgs.hostPlatform.gcc.arch = "znver5"` so every package in the closure is compiled with `-march=znver5 -mtune=znver5`. No binary cache hits: everything builds from source.
 
 ## How it works
 
@@ -111,6 +111,14 @@ Fetcher hashes (`pkgs.fetchurl { hash = "sha256-..."; }`) live **inline next to 
 `flake.lock` only tracks flake inputs (other flakes you import). It does not track arbitrary fetchurl calls. Putting per-image hashes in `flake.nix` would force every version to become a flake input — the input list explodes and `nix flake update` becomes meaningless. Inline is the nixpkgs convention; follow it.
 
 To get a fresh SRI hash: set `hash = lib.fakeHash;` (or any obviously-wrong sha256-...= string), build, and copy the value Nix prints in the mismatch error. Or run `nix-prefetch-url --type sha256 <url>` and convert with `nix hash to-sri --type sha256 <hex>`.
+
+## Target platform
+
+All images run on AMD EPYC Gen 5 (Turin, Zen 5). `lib/ix-base.nix` sets `nixpkgs.hostPlatform.gcc.arch = "znver5"` and `tune = "znver5"`, which propagates `-march=znver5 -mtune=znver5` to every package in the closure. This enables AVX-512, VNNI, and other Zen 5 instructions across the board.
+
+Because the arch differs from the nixpkgs binary cache (generic x86_64), every package builds from source. This is intentional: these images run on known hardware and the build cost is paid once.
+
+When adding new modules or packages, do not override compiler flags per-package. The base layer handles it globally. If a package needs arch-specific tuning beyond compiler flags (e.g. PostgreSQL `huge_pages`, JVM `-XX:+UseAVX`), set those in the module.
 
 ## Nix philosophy
 

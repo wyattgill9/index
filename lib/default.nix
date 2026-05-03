@@ -44,7 +44,6 @@ let
       modules ? [ ],
     }:
     (lib.nixosSystem {
-      inherit system;
       specialArgs.ix = ixSpecialArgs;
       modules = [ ./ix-base.nix ] ++ moduleList ++ modules;
     }).config.ix.build.ociImage;

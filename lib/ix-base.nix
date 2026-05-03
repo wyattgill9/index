@@ -38,6 +38,16 @@
   };
 
   config = {
+    # All images target EPYC Gen 5 (Turin, Zen 5). Every package in the
+    # closure is compiled with -march=znver5 -mtune=znver5.
+    nixpkgs.hostPlatform = {
+      system = "x86_64-linux";
+      gcc = {
+        arch = "znver5";
+        tune = "znver5";
+      };
+    };
+
     boot.isContainer = true;
     system.stateVersion = "25.05";
     ix.profiles.base.enable = lib.mkDefault true;
