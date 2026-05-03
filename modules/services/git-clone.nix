@@ -1,3 +1,5 @@
+# Clone a git repository on first boot. The clone is idempotent: subsequent
+# boots see `.git` already present and do nothing.
 {
   config,
   lib,

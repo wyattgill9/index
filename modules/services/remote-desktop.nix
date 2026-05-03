@@ -1,3 +1,6 @@
+# Browser-accessible remote desktop: Xvfb (virtual X server) → x11vnc (VNC
+# bridge on :5900) → noVNC (websocket-to-VNC proxy on `port`). Browsers hit
+# `port`; the inner VNC is loopback only.
 {
   config,
   lib,
@@ -25,7 +28,7 @@ in
 
   config = mkIf cfg.enable {
     environment.systemPackages = [
-      pkgs.xorg.xorgserver
+      pkgs.xorg-server
       pkgs.x11vnc
       pkgs.novnc
     ];
@@ -37,7 +40,7 @@ in
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         Type = "simple";
-        ExecStart = "${pkgs.xorg.xorgserver}/bin/Xvfb :99 -screen 0 ${cfg.resolution}";
+        ExecStart = "${pkgs.xorg-server}/bin/Xvfb :99 -screen 0 ${cfg.resolution}";
         Restart = "always";
       };
     };

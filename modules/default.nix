@@ -1,5 +1,14 @@
+# Module registry. Single source of truth for both:
+#   - `nixosSystem { modules = ... }` (consumed via attrValues by lib/)
+#   - the `modules` flake output (consumed by external users who want one
+#     module without depending on ix-base)
+#
+# Every module is gated on its own `enable` flag. Listing it here only makes
+# the options visible; it does not turn anything on. The one exception is
+# `profiles/base.nix`, which `ix-base.nix` enables by default.
 {
+  base = ./profiles/base.nix;
   git-clone = ./services/git-clone.nix;
-  remote-desktop = ./services/remote-desktop.nix;
   minecraft = ./services/minecraft.nix;
+  remote-desktop = ./services/remote-desktop.nix;
 }

@@ -1,20 +1,13 @@
-{ minecraftVersion, fabricLoaderVersion, fabricInstallerVersion, serverJarHash }:
-{
-  ...
-}:
+# Minecraft Fabric server image.
+#
+# This file is the version-agnostic base. Per-version data (upstream version
+# strings, server JAR hash) lives in `./versions.nix` as overlay modules
+# layered on top of this one by `lib.discoverImages`.
 {
   ix.image.name = "minecraft";
-  ix.image.tag = "${minecraftVersion}-fabric";
 
   services.minecraft = {
     enable = true;
-    inherit
-      minecraftVersion
-      fabricLoaderVersion
-      fabricInstallerVersion
-      serverJarHash
-      ;
-    memory = "2G";
     serverProperties = {
       motd = "ix-powered Minecraft";
       max-players = "20";

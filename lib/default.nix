@@ -1,16 +1,77 @@
-{ nixpkgs, moduleList }:
-{
+# ix/images public lib.
+#
+# `mkIxImage` builds one self-contained OCI archive from a list of NixOS
+# modules. Each image is independent: ix does not stack images at runtime, it
+# runs one. `./ix-base.nix` is the implicit base layer (container marker, OCI
+# packaging, base profile enabled by default). The `../modules` registry is
+# pulled in so option declarations are available to every image, but each
+# module is gated on its own `enable` flag and stays inert unless the image
+# turns it on.
+#
+# `discoverImages` walks `images/<category>/<name>/` and turns each directory
+# into a flake package. If a directory has a `versions.nix` sibling, every
+# version produces `<name>_<ver>` and the `default` key picks the unsuffixed
+# `<name>` alias.
+{ nixpkgs }:
+let
+  inherit (nixpkgs) lib;
+
+  system = "x86_64-linux";
+
+  # The module registry. attrValues keeps the list and the per-name attrset
+  # in sync without duplicating paths.
+  moduleList = lib.attrValues (import ../modules);
+
   mkIxImage =
-    {
-      modules ? [ ],
-    }:
+    { modules ? [ ] }:
+    (lib.nixosSystem {
+      inherit system;
+      modules = [ ./ix-base.nix ] ++ moduleList ++ modules;
+    }).config.ix.build.ociImage;
+
+  # Subdirectories of `dir`. Used to walk images/<cat>/<name>/.
+  subdirs =
+    dir:
     let
-      nixos = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
-          ./ix-base.nix
-        ] ++ moduleList ++ modules;
-      };
+      entries = builtins.readDir dir;
     in
-    nixos.config.ix.build.ociImage;
+    lib.filter (n: entries.${n} == "directory") (builtins.attrNames entries);
+
+  # One image directory -> { <name> = pkg; <name>_<ver> = pkg; ... }.
+  # Without versions.nix, the dir is a single module.
+  # With versions.nix, each version is layered on top of the base module and
+  # the `default` key picks which version gets the unsuffixed alias.
+  imagePackages =
+    name: path:
+    let
+      versionsPath = path + "/versions.nix";
+    in
+    if builtins.pathExists versionsPath then
+      let
+        versions = import versionsPath;
+        defaultVer = versions.default;
+        verMods = builtins.removeAttrs versions [ "default" ];
+        verPkgs = lib.mapAttrs' (
+          ver: mod:
+          lib.nameValuePair "${name}_${ver}" (mkIxImage { modules = [ path mod ]; })
+        ) verMods;
+        defaultKey = "${name}_${defaultVer}";
+      in
+      assert lib.assertMsg (verPkgs ? ${defaultKey})
+        "image '${name}': versions.nix default = \"${defaultVer}\" but no version with that key";
+      verPkgs // { ${name} = verPkgs.${defaultKey}; }
+    else
+      { ${name} = mkIxImage { modules = [ path ]; }; };
+
+  discoverImages =
+    root:
+    lib.foldl' (
+      acc: cat:
+      lib.foldl' (acc': name: acc' // imagePackages name (root + "/${cat}/${name}")) acc (
+        subdirs (root + "/${cat}")
+      )
+    ) { } (subdirs root);
+in
+{
+  inherit system mkIxImage discoverImages;
 }

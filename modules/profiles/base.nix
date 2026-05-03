@@ -1,3 +1,8 @@
+# Base CLI profile.
+#
+# Auto-enabled by `lib/ix-base.nix` so every image gets a usable shell out of
+# the box. Images that want a minimal closure can opt out with
+# `ix.profiles.base.enable = false;`.
 {
   config,
   lib,
@@ -5,58 +10,51 @@
   ...
 }:
 {
-  options.ix.profiles.base.enable = lib.mkEnableOption "base tools (btop, neovim, curl, git)";
+  options.ix.profiles.base.enable = lib.mkEnableOption "base CLI tools (editors, shells, network, files, debug, misc)";
 
   config = lib.mkIf config.ix.profiles.base.enable {
-    environment.systemPackages = [
-      # editors
-      pkgs.neovim
+    environment.systemPackages =
+      builtins.attrValues {
+        # editors
+        inherit (pkgs) neovim;
 
-      # shells
-      pkgs.nushell
-      pkgs.fish
-      pkgs.zsh
+        # shells
+        inherit (pkgs) nushell fish zsh;
 
-      # net
-      pkgs.curl
-      pkgs.wget
-      pkgs.openssh
-      pkgs.iproute2
-      pkgs.dnsutils
+        # net
+        inherit (pkgs) curl wget openssh iproute2 dnsutils;
 
-      # files
-      pkgs.ripgrep
-      pkgs.fd
-      pkgs.file
-      pkgs.tree
-      pkgs.unzip
-      pkgs.less
-      pkgs.jq
+        # files
+        inherit (pkgs) ripgrep fd file tree unzip less jq;
 
-      # debug
-      pkgs.btop
-      pkgs.htop
-      pkgs.strace
-      pkgs.lsof
-      pkgs.gdb
-      pkgs.linuxPackages.perf
-      pkgs.procps
-      pkgs.tcpdump
+        # debug
+        inherit (pkgs)
+          btop
+          htop
+          strace
+          lsof
+          gdb
+          procps
+          tcpdump
+          perf
+          ;
 
-      # misc
-      pkgs.tmux
-      pkgs.zellij
-      pkgs.git
-      pkgs.bat
-      pkgs.eza
-      pkgs.zoxide
-      pkgs.fzf
-      pkgs.delta
-      pkgs.dust
-      pkgs.duf
-      pkgs.hyperfine
-      pkgs.tokei
-    ];
+        # misc
+        inherit (pkgs)
+          tmux
+          zellij
+          git
+          bat
+          eza
+          zoxide
+          fzf
+          delta
+          dust
+          duf
+          hyperfine
+          tokei
+          ;
+      };
 
     programs.bash.completion.enable = true;
     programs.zsh.enable = true;
