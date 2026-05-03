@@ -30,6 +30,13 @@ let
 
   modLinks = lib.concatMapStrings (mod: "ln -sf ${mod} ${dataDir}/${cfg.dropDir}/\n") cfg.mods;
 
+  configLinks = lib.concatStringsSep "\n" (
+    lib.mapAttrsToList (
+      path: file:
+      "mkdir -p ${dataDir}/config/${builtins.dirOf path}\nln -sf ${file} ${dataDir}/config/${path}"
+    ) cfg.configFiles
+  );
+
   javaArgs = [
     "${cfg.javaPackage}/bin/java"
     "-Xms${cfg.memory}"
@@ -110,6 +117,18 @@ in
       default = { };
     };
 
+    configFiles = mkOption {
+      type = types.attrsOf types.package;
+      default = { };
+      description = "Config files to symlink under the server's config/ directory. Keys are relative paths, values are derivations. Mod modules produce these using pkgs.formats.toml, pkgs.formats.yaml, etc.";
+    };
+
+    extraModSlugs = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "Mod slugs injected by mod modules. The active loader resolves these against its catalog alongside its own slug list.";
+    };
+
     port = mkOption {
       type = types.port;
       default = 25565;
@@ -135,6 +154,7 @@ in
         ln -sf ${propsFile} ${dataDir}/server.properties
         echo "eula=true" > ${dataDir}/eula.txt
         ${modLinks}
+        ${configLinks}
       '';
     };
   };

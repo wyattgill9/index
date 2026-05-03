@@ -32,6 +32,44 @@ ix-images.lib.mkIxImage {
 }
 ```
 
+### Fabric server with Distant Horizons
+
+```nix
+# images/games/my-mc/default.nix
+{ ... }:
+{
+  ix.image.name = "my-mc";
+
+  services.minecraft = {
+    memory = "8G";
+    serverProperties = {
+      view-distance = 32;
+      simulation-distance = 12;
+      max-players = 10;
+    };
+    mod.distant-horizons = {
+      enable = true;
+      maxRenderDistance = 512;
+    };
+    mod.chunky.enable = true;
+  };
+
+  services.minecraft.fabric = {
+    enable = true;
+    minecraftVersion = "26.1.2";
+    loaderVersion = "0.19.2";
+    installerVersion = "1.1.1";
+    hash = "sha256-6RvRm5/w4ExXhD5iTS9U0KPjmgSMr8pejiDrmENEXb0=";
+    mods = [ "fabric-api" "lithium" "c2me-fabric" ];
+    modCatalog = builtins.fromJSON (builtins.readFile ./mods.json);
+  };
+}
+```
+
+Mod modules handle the jar slug and config generation. Enable a mod, set its options, done. Mods without a module (like `lithium`) stay as raw slugs in the loader's `mods` list.
+
+Generate `mods.json` with `python3 tools/update-mods.py`. Mods are resolved by [Modrinth](https://modrinth.com) slug.
+
 All [NixOS options](https://search.nixos.org/options) work. Images are NixOS configs with systemd as PID 1.
 
 ## Contributing

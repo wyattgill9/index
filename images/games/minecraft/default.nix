@@ -18,5 +18,8 @@
       max-players = 20;
     };
     mods = map pkgs.fetchurl (lib.attrValues (builtins.fromJSON (builtins.readFile ./mods/common.json)));
+    mod.distant-horizons.enable = true;
+    mod.chunky.enable = true;
+    mod.servercore.enable = true;
   };
 }

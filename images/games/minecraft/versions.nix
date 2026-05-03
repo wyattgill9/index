@@ -38,11 +38,8 @@ let
         "c2me-fabric"
         "krypton"
         "ferrite-core"
-        "distanthorizons"
-        "servercore"
         "vmp-fabric"
         "clumps"
-        "chunky"
       ];
     };
   };

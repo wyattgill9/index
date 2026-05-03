@@ -68,6 +68,6 @@ in
         entry = cfg.modCatalog.${slug} or (throw "mod '${slug}' not in ${name} catalog");
       in
       pkgs.fetchurl entry
-    ) cfg.mods;
+    ) (cfg.mods ++ config.services.minecraft.extraModSlugs);
   };
 }
