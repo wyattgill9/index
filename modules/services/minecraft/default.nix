@@ -142,7 +142,6 @@ in
         "-XX:+ParallelRefProcEnabled"
         "-XX:MaxGCPauseMillis=200"
         "-XX:+DisableExplicitGC" # prevent plugins from triggering full GC
-        "-XX:+AlwaysPreTouch" # zero pages at startup so allocation never page-faults
 
         # large young gen: MC allocates heavily per tick, then discards
         "-XX:G1NewSizePercent=30"
