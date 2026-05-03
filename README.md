@@ -48,6 +48,7 @@ ix-images.lib.mkIxImage {
       view-distance = 32;
       simulation-distance = 12;
       max-players = 20;
+      spawn-protection = 25000;
     };
     folia = {
       enable = true;
