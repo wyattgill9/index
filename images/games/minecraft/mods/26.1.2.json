@@ -3,6 +3,18 @@
     "hash": "sha512-NN1gWqgf8ScPlpfPBFHKmmAj5X9Ic0aP8B/BniZNZDT7wMEI4ZSmpnWwJp3Rbtgp95oY6gbTLYms2j+/dnUwLw==",
     "url": "https://cdn.modrinth.com/data/VSNURh3q/versions/utLSz8Lf/c2me-fabric-mc26.1.2-0.3.7%2Balpha.0.68.jar"
   },
+  "chunky": {
+    "hash": "sha512-gu3AOAK/F5bC4OnKEeqOt7h1O59cQQc1B4YljeY0mTX2gn5YUTRQCzxCkk8/jNMuRtHB9GCwGv/WriPtD7wQJQ==",
+    "url": "https://cdn.modrinth.com/data/fALzjamp/versions/DCgX52a5/Chunky-Fabric-1.4.58.jar"
+  },
+  "clumps": {
+    "hash": "sha512-Npwg2Ih8Nsn9RWmnyNrB/8Ub4Da7WHY2BVNQNKWuvZ+7Nd5DzAzIx3TY3QKyqxd2+QvhZX83lrOBB/d57bSneg==",
+    "url": "https://cdn.modrinth.com/data/Wnxd13zP/versions/RXNrUIjA/Clumps-fabric-26.1.2-26.1.2.1.jar"
+  },
+  "distanthorizons": {
+    "hash": "sha512-mmTxJb1NlRr8metp4Ny9zBIt1UEWmrmOZRB5ee4S1JsDKuISTq1HTln3MDX45bmzBiacIhJHOzeYiSxaZrAyEA==",
+    "url": "https://cdn.modrinth.com/data/uCdwusMi/versions/eikDE1mo/DistantHorizons-3.0.2-b-26.1.2-fabric-neoforge.jar"
+  },
   "fabric-api": {
     "hash": "sha512-fjwF394NLFXRTvaOQDisHTM17Ujfyk28+ym4c9aYrgaevYXyR9igtIQ35IRCJUmhf/XLv+c00VkVPDvA4AN0Fw==",
     "url": "https://cdn.modrinth.com/data/P7dR8mSH/versions/dZsorAUN/fabric-api-0.147.0%2B26.1.2.jar"
@@ -18,5 +30,13 @@
   "lithium": {
     "hash": "sha512-kjGtBWZ9Tu8DSMcAv1Fgkp4Lcj2eFF/ZfH/O+Th6wubVJPsV2Z9H+Pg48dI1Mk/XUM3LZgO2OqtghdefvqqzGw==",
     "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/R7MxYvuW/lithium-fabric-0.24.2%2Bmc26.1.2.jar"
+  },
+  "servercore": {
+    "hash": "sha512-uoMix1aWgPQPQWJpNiP0iMF98OjTlKruILvI4aMJeqswk4luqW5oOaNvgXwWV77Ym6UBMW+jmAoVpcBhji0ang==",
+    "url": "https://cdn.modrinth.com/data/4WWQxlQP/versions/P8k080Af/servercore-fabric-1.5.16%2B26.1.jar"
+  },
+  "vmp-fabric": {
+    "hash": "sha512-JKDfJAeJOxz7VeJ9wcH+8AjfU1GNEYqjJFkk03tkKifXtq/elQ+/XQfEERxErCZNmuVrjYxqm1Ws37kboKFfFg==",
+    "url": "https://cdn.modrinth.com/data/wnEe9KBa/versions/9f7J0dAp/vmp-fabric-mc26.1.2-0.2.0%2Bbeta.7.234-all.jar"
   }
 }

@@ -149,6 +149,10 @@ Run `nix run nixpkgs#ast-grep -- scan` before committing. Hard rules:
 - `hash = "sha256-...="` (SRI) on fetchers. Never `sha256 = ...`.
 - x86_64-linux only. `system` is a single string, not a `forAllSystems` fold.
 
+## Searching
+
+Use `mgrep search -c {natural language}` to search the codebase. Do not use subagents for search.
+
 ## Linting
 
 ```
