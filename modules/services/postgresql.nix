@@ -1,4 +1,4 @@
-# PostgreSQL 18 with performance-tuned defaults.
+# PostgreSQL 18 with performance-tuned defaults for AMD EPYC Gen 5 (Zen 5).
 {
   config,
   ix,
@@ -56,30 +56,36 @@ in
         maintenance_work_mem = "128MB";
 
         # WAL
-        wal_buffers = "16MB";
-        max_wal_size = "2GB";
+        wal_buffers = "64MB";
+        max_wal_size = "4GB";
         min_wal_size = "512MB";
         wal_level = "replica";
+        wal_compression = "zstd";
         checkpoint_completion_target = "0.9";
 
+        # async I/O (PG 18): worker parallelizes checksum/memcpy across processes
+        io_method = "worker";
+        io_workers = "8";
+
         # query planner
-        random_page_cost = "1.1"; # SSD
-        effective_io_concurrency = "200"; # SSD
+        random_page_cost = "1.1"; # NVMe
+        effective_io_concurrency = "200"; # NVMe
+        maintenance_io_concurrency = "200"; # NVMe: VACUUM, CREATE INDEX
         default_statistics_target = "100";
 
         # parallelism
-        max_worker_processes = "4";
-        max_parallel_workers_per_gather = "2";
-        max_parallel_workers = "4";
-        max_parallel_maintenance_workers = "2";
+        max_worker_processes = "8";
+        max_parallel_workers_per_gather = "4";
+        max_parallel_workers = "8";
+        max_parallel_maintenance_workers = "4";
 
         # logging
         log_min_duration_statement = "1000"; # log queries over 1s
 
-        # huge pages: let the kernel decide
-        huge_pages = "try";
+        # EPYC supports 2MB and 1GB huge pages
+        huge_pages = "on";
 
-        # JIT: compile complex queries
+        # JIT
         jit = "on";
       } // cfg.extraSettings;
     };
