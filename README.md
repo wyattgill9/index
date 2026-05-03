@@ -34,7 +34,7 @@ ix-images.lib.mkIxImage {
 
 ### Minecraft with mods
 
-The built-in `minecraft` image ships with performance mods, Distant Horizons, BlueMap, voice chat, and more. The Fabric loader, mod catalog, and versions are handled automatically. To customize, just override the parts you care about:
+The built-in `minecraft` image ships with performance mods (lithium, c2me, krypton, ferrite-core, servercore, vmp, clumps) and the Fabric loader. Everything else is opt-in:
 
 ```nix
 # images/games/my-mc/default.nix
@@ -50,9 +50,11 @@ The built-in `minecraft` image ships with performance mods, Distant Horizons, Bl
       max-players = 20;
     };
     mods = {
-      # terrain gen (pairs with Distant Horizons for dramatic long-range views)
+      # terrain gen + long-range LOD rendering
       terralith = {};
       tectonic = {};
+      distanthorizons = { maxRenderDistance = 512; };
+      chunky = {};
 
       # web map backed by MariaDB
       bluemap = { mysql = true; };
@@ -60,14 +62,15 @@ The built-in `minecraft` image ships with performance mods, Distant Horizons, Bl
       # permissions backed by MariaDB
       luckperms = { mysql = true; };
 
-      # proximity voice chat
+      # proximity voice chat + profiler
       simple-voice-chat = {};
+      spark = {};
     };
   };
 }
 ```
 
-Mods are keyed by [Modrinth](https://modrinth.com) slug. Empty `{}` includes the jar. Attrsets with fields configure the mod. Setting `mysql = true` auto-provisions MariaDB with the right databases and users. Performance mods (lithium, c2me, krypton, ferrite-core), Distant Horizons, Chunky, Spark, and the Fabric loader are all included by default.
+Mods are keyed by [Modrinth](https://modrinth.com) slug. Empty `{}` includes the jar. Attrsets with fields configure the mod. Setting `mysql = true` auto-provisions MariaDB with the right databases and users. The mod catalog and Fabric loader are handled automatically.
 
 All [NixOS options](https://search.nixos.org/options) work. Images are NixOS configs with systemd as PID 1.
 
