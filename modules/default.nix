@@ -9,6 +9,7 @@
 {
   base = ./profiles/base.nix;
   git-clone = ./services/git-clone.nix;
+  minestom = ./services/minestom.nix;
   postgresql = ./services/postgresql.nix;
   remote-desktop = ./services/remote-desktop.nix;
 
