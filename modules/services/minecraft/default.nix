@@ -2,9 +2,9 @@
 #
 # Loader-agnostic. Provides systemd unit, server.properties templating, mods,
 # Java runtime, port. `serverJar` and `dropDir` are slots filled by a loader
-# module (`./fabric.nix`, `./paper.nix`, `./vanilla.nix`, ...) via module
-# merging. `dropDir` is where mod jars get symlinked: fabric uses `mods`,
-# paper uses `plugins`.
+# module (fabric, folia, neoforge, paper, purpur, spigot, sponge, vanilla) via
+# module merging. `dropDir` is where mod jars get symlinked: fabric/neoforge/sponge
+# use `mods`, paper/folia/purpur/spigot use `plugins`.
 #
 # Mods are selected via `services.minecraft.mods`, a slug-keyed attrset.
 # Bare `{}` includes the jar; attrsets with fields configure the mod (mod

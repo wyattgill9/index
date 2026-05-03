@@ -1,5 +1,5 @@
 # Module registry. Single source of truth for both:
-#   - `nixosSystem { modules = ... }` (consumed via attrValues by lib/)
+#   - `nixosSystem { modules = ... }` (leaf paths collected by lib/)
 #   - the `modules` flake output (consumed by external users who want one
 #     module without depending on ix-base)
 #
@@ -9,14 +9,24 @@
 {
   base = ./profiles/base.nix;
   git-clone = ./services/git-clone.nix;
-  minecraft = ./services/minecraft;
   postgresql = ./services/postgresql.nix;
-  minecraft-fabric = ./services/minecraft/fabric.nix;
-  minecraft-paper = ./services/minecraft/paper.nix;
-  minecraft-vanilla = ./services/minecraft/vanilla.nix;
-  minecraft-mod-bluemap = ./services/minecraft/mods/bluemap.nix;
-  minecraft-mod-distant-horizons = ./services/minecraft/mods/distant-horizons.nix;
-  minecraft-mod-luckperms = ./services/minecraft/mods/luckperms.nix;
-  minecraft-mod-simple-voice-chat = ./services/minecraft/mods/simple-voice-chat.nix;
   remote-desktop = ./services/remote-desktop.nix;
+
+  minecraft = {
+    runtime = ./services/minecraft;
+    fabric = ./services/minecraft/fabric.nix;
+    folia = ./services/minecraft/folia.nix;
+    neoforge = ./services/minecraft/neoforge.nix;
+    paper = ./services/minecraft/paper.nix;
+    purpur = ./services/minecraft/purpur.nix;
+    spigot = ./services/minecraft/spigot.nix;
+    sponge = ./services/minecraft/sponge.nix;
+    vanilla = ./services/minecraft/vanilla.nix;
+    mods = {
+      bluemap = ./services/minecraft/mods/bluemap.nix;
+      distant-horizons = ./services/minecraft/mods/distant-horizons.nix;
+      luckperms = ./services/minecraft/mods/luckperms.nix;
+      simple-voice-chat = ./services/minecraft/mods/simple-voice-chat.nix;
+    };
+  };
 }

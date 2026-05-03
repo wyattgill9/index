@@ -70,7 +70,7 @@ When several modules vary along one axis (e.g. minecraft + fabric/paper/vanilla 
 
 For minecraft this means:
 - `services.minecraft.serverJar` is the slot, declared by the runtime.
-- Each loader module (`fabric.nix`, `paper.nix`, `vanilla.nix`) sets `services.minecraft.serverJar` from its own URL/version options.
+- Each loader module (fabric, folia, neoforge, paper, purpur, spigot, sponge, vanilla) sets `services.minecraft.serverJar` from its own URL/version options.
 - Enabling a loader auto-enables the runtime via `mkDefault`.
 - Enabling two loaders is a module-merge conflict → loud eval error.
 
@@ -109,7 +109,7 @@ in
 }
 ```
 
-Mods without config (lithium, krypton, chunky) do not need a module. The slug in `mods` is sufficient. Register mod modules in `modules/default.nix` as `minecraft-mod-<name>`.
+Mods without config (lithium, krypton, chunky) do not need a module. The slug in `mods` is sufficient. Register mod modules in `modules/default.nix` under `minecraft.mods.<name>`.
 
 ### Config file format inference
 
@@ -173,10 +173,10 @@ When adding new modules or packages, do not override compiler flags per-package.
 
 ## Nix philosophy
 
-- **Single source of truth.** `modules/default.nix` is the only place modules are listed; `attrValues` derives the list. Versions live next to the image in `versions.nix`, not in `flake.nix`. Hashes live next to URLs.
+- **Single source of truth.** `modules/default.nix` is the only place modules are listed; `lib.collect` derives the flat list from the nested attrset. Versions live next to the image in `versions.nix`, not in `flake.nix`. Hashes live next to URLs.
 - **No backwards compat.** This repo is young and has no external consumers. Rename freely, change signatures, delete dead code. No shims, no aliases, no `// removed` comments, no feature flags for the old way. Update callers in the same change.
 - **Auto-discover, don't enumerate.** `flake.nix` walks `images/`. Adding an image is `mkdir + edit one file`. Hand-wired registries rot.
-- **DRY at the data layer, not the abstraction layer.** `inherit (pkgs) ...` over a wrapper helper. `attrValues` over a parallel list. Don't introduce a function unless it has at least two callers; the minecraft-loader helper qualifies because three loaders share the same shape.
+- **DRY at the data layer, not the abstraction layer.** `inherit (pkgs) ...` over a wrapper helper. `lib.collect` over a parallel list. Don't introduce a function unless it has at least two callers; the minecraft-loader helper qualifies because eight loaders share the same shape.
 - **Comments explain why, not what.** Headers say what each file is for and what's load-bearing (e.g. `maxLayers = 67` with the registry-cap rationale, base profile auto-enabled). Don't restate what the code obviously does.
 - **Trust module merging.** Layer per-version overlays via the module system, not by passing args to factory functions. Service families (runtime + variants) compose through option slots, not through wrappers.
 - **Pure eval.** No `builtins.currentSystem`, no `builtins.getEnv`, no `<nixpkgs>` channel refs, no `path:` flake refs. Every input flows through `flake.nix`.

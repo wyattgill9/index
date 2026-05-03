@@ -38,9 +38,8 @@ let
     })
   ];
 
-  # The module registry. attrValues keeps the list and the per-name attrset
-  # in sync without duplicating paths.
-  moduleList = lib.attrValues (import ../modules);
+  # The module registry. collect picks all leaf paths from the nested attrset.
+  moduleList = lib.collect builtins.isPath (import ../modules);
 
   mkMinecraftLoader = import ./minecraft-loader.nix;
 

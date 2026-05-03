@@ -34,7 +34,7 @@ ix-images.lib.mkIxImage {
 
 ### Minecraft with mods
 
-The built-in `minecraft` image ships with performance mods (lithium, c2me, krypton, ferrite-core, servercore, vmp, clumps) and the Fabric loader. Everything else is opt-in:
+The built-in `minecraft` image ships with performance mods (lithium, c2me, krypton, ferrite-core, servercore, vmp, clumps) and the Fabric loader. Supported loaders: Fabric, Folia, NeoForge, Paper, Purpur, Spigot, Sponge, Vanilla. Everything else is opt-in:
 
 ```nix
 # images/games/my-mc/default.nix
