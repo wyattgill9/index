@@ -106,7 +106,7 @@ in
     };
 
     serverProperties = mkOption {
-      type = types.attrsOf types.str;
+      type = types.attrsOf (types.oneOf [ types.str types.int types.bool ]);
       default = { };
     };
 

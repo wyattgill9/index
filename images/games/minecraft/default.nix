@@ -15,7 +15,7 @@
     enable = true;
     serverProperties = {
       motd = "ix-powered Minecraft";
-      max-players = "20";
+      max-players = 20;
     };
     mods = map pkgs.fetchurl (lib.attrValues (builtins.fromJSON (builtins.readFile ./mods/common.json)));
   };
