@@ -5,6 +5,7 @@
 # `./paper.nix`, `./vanilla.nix`, ...) supplies it via module merging.
 {
   config,
+  ix,
   lib,
   pkgs,
   ...
@@ -20,14 +21,9 @@ let
 
   dataDir = "/var/lib/minecraft";
 
-  # Caller-provided properties first; we then pin server-port so the
-  # systemd-managed firewall and the running server agree.
+  # Pin server-port so the systemd-managed firewall and the running server agree.
   propsFile = pkgs.writeText "server.properties" (
-    lib.concatStringsSep "\n" (
-      lib.mapAttrsToList (k: v: "${k}=${v}") (
-        cfg.serverProperties // { server-port = toString cfg.port; }
-      )
-    )
+    ix.toProperties (cfg.serverProperties // { server-port = cfg.port; })
   );
 
   modLinks = lib.concatMapStrings (mod: "ln -sf ${mod} ${dataDir}/mods/\n") cfg.mods;
