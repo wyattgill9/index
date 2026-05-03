@@ -4,7 +4,7 @@ Pre-built OCI images for [ix](https://ix.dev) VMs.
 
 ```bash
 ix new minecraft          # Fabric server
-ix new remote-desktop     # Xvfb + noVNC desktop
+ix new remote-desktop     # Xpra HTML5 desktop
 ix new kernel-dev         # Linux kernel source + build tools
 ```
 
@@ -36,7 +36,7 @@ All [NixOS options](https://search.nixos.org/options) work. Images are NixOS con
 
 ## Contributing
 
-Community contributions are welcome through [issues](https://github.com/indexable-inc/images/issues) and [pull requests](https://github.com/indexable-inc/images/pulls). Add `images/<category>/<name>/default.nix`, wire into `flake.nix`. See [AGENTS.md](AGENTS.md) for conventions.
+Community contributions are welcome through [issues](https://github.com/indexable-inc/images/issues) and [pull requests](https://github.com/indexable-inc/images/pulls). Add `images/<category>/<name>/default.nix`; discovery wires it into the flake. See [AGENTS.md](AGENTS.md) for conventions.
 
 ## Related
 

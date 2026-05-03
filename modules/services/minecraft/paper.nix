@@ -13,8 +13,8 @@ ix.mkMinecraftLoader {
   urlFor =
     cfg:
     "https://api.papermc.io/v2/projects/paper/versions/${cfg.minecraftVersion}/builds/${toString cfg.build}/downloads/paper-${cfg.minecraftVersion}-${toString cfg.build}.jar";
-  extraOptions = lib': {
-    minecraftVersion = lib'.mkOption { type = lib'.types.str; };
-    build = lib'.mkOption { type = lib'.types.int; };
+  extraOptions = {
+    minecraftVersion = lib.mkOption { type = lib.types.str; };
+    build = lib.mkOption { type = lib.types.int; };
   };
 }

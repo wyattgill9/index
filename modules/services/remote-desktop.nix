@@ -1,6 +1,4 @@
-# Browser-accessible remote desktop: Xvfb (virtual X server) → x11vnc (VNC
-# bridge on :5900) → noVNC (websocket-to-VNC proxy on `port`). Browsers hit
-# `port`; the inner VNC is loopback only.
+# Browser-accessible remote desktop backed by Xpra's built-in HTML5 client.
 {
   config,
   lib,
@@ -8,65 +6,141 @@
   ...
 }:
 let
-  inherit (lib) mkEnableOption mkOption mkIf types;
+  inherit (lib)
+    mkEnableOption
+    mkIf
+    mkOption
+    mkPackageOption
+    types
+    ;
   cfg = config.services.remote-desktop;
+
+  defaultSession = pkgs.writeShellApplication {
+    name = "ix-remote-desktop-session";
+    runtimeInputs = [
+      pkgs.icewm
+      pkgs.xterm
+    ];
+    text = ''
+      xterm &
+      exec icewm-session
+    '';
+  };
+
+  launcher = pkgs.writeShellApplication {
+    name = "ix-remote-desktop";
+    runtimeInputs = [ cfg.package ];
+    text = ''
+      exec xpra ${
+        lib.escapeShellArgs (
+          [
+            "start-desktop"
+            cfg.display
+            "--start=${cfg.desktopCommand}"
+            "--bind-tcp=${cfg.bindAddress}:${toString cfg.port}"
+            "--auth=${cfg.auth}"
+            "--resize-display=${cfg.resolution}"
+            "--socket-dirs=/run/remote-desktop"
+            "--html=on"
+            "--ssl=off"
+            "--daemon=no"
+            "--mdns=no"
+            "--pulseaudio=no"
+            "--notifications=no"
+            "--webcam=no"
+            "--printing=no"
+            "--file-transfer=off"
+            "--open-files=off"
+            "--clipboard=on"
+          ]
+          ++ cfg.extraOptions
+        )
+      }
+    '';
+  };
 in
 {
   options.services.remote-desktop = {
-    enable = mkEnableOption "remote desktop via Xvfb + x11vnc + noVNC";
+    enable = mkEnableOption "browser-accessible Xpra remote desktop";
 
-    resolution = mkOption {
-      type = types.str;
-      default = "1920x1080x24";
-    };
+    package = mkPackageOption pkgs "xpra" { };
 
     port = mkOption {
       type = types.port;
       default = 6080;
+      description = "TCP port for the Xpra HTML5 client.";
+    };
+
+    bindAddress = mkOption {
+      type = types.str;
+      default = "0.0.0.0";
+      description = "Address Xpra binds for browser clients.";
+    };
+
+    display = mkOption {
+      type = types.str;
+      default = ":100";
+      description = "X display number managed by Xpra.";
+    };
+
+    resolution = mkOption {
+      type = types.str;
+      default = "1920x1080";
+      description = "Initial virtual display resolution.";
+    };
+
+    desktopCommand = mkOption {
+      type = types.str;
+      default = lib.getExe defaultSession;
+      defaultText = lib.literalExpression ''"${lib.getExe defaultSession}"'';
+      description = "Command Xpra starts as the desktop session.";
+    };
+
+    auth = mkOption {
+      type = types.str;
+      default = "none";
+      description = "Xpra authentication module for incoming clients.";
+    };
+
+    extraOptions = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "Additional command-line options passed to Xpra.";
     };
   };
 
   config = mkIf cfg.enable {
     environment.systemPackages = [
-      pkgs.xorg-server
-      pkgs.x11vnc
-      pkgs.novnc
+      cfg.package
+      pkgs.icewm
+      pkgs.xterm
     ];
 
     networking.firewall.allowedTCPPorts = [ cfg.port ];
 
-    systemd.services.xvfb = {
-      description = "Xvfb display server";
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        Type = "simple";
-        ExecStart = "${pkgs.xorg-server}/bin/Xvfb :99 -screen 0 ${cfg.resolution}";
-        Restart = "always";
-      };
+    users.groups.remote-desktop = { };
+    users.users.remote-desktop = {
+      description = "Remote desktop service user";
+      isSystemUser = true;
+      group = "remote-desktop";
+      home = "/var/lib/remote-desktop";
     };
 
-    systemd.services.x11vnc = {
-      description = "x11vnc server";
-      after = [ "xvfb.service" ];
-      requires = [ "xvfb.service" ];
+    systemd.services.remote-desktop = {
+      description = "Xpra remote desktop";
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
-      environment.DISPLAY = ":99";
+      environment.HOME = "/var/lib/remote-desktop";
       serviceConfig = {
         Type = "simple";
-        ExecStart = "${pkgs.x11vnc}/bin/x11vnc -display :99 -rfbport 5900 -forever -shared -nopw";
-        Restart = "always";
-      };
-    };
-
-    systemd.services.novnc = {
-      description = "noVNC websocket proxy";
-      after = [ "x11vnc.service" ];
-      requires = [ "x11vnc.service" ];
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        Type = "simple";
-        ExecStart = "${pkgs.novnc}/bin/websockify --web ${pkgs.novnc}/share/novnc ${toString cfg.port} localhost:5900";
-        Restart = "always";
+        User = "remote-desktop";
+        Group = "remote-desktop";
+        StateDirectory = "remote-desktop";
+        RuntimeDirectory = "remote-desktop";
+        WorkingDirectory = "/var/lib/remote-desktop";
+        ExecStart = lib.getExe launcher;
+        Restart = "on-failure";
       };
     };
   };

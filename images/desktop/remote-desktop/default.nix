@@ -1,5 +1,4 @@
-# Remote desktop image: bare X session reachable over noVNC, plus xterm and
-# firefox so there's something to look at on first boot.
+# Remote desktop image: Xpra HTML5 desktop, plus firefox for first boot.
 { pkgs, ... }:
 {
   ix.image.name = "ix-remote-desktop";

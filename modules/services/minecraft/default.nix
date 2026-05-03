@@ -1,7 +1,7 @@
 # Minecraft server runtime.
 #
 # Loader-agnostic. Provides systemd unit, server.properties templating, mods,
-# JDK, port. `serverJar` is required: a loader module (`./fabric.nix`,
+# Java runtime, port. `serverJar` is required: a loader module (`./fabric.nix`,
 # `./paper.nix`, `./vanilla.nix`, ...) supplies it via module merging.
 {
   config,
@@ -31,6 +31,18 @@ let
   );
 
   modLinks = lib.concatMapStrings (mod: "ln -sf ${mod} ${dataDir}/mods/\n") cfg.mods;
+
+  javaArgs = [
+    "${cfg.javaPackage}/bin/java"
+    "-Xms${cfg.memory}"
+    "-Xmx${cfg.memory}"
+  ]
+  ++ cfg.jvmFlags
+  ++ [
+    "-jar"
+    "${cfg.serverJar}"
+    "nogui"
+  ];
 in
 {
   options.services.minecraft = {
@@ -51,9 +63,24 @@ in
       default = [ ];
     };
 
-    jdk = mkOption {
+    javaPackage = mkOption {
       type = types.package;
       default = pkgs.temurin-jre-bin-25;
+      description = "Java runtime used to launch the server.";
+    };
+
+    jvmFlags = mkOption {
+      type = types.listOf types.str;
+      default = [
+        "-XX:+UseG1GC"
+        "-XX:+ParallelRefProcEnabled"
+        "-XX:MaxGCPauseMillis=200"
+        "-XX:+DisableExplicitGC"
+        "-XX:+AlwaysPreTouch"
+        "-XX:InitiatingHeapOccupancyPercent=15"
+        "-XX:+PerfDisableSharedMem"
+      ];
+      description = "JVM flags used after heap sizing and before -jar.";
     };
 
     serverProperties = mkOption {
@@ -78,7 +105,7 @@ in
       serviceConfig = {
         Type = "simple";
         WorkingDirectory = dataDir;
-        ExecStart = "${cfg.jdk}/bin/java -Xms1G -Xmx${cfg.memory} -jar ${cfg.serverJar} nogui";
+        ExecStart = lib.escapeShellArgs javaArgs;
         Restart = "on-failure";
       };
       preStart = ''

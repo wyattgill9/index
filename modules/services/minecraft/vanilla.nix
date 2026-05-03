@@ -12,9 +12,9 @@ ix.mkMinecraftLoader {
   inherit config lib pkgs;
   name = "vanilla";
   urlFor = cfg: cfg.url;
-  extraOptions = lib': {
-    url = lib'.mkOption {
-      type = lib'.types.str;
+  extraOptions = {
+    url = lib.mkOption {
+      type = lib.types.str;
       description = "Direct URL to the Mojang server jar.";
     };
   };

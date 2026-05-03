@@ -36,13 +36,25 @@ Drop a NixOS module at `images/<category>/<name>/default.nix`. That's it: discov
 For a versioned image (multiple variants ship at once), add a `versions.nix` sibling:
 
 ```nix
-{
+{ lib, ... }:
+let
   default = "26w17a-fabric";
-  "26w17a-fabric" = {
-    ix.image.tag = "26w17a-fabric";
-    services.minecraft.fabric = { /* loader-specific args */ };
+  variants = {
+    "26w17a-fabric" = {
+      loader = "fabric";
+      /* loader-specific args */
+    };
   };
+in
+{
+  inherit default;
 }
+// lib.mapAttrs (tag: { loader, ... }@cfg: {
+  ix.image.tag = tag;
+  services.minecraft.${loader} = (builtins.removeAttrs cfg [ "loader" ]) // {
+    enable = true;
+  };
+}) variants
 ```
 
 Discovery then exposes `<name>_<ver>` for each version key plus `<name>` as an alias for the `default` version.
@@ -72,7 +84,7 @@ ix.mkMinecraftLoader {
   inherit config lib pkgs;
   name = "fabric";
   urlFor = cfg: "https://meta.fabricmc.net/v2/...";
-  extraOptions = lib': { /* ... */ };
+  extraOptions = { /* loader-specific options */ };
 }
 ```
 

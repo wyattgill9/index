@@ -35,7 +35,9 @@ let
   };
 
   mkIxImage =
-    { modules ? [ ] }:
+    {
+      modules ? [ ],
+    }:
     (lib.nixosSystem {
       inherit system;
       specialArgs.ix = ixSpecialArgs;
@@ -61,16 +63,21 @@ let
     in
     if builtins.pathExists versionsPath then
       let
-        versions = import versionsPath;
+        versions = import versionsPath { inherit lib; };
         defaultVer = versions.default;
         verMods = builtins.removeAttrs versions [ "default" ];
         verPkgs = lib.mapAttrs' (
           ver: mod:
-          lib.nameValuePair "${name}_${ver}" (mkIxImage { modules = [ path mod ]; })
+          lib.nameValuePair "${name}_${ver}" (mkIxImage {
+            modules = [
+              path
+              mod
+            ];
+          })
         ) verMods;
         defaultKey = "${name}_${defaultVer}";
       in
-      assert lib.assertMsg (verPkgs ? ${defaultKey})
+      assert lib.assertMsg (builtins.hasAttr defaultKey verPkgs)
         "image '${name}': versions.nix default = \"${defaultVer}\" but no version with that key";
       verPkgs // { ${name} = verPkgs.${defaultKey}; }
     else

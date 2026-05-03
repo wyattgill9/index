@@ -10,51 +10,65 @@
   ...
 }:
 {
-  options.ix.profiles.base.enable = lib.mkEnableOption "base CLI tools (editors, shells, network, files, debug, misc)";
+  options.ix.profiles.base.enable =
+    lib.mkEnableOption "base CLI tools (editors, shells, network, files, debug, misc)";
 
   config = lib.mkIf config.ix.profiles.base.enable {
-    environment.systemPackages =
-      builtins.attrValues {
-        # editors
-        inherit (pkgs) neovim;
+    environment.systemPackages = builtins.attrValues {
+      # editors
+      inherit (pkgs) neovim;
 
-        # shells
-        inherit (pkgs) nushell fish zsh;
+      # shells
+      inherit (pkgs) nushell fish zsh;
 
-        # net
-        inherit (pkgs) curl wget openssh iproute2 dnsutils;
+      # net
+      inherit (pkgs)
+        curl
+        wget
+        openssh
+        iproute2
+        dnsutils
+        ;
 
-        # files
-        inherit (pkgs) ripgrep fd file tree unzip less jq;
+      # files
+      inherit (pkgs)
+        ripgrep
+        fd
+        file
+        tree
+        unzip
+        less
+        jq
+        ;
 
-        # debug
-        inherit (pkgs)
-          btop
-          htop
-          strace
-          lsof
-          gdb
-          procps
-          tcpdump
-          perf
-          ;
+      # debug
+      inherit (pkgs)
+        btop
+        htop
+        strace
+        lsof
+        gdb
+        procps
+        tcpdump
+        perf
+        ;
 
-        # misc
-        inherit (pkgs)
-          tmux
-          zellij
-          git
-          bat
-          eza
-          zoxide
-          fzf
-          delta
-          dust
-          duf
-          hyperfine
-          tokei
-          ;
-      };
+      # misc
+      inherit (pkgs)
+        tmux
+        zellij
+        git
+        bat
+        eza
+        zoxide
+        fzf
+        delta
+        dust
+        duf
+        hyperfine
+        tokei
+        ;
+    };
 
     programs.bash.completion.enable = true;
     programs.zsh.enable = true;

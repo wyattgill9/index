@@ -13,7 +13,7 @@
   pkgs,
   name,
   urlFor,
-  extraOptions ? _: { },
+  extraOptions ? { },
 }:
 let
   cfg = config.services.minecraft.${name};
@@ -25,7 +25,8 @@ in
       type = lib.types.str;
       description = "SRI hash of the server jar (sha256-...=).";
     };
-  } // (extraOptions lib);
+  }
+  // extraOptions;
 
   config = lib.mkIf cfg.enable {
     services.minecraft.enable = lib.mkDefault true;

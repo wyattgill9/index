@@ -69,7 +69,10 @@
           # Below the 127-layer registry limit with headroom for systemRoot
           # plus a few user layers.
           maxLayers = 67;
-          contents = [ toplevel systemRoot ];
+          contents = [
+            toplevel
+            systemRoot
+          ];
           config.Entrypoint = [ "${toplevel}/init" ];
         };
       in

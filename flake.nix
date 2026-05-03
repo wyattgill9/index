@@ -13,6 +13,8 @@
       modules = import ./modules;
 
       packages.${ix.system} = ix.discoverImages ./images;
+      checks.${ix.system}.eval = import ./tests { inherit nixpkgs ix; };
+      formatter.${ix.system} = nixpkgs.legacyPackages.${ix.system}.nixfmt;
 
       templates.default = {
         path = ./template;
