@@ -17,7 +17,7 @@ let
     (lib.nixosSystem {
       inherit system;
       specialArgs.ix = {
-        inherit (ix) mkMinecraftLoader;
+        inherit (ix) mkMinecraftLoader toProperties;
       };
       modules = [
         ../lib/ix-base.nix

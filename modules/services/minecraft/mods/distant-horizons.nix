@@ -1,26 +1,21 @@
 # Distant Horizons: server-side LOD generation for clients running DH.
+#
+# Activated when `services.minecraft.mods.distanthorizons` is set.
+# Generates DistantHorizons.toml from the user's attrset (with defaults).
 { config, lib, ... }:
 let
-  cfg = config.services.minecraft.mod.distant-horizons;
+  modCfg = config.services.minecraft.mods.distanthorizons or null;
+  defaults = {
+    serverSideLodGeneration = true;
+    maxRenderDistance = 256;
+  };
+  merged = defaults // (if modCfg == null then { } else modCfg);
 in
 {
-  options.services.minecraft.mod.distant-horizons = {
-    enable = lib.mkEnableOption "Distant Horizons LOD generation";
-    serverSideLodGeneration = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-    };
-    maxRenderDistance = lib.mkOption {
-      type = lib.types.int;
-      default = 256;
-    };
-  };
-
-  config = lib.mkIf cfg.enable {
-    services.minecraft.extraModSlugs = [ "distanthorizons" ];
+  config = lib.mkIf (modCfg != null) {
     services.minecraft.configFiles."DistantHorizons.toml" = {
       server = {
-        inherit (cfg) serverSideLodGeneration maxRenderDistance;
+        inherit (merged) serverSideLodGeneration maxRenderDistance;
       };
     };
   };

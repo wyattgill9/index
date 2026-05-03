@@ -74,39 +74,42 @@ For minecraft this means:
 - Enabling a loader auto-enables the runtime via `mkDefault`.
 - Enabling two loaders is a module-merge conflict → loud eval error.
 
-## Mod modules
+## Mods
 
-Mods with configuration get their own NixOS module at `modules/services/minecraft/mods/<name>.nix`. Each declares options under `services.minecraft.mod.<name>`, injects its Modrinth slug via `extraModSlugs`, and sets config files. Enabling the mod is a single flag.
+All mods go in `services.minecraft.mods`, keyed by Modrinth slug. Empty `{}` includes the jar with defaults. Attrsets with fields configure the mod.
+
+```nix
+services.minecraft.mods = {
+  fabric-api = {};
+  lithium = {};
+  distanthorizons.maxRenderDistance = 512;
+};
+```
+
+The `modCatalog` option maps slugs to `{ url, hash }`. Set by the image base (from `common.json`) and version overlays (from `<version>.json`). The runtime resolves every key in `mods` against the catalog via `pkgs.fetchurl`.
+
+### Mod modules
+
+Mods with config files get a NixOS module at `modules/services/minecraft/mods/<name>.nix`. The module activates when `services.minecraft.mods.<slug>` is present, reads the user's attrset (with defaults), and generates `configFiles`.
 
 ```nix
 # modules/services/minecraft/mods/distant-horizons.nix
 { config, lib, ... }:
 let
-  cfg = config.services.minecraft.mod.distant-horizons;
+  modCfg = config.services.minecraft.mods.distanthorizons or null;
+  defaults = { serverSideLodGeneration = true; maxRenderDistance = 256; };
+  merged = defaults // (if modCfg == null then {} else modCfg);
 in
 {
-  options.services.minecraft.mod.distant-horizons = {
-    enable = lib.mkEnableOption "Distant Horizons LOD generation";
-    maxRenderDistance = lib.mkOption {
-      type = lib.types.int;
-      default = 256;
-    };
-  };
-
-  config = lib.mkIf cfg.enable {
-    services.minecraft.extraModSlugs = [ "distanthorizons" ];
+  config = lib.mkIf (modCfg != null) {
     services.minecraft.configFiles."DistantHorizons.toml" = {
-      server.maxRenderDistance = cfg.maxRenderDistance;
+      server = { inherit (merged) serverSideLodGeneration maxRenderDistance; };
     };
   };
 }
 ```
 
-Usage in an image: `services.minecraft.mod.distant-horizons.enable = true;`
-
-The slug must also appear in `manifest.json` so `tools/update-mods.py` includes it in the per-version catalog. Simple mods without configuration (lithium, krypton) stay as raw slugs in the loader's `mods` list and do not need a mod module.
-
-Register each mod module in `modules/default.nix` as `minecraft-mod-<name>`.
+Mods without config (lithium, krypton, chunky) do not need a module. The slug in `mods` is sufficient. Register mod modules in `modules/default.nix` as `minecraft-mod-<name>`.
 
 ### Config file format inference
 

@@ -47,28 +47,26 @@ ix-images.lib.mkIxImage {
       simulation-distance = 12;
       max-players = 10;
     };
-    mod.distant-horizons = {
-      enable = true;
-      maxRenderDistance = 512;
+    mods = {
+      fabric-api = {};
+      lithium = {};
+      c2me-fabric = {};
+      chunky = {};
+      distanthorizons.maxRenderDistance = 512;
     };
-    mod.chunky.enable = true;
-  };
-
-  services.minecraft.fabric = {
-    enable = true;
-    minecraftVersion = "26.1.2";
-    loaderVersion = "0.19.2";
-    installerVersion = "1.1.1";
-    hash = "sha256-6RvRm5/w4ExXhD5iTS9U0KPjmgSMr8pejiDrmENEXb0=";
-    mods = [ "fabric-api" "lithium" "c2me-fabric" ];
     modCatalog = builtins.fromJSON (builtins.readFile ./mods.json);
+    fabric = {
+      enable = true;
+      minecraftVersion = "26.1.2";
+      loaderVersion = "0.19.2";
+      installerVersion = "1.1.1";
+      hash = "sha256-6RvRm5/w4ExXhD5iTS9U0KPjmgSMr8pejiDrmENEXb0=";
+    };
   };
 }
 ```
 
-Mod modules handle the jar slug and config generation. Enable a mod, set its options, done. Mods without a module (like `lithium`) stay as raw slugs in the loader's `mods` list.
-
-Generate `mods.json` with `python3 tools/update-mods.py`. Mods are resolved by [Modrinth](https://modrinth.com) slug.
+All mods go in one `mods` attrset keyed by [Modrinth](https://modrinth.com) slug. Empty `{}` includes the jar. Attrsets with fields configure the mod (mod modules read these and generate config files). Generate `mods.json` with `python3 tools/update-mods.py`.
 
 All [NixOS options](https://search.nixos.org/options) work. Images are NixOS configs with systemd as PID 1.
 
