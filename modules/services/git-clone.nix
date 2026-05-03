@@ -38,7 +38,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages = [ pkgs.git ];
+    environment.systemPackages = [ pkgs.gitoxide ];
 
     systemd.services.git-clone = {
       description = "Clone ${cfg.url}";
@@ -49,15 +49,15 @@ in
         Type = "oneshot";
         RemainAfterExit = true;
       };
-      path = [ pkgs.git ];
+      path = [ pkgs.gitoxide ];
       script =
         let
           depthFlag = lib.optionalString cfg.shallow "--depth 1";
-          branchFlag = lib.optionalString (cfg.ref != null) "--branch ${lib.escapeShellArg cfg.ref}";
+          refFlag = lib.optionalString (cfg.ref != null) "--ref ${lib.escapeShellArg cfg.ref}";
         in
         ''
           if [ ! -d "${cfg.dest}/.git" ]; then
-            git clone ${depthFlag} ${branchFlag} ${lib.escapeShellArg cfg.url} ${lib.escapeShellArg cfg.dest}
+            gix clone ${depthFlag} ${refFlag} ${lib.escapeShellArg cfg.url} ${lib.escapeShellArg cfg.dest}
           fi
         '';
     };
