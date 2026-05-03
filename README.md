@@ -32,15 +32,22 @@ ix-images.lib.mkIxImage {
 }
 ```
 
-### Minecraft with mods
+### Minecraft with Folia
 
-The built-in `minecraft` image ships with performance mods (lithium, c2me, krypton, ferrite-core, servercore, vmp, clumps) and the Fabric loader. Supported loaders: Fabric, Folia, NeoForge, Paper, Purpur, Spigot, Sponge, Vanilla. Everything else is opt-in:
+[Folia](https://papermc.io/software/folia) is PaperMC's regionized multithreading fork. Supported loaders: Fabric, Folia, NeoForge, Paper, Purpur, Spigot, Sponge, Vanilla.
 
 ```nix
 # images/games/my-mc/default.nix
 { ... }:
 {
   ix.image.name = "my-mc";
+
+  services.minecraft.folia = {
+    enable = true;
+    minecraftVersion = "1.21.4";
+    build = 97;
+    hash = lib.fakeHash;
+  };
 
   services.minecraft = {
     memory = "8G";
@@ -50,19 +57,10 @@ The built-in `minecraft` image ships with performance mods (lithium, c2me, krypt
       max-players = 20;
     };
     mods = {
-      # terrain gen + long-range LOD rendering
-      terralith = {};
-      tectonic = {};
       distanthorizons = { maxRenderDistance = 512; };
       chunky = {};
-
-      # web map backed by MariaDB
       bluemap = { mysql = true; };
-
-      # permissions backed by MariaDB
       luckperms = { mysql = true; };
-
-      # proximity voice chat + profiler
       simple-voice-chat = {};
       spark = {};
     };
@@ -70,7 +68,7 @@ The built-in `minecraft` image ships with performance mods (lithium, c2me, krypt
 }
 ```
 
-Mods are keyed by [Modrinth](https://modrinth.com) slug. Empty `{}` includes the jar. Attrsets with fields configure the mod. Setting `mysql = true` auto-provisions MariaDB with the right databases and users. The mod catalog and Fabric loader are handled automatically.
+Mods are keyed by [Modrinth](https://modrinth.com) slug. Empty `{}` includes the jar. Attrsets with fields configure the mod. Setting `mysql = true` auto-provisions MariaDB with the right databases and users.
 
 All [NixOS options](https://search.nixos.org/options) work. Images are NixOS configs with systemd as PID 1.
 
