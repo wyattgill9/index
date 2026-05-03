@@ -16,11 +16,27 @@
 # `mkMinecraftLoader` is one of several cross-cutting helpers exposed to
 # modules via `specialArgs.ix`. Modules access them as `{ ix, ... }: ix.foo`
 # instead of relative-path imports.
-{ nixpkgs }:
+{
+  nixpkgs,
+  llm-agents,
+  claude-code-nix,
+  codex-cli-nix,
+}:
 let
   inherit (nixpkgs) lib;
 
   system = "x86_64-linux";
+
+  # Overlays: llm-agents base + claude/codex from dedicated flakes.
+  overlays = [
+    llm-agents.overlays.default
+    (final: prev: {
+      llm-agents = prev.llm-agents // {
+        claude-code = claude-code-nix.packages.${final.stdenv.hostPlatform.system}.claude-code;
+        codex = codex-cli-nix.packages.${final.stdenv.hostPlatform.system}.codex;
+      };
+    })
+  ];
 
   # The module registry. attrValues keeps the list and the per-name attrset
   # in sync without duplicating paths.
@@ -45,7 +61,11 @@ let
     }:
     (lib.nixosSystem {
       specialArgs.ix = ixSpecialArgs;
-      modules = [ ./ix-platform.nix ./ix-oci-layer.nix ] ++ moduleList ++ modules;
+      modules = [
+        { nixpkgs.overlays = overlays; }
+        ./ix-platform.nix
+        ./ix-oci-layer.nix
+      ] ++ moduleList ++ modules;
     }).config.ix.build.ociImage;
 
   # Subdirectories of `dir`. Used to walk images/<cat>/<name>/.

@@ -15,6 +15,9 @@
 
   config = lib.mkIf config.ix.profiles.base.enable {
     environment.systemPackages = builtins.attrValues {
+      # AI
+      inherit (pkgs.llm-agents) claude-code codex;
+
       # editors
       inherit (pkgs) neovim;
 
