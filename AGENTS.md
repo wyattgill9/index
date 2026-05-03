@@ -154,6 +154,8 @@ This is the only way modules in this repo reach helpers in `lib/`. **Never** use
 - Images set `ix.image.name`. They may set `ix.image.tag` (defaults to `latest`, or comes from `versions.nix`).
 - Images compose by enabling services and adding packages. They do not declare options. They do not `imports` anything.
 - Images stay version-agnostic when they have a `versions.nix`. The base file is what every variant shares; per-version data lives in the overlay.
+- Use a single `services.<name>` block per service. Nest sub-options (loaders, mods) inside it instead of writing separate `services.<name>.<sub> = ...;` assignments.
+- Options that are redundant with their namespace should be shortened. `services.minecraft.folia.version`, not `services.minecraft.folia.minecraftVersion`.
 
 ## Hashes
 
