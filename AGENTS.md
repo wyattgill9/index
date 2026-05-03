@@ -165,7 +165,7 @@ Fetcher hashes (`pkgs.fetchurl { hash = "sha256-..."; }`) live **inline next to 
 
 `flake.lock` only tracks flake inputs (other flakes you import). It does not track arbitrary fetchurl calls. Putting per-image hashes in `flake.nix` would force every version to become a flake input. Inline is the nixpkgs convention; follow it.
 
-To get a fresh SRI hash: set `hash = lib.fakeHash;` (or any obviously-wrong sha256-...= string), build, and copy the value Nix prints in the mismatch error. Or run `nix-prefetch-url --type sha256 <url>` and convert with `nix hash to-sri --type sha256 <hex>`.
+Tracked Nix files must contain real SRI hashes. Do not write `lib.fakeHash`, `lib.fakeSha256`, `lib.fakeSha512`, or placeholder hashes such as `sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=` into the repo, even temporarily. Compute the real hash first, then edit the file. For direct URL fetches, run `nix-prefetch-url --type sha256 <url>` and convert with `nix hash to-sri --type sha256 <hex>`. For other fixed-output derivations, use a pure scratch expression or command outside tracked files to obtain the `got:` hash.
 
 ## Target platform
 
@@ -201,6 +201,7 @@ Run `nix run nixpkgs#ast-grep -- scan` before committing. Hard rules:
 - No bare `assert cond;`. Use `assert lib.assertMsg cond "why";`.
 - `__structuredAttrs = true` on every `runCommand` and `mkDerivation`. `mkDerivation` also gets `strictDeps = true`.
 - `hash = "sha256-...="` (SRI) on fetchers. Never `sha256 = ...`.
+- No fake hash helpers or placeholder hashes in tracked Nix files. Compute the real SRI hash first.
 - x86_64-linux only. `system` is a single string, not a `forAllSystems` fold.
 
 ## Issues
