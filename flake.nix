@@ -40,5 +40,18 @@
         path = ./template;
         description = "Starter ix image";
       };
+
+      # Developer tooling. Exposed for both Linux CI and macOS dev machines.
+      apps = builtins.listToAttrs (map (system: {
+        name = system;
+        value.update-mods = {
+          type = "app";
+          program = "${nixpkgs.legacyPackages.${system}.writeShellApplication {
+            name = "update-mods";
+            runtimeInputs = [ nixpkgs.legacyPackages.${system}.python3 ];
+            text = ''exec python3 ${./tools/update-mods.py} "$@"'';
+          }}/bin/update-mods";
+        };
+      }) [ "x86_64-linux" "aarch64-darwin" ]);
     };
 }

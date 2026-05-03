@@ -1,0 +1,22 @@
+[
+  {
+    "hash": "sha512-fjwF394NLFXRTvaOQDisHTM17Ujfyk28+ym4c9aYrgaevYXyR9igtIQ35IRCJUmhf/XLv+c00VkVPDvA4AN0Fw==",
+    "url": "https://cdn.modrinth.com/data/P7dR8mSH/versions/dZsorAUN/fabric-api-0.147.0%2B26.1.2.jar"
+  },
+  {
+    "hash": "sha512-NN1gWqgf8ScPlpfPBFHKmmAj5X9Ic0aP8B/BniZNZDT7wMEI4ZSmpnWwJp3Rbtgp95oY6gbTLYms2j+/dnUwLw==",
+    "url": "https://cdn.modrinth.com/data/VSNURh3q/versions/utLSz8Lf/c2me-fabric-mc26.1.2-0.3.7%2Balpha.0.68.jar"
+  },
+  {
+    "hash": "sha512-FCMyECg6dvPPQ1o7jdvL1lqFjSsaELiP9kPAoBSG39K/GEO9NFbNT7hsuzsG8t6gxOZjsZdqSOlt4W07WnB+yQ==",
+    "url": "https://cdn.modrinth.com/data/fQEb0iXm/versions/kYAGItyj/krypton-0.3.0.jar"
+  },
+  {
+    "hash": "sha512-kjGtBWZ9Tu8DSMcAv1Fgkp4Lcj2eFF/ZfH/O+Th6wubVJPsV2Z9H+Pg48dI1Mk/XUM3LZgO2OqtghdefvqqzGw==",
+    "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/R7MxYvuW/lithium-fabric-0.24.2%2Bmc26.1.2.jar"
+  },
+  {
+    "hash": "sha512-2B+pfhF4TBnUL4nC9DODHQB2A91xk87kX6F35KapxSs4SxmFhuBKD39jzZlv7XEzIleL3pqNtX4RiIVK5cvlhA==",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/d5ddUdiB/ferritecore-9.0.0-fabric.jar"
+  }
+]

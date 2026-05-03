@@ -1,0 +1,11 @@
+{
+  "loader": "fabric",
+  "common": {
+    "mods": ["ksyxis", "lmd"],
+    "game_versions": ["26.1.2", "26.2-snapshot-5"]
+  },
+  "versions": {
+    "26.1.2": ["fabric-api", "lithium", "c2me-fabric", "krypton", "ferrite-core"],
+    "26.2-snapshot-5": ["fabric-api", "c2me-fabric"]
+  }
+}
