@@ -1,0 +1,16 @@
+id: no-recursive-update
+language: nix
+severity: warning
+message: "lib.recursiveUpdate can silently drop nested attributes. Prefer building the attrset in one place or using mkMerge."
+note: |
+  WHY: recursiveUpdate does a shallow merge at each nesting level — if both sides
+  have an attr at the same path, the second completely replaces the first, silently
+  dropping any nested keys from the first. This is a frequent source of subtle bugs.
+  The // operator has the same problem at the top level.
+  NIXPKGS: Partially — nix.dev best practices warn about // dropping nested attrs
+  and recommend lib.recursiveUpdate as a workaround, but recursiveUpdate itself
+  still silently replaces at leaf conflicts. The real fix is single-owner construction.
+  REPO: Prefer building the full attrset in one place or using lib.mkMerge for
+  NixOS module option merging.
+rule:
+  pattern: lib.recursiveUpdate $A $B

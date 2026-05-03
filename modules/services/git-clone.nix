@@ -1,0 +1,58 @@
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  inherit (lib) mkEnableOption mkOption mkIf types;
+  cfg = config.services.git-clone;
+in
+{
+  options.services.git-clone = {
+    enable = mkEnableOption "clone a git repo on boot";
+
+    url = mkOption { type = types.str; };
+
+    dest = mkOption {
+      type = types.str;
+      default = "/repo";
+    };
+
+    shallow = mkOption {
+      type = types.bool;
+      default = true;
+    };
+
+    ref = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+    };
+  };
+
+  config = mkIf cfg.enable {
+    environment.systemPackages = [ pkgs.git ];
+
+    systemd.services.git-clone = {
+      description = "Clone ${cfg.url}";
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+      path = [ pkgs.git ];
+      script =
+        let
+          depthFlag = lib.optionalString cfg.shallow "--depth 1";
+          branchFlag = lib.optionalString (cfg.ref != null) "--branch ${lib.escapeShellArg cfg.ref}";
+        in
+        ''
+          if [ ! -d "${cfg.dest}/.git" ]; then
+            git clone ${depthFlag} ${branchFlag} ${lib.escapeShellArg cfg.url} ${lib.escapeShellArg cfg.dest}
+          fi
+        '';
+    };
+  };
+}
