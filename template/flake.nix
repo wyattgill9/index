@@ -8,7 +8,7 @@
   outputs =
     { ix-images, ... }:
     {
-      packages.x86_64-linux.default = ix-images.lib.mkIxImage {
+      packages.x86_64-linux.default = ix-images.lib.mkImage {
         modules = [
           (
             { pkgs, ... }:

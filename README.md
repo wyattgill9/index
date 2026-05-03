@@ -22,7 +22,7 @@ ix push ./result minecraft
 Compose with NixOS modules:
 
 ```nix
-ix-images.lib.mkIxImage {
+ix-images.lib.mkImage {
   modules = [({ pkgs, ... }: {
     ix.image.name = "my-server";
     services.minecraft.enable = true;

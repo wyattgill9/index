@@ -1,6 +1,6 @@
 # ix/images public lib.
 #
-# `mkIxImage` builds one self-contained OCI archive from a list of NixOS
+# `mkImage` builds one self-contained OCI archive from a list of NixOS
 # modules. Each image is independent: ix does not stack images at runtime, it
 # runs one. `./ix-base.nix` is the implicit base layer (container marker, OCI
 # packaging, base profile enabled by default). The `../modules` registry is
@@ -49,7 +49,7 @@ let
     inherit mkMinecraftLoader;
   };
 
-  mkIxImage =
+  mkImage =
     {
       modules ? [ ],
     }:
@@ -86,7 +86,7 @@ let
         verMods = builtins.removeAttrs versions [ "default" ];
         verPkgs = lib.mapAttrs' (
           ver: mod:
-          lib.nameValuePair "${name}_${ver}" (mkIxImage {
+          lib.nameValuePair "${name}_${ver}" (mkImage {
             modules = [
               path
               mod
@@ -99,7 +99,7 @@ let
         "image '${name}': versions.nix default = \"${defaultVer}\" but no version with that key";
       verPkgs // { ${name} = verPkgs.${defaultKey}; }
     else
-      { ${name} = mkIxImage { modules = [ path ]; }; };
+      { ${name} = mkImage { modules = [ path ]; }; };
 
   discoverImages =
     root:
@@ -113,7 +113,7 @@ in
 {
   inherit
     system
-    mkIxImage
+    mkImage
     discoverImages
     mkMinecraftLoader
     ;
