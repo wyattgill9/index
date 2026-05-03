@@ -125,7 +125,7 @@ in
 
     javaPackage = mkOption {
       type = types.package;
-      default = pkgs.graalvmPackages.graalvm-ce;
+      default = pkgs.temurin-jre-bin-25;
     };
 
     jvmFlags = mkOption {
