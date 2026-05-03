@@ -46,7 +46,6 @@ ix-images.lib.mkIxImage {
     enable = true;
     version = "1.21.4";
     build = 97;
-    hash = lib.fakeHash;
   };
 
   services.minecraft = {

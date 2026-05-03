@@ -157,9 +157,11 @@ This is the only way modules in this repo reach helpers in `lib/`. **Never** use
 
 ## Hashes
 
-Fetcher hashes (`pkgs.fetchurl { hash = "sha256-..."; }`) live **inline next to the URL**, in whichever file declares the fetch. For per-version artifacts (e.g. minecraft server jars) that's `versions.nix`. For per-package artifacts that's the module declaring the fetch.
+Hashes are an internal concern of the module or library that declares the fetch. Consumers (images, `versions.nix`) should never need to provide a hash. If a loader module fetches a server jar, the hash belongs inside that module alongside the URL, not in the consumer's config.
 
-`flake.lock` only tracks flake inputs (other flakes you import). It does not track arbitrary fetchurl calls. Putting per-image hashes in `flake.nix` would force every version to become a flake input — the input list explodes and `nix flake update` becomes meaningless. Inline is the nixpkgs convention; follow it.
+Fetcher hashes (`pkgs.fetchurl { hash = "sha256-..."; }`) live **inline next to the URL**, in whichever file declares the fetch. For per-package artifacts that's the module declaring the fetch.
+
+`flake.lock` only tracks flake inputs (other flakes you import). It does not track arbitrary fetchurl calls. Putting per-image hashes in `flake.nix` would force every version to become a flake input. Inline is the nixpkgs convention; follow it.
 
 To get a fresh SRI hash: set `hash = lib.fakeHash;` (or any obviously-wrong sha256-...= string), build, and copy the value Nix prints in the mismatch error. Or run `nix-prefetch-url --type sha256 <url>` and convert with `nix hash to-sri --type sha256 <hex>`.
 
