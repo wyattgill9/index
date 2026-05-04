@@ -8,8 +8,8 @@
     "url": "https://cdn.modrinth.com/data/VSNURh3q/versions/utLSz8Lf/c2me-fabric-mc26.1.2-0.3.7%2Balpha.0.68.jar"
   },
   "chunky": {
-    "hash": "sha512-gu3AOAK/F5bC4OnKEeqOt7h1O59cQQc1B4YljeY0mTX2gn5YUTRQCzxCkk8/jNMuRtHB9GCwGv/WriPtD7wQJQ==",
-    "url": "https://cdn.modrinth.com/data/fALzjamp/versions/DCgX52a5/Chunky-Fabric-1.4.58.jar"
+    "hash": "sha512-uDv+eyGNCqYjKvl3rnQdwfgrEOUM0Su3WfZc9Ba4tivsy1Q+WH7wuWcKvgOBVmD44JG8aCNiTWXPBzAFcVc1Fg==",
+    "url": "https://cdn.modrinth.com/data/fALzjamp/versions/4Eotm6ov/Chunky-Fabric-1.5.3.jar"
   },
   "clumps": {
     "hash": "sha512-Npwg2Ih8Nsn9RWmnyNrB/8Ub4Da7WHY2BVNQNKWuvZ+7Nd5DzAzIx3TY3QKyqxd2+QvhZX83lrOBB/d57bSneg==",
@@ -26,6 +26,10 @@
   "ferrite-core": {
     "hash": "sha512-2B+pfhF4TBnUL4nC9DODHQB2A91xk87kX6F35KapxSs4SxmFhuBKD39jzZlv7XEzIleL3pqNtX4RiIVK5cvlhA==",
     "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/d5ddUdiB/ferritecore-9.0.0-fabric.jar"
+  },
+  "grimac": {
+    "hash": "sha512-sht8NAxWICE7X2MerWIIbgGojjBvYuU5J+2H8EyVEbD8cRb6BGRWnI77/LP0ANmYoJOl/LIajMysQMair3dzJA==",
+    "url": "https://cdn.modrinth.com/data/LJNGWSvH/versions/WbwCPt32/grimac-fabric-2.3.74-7d823f5.jar"
   },
   "krypton": {
     "hash": "sha512-FCMyECg6dvPPQ1o7jdvL1lqFjSsaELiP9kPAoBSG39K/GEO9NFbNT7hsuzsG8t6gxOZjsZdqSOlt4W07WnB+yQ==",

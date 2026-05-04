@@ -41,6 +41,7 @@ let
         "servercore"
         "vmp-fabric"
         "clumps"
+        "grimac"
       ];
     };
   };
