@@ -10,6 +10,7 @@
   base = ./profiles/base.nix;
   git-clone = ./services/git-clone.nix;
   minestom = ./services/minestom.nix;
+  minecraft-bedrock = ./services/minecraft-bedrock.nix;
   postgresql = ./services/postgresql.nix;
   remote-desktop = ./services/remote-desktop.nix;
 

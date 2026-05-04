@@ -55,7 +55,10 @@ let
       ...
     }@cfg:
     let
-      loaderCfg = builtins.removeAttrs cfg [ "loader" "mods" "version" ];
+      loaderCfg = builtins.removeAttrs cfg [
+        "loader"
+        "mods"
+      ];
     in
     {
       ix.image.tag = tag;

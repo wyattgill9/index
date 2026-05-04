@@ -7,10 +7,11 @@ let
   system = ix.system;
   pkgs = nixpkgs.legacyPackages.${system};
 
-  moduleList = lib.attrValues (import ../modules);
+  moduleList = lib.collect builtins.isPath (import ../modules);
   versions = import ../images/games/minecraft/versions.nix { inherit lib; };
   defaultMinecraftVersion = versions.default;
   defaultMinecraftModule = versions.${defaultMinecraftVersion};
+  minecraftVersions = builtins.attrNames (builtins.removeAttrs versions [ "default" ]);
 
   evalConfig =
     modules:
@@ -20,7 +21,8 @@ let
         inherit (ix) mkMinecraftLoader;
       };
       modules = [
-        ../lib/ix-base.nix
+        ../lib/ix-platform.nix
+        ../lib/ix-oci-layer.nix
       ]
       ++ moduleList
       ++ modules;
@@ -34,6 +36,11 @@ let
   minecraftService = minecraftConfig.systemd.services.minecraft.serviceConfig;
   minecraftExec = minecraftService.ExecStart;
 
+  bedrockConfig = evalConfig [ ../images/games/minecraft-bedrock ];
+  bedrockCfg = bedrockConfig.services.minecraft-bedrock;
+  bedrockService = bedrockConfig.systemd.services.minecraft-bedrock;
+  bedrockServiceConfig = bedrockService.serviceConfig;
+
   remoteDesktopConfig = evalConfig [ ../images/desktop/remote-desktop ];
   remoteDesktopCfg = remoteDesktopConfig.services.remote-desktop;
   remoteDesktopService = remoteDesktopConfig.systemd.services.remote-desktop;
@@ -46,7 +53,11 @@ let
   expectedPackages = [
     "kernel-dev"
     "minecraft"
-    "minecraft_${defaultMinecraftVersion}"
+    "minecraft-bedrock"
+  ]
+  ++ map (version: "minecraft_${version}") minecraftVersions
+  ++ [
+    "minestom"
     "remote-desktop"
   ];
 
@@ -94,6 +105,48 @@ let
     {
       assertion = lib.hasInfix "-jar" minecraftExec && lib.hasInfix "nogui" minecraftExec;
       message = "minecraft ExecStart should launch the configured server jar in nogui mode";
+    }
+    {
+      assertion = bedrockConfig.ix.image.name == "minecraft-bedrock";
+      message = "minecraft-bedrock image should set the expected OCI image name";
+    }
+    {
+      assertion = bedrockConfig.ix.image.tag == "1.26.14.1";
+      message = "minecraft-bedrock image tag should follow the pinned Bedrock server version";
+    }
+    {
+      assertion = bedrockCfg.enable;
+      message = "minecraft-bedrock image should enable services.minecraft-bedrock";
+    }
+    {
+      assertion = bedrockCfg.settings."server-name" == "ix-powered Bedrock";
+      message = "minecraft-bedrock should set the expected default server name";
+    }
+    {
+      assertion =
+        bedrockCfg.settings."server-port" == bedrockCfg.port
+        && bedrockCfg.settings."server-portv6" == bedrockCfg.portv6;
+      message = "minecraft-bedrock server.properties should follow the configured UDP ports";
+    }
+    {
+      assertion =
+        bedrockConfig.networking.firewall.allowedUDPPorts == [
+          bedrockCfg.port
+          bedrockCfg.portv6
+        ];
+      message = "minecraft-bedrock firewall should open only the configured UDP ports";
+    }
+    {
+      assertion = bedrockService.description == "Minecraft Bedrock server";
+      message = "minecraft-bedrock should run a dedicated systemd service";
+    }
+    {
+      assertion = lib.hasInfix "/bin/bedrock_server" bedrockServiceConfig.ExecStart;
+      message = "minecraft-bedrock ExecStart should launch bedrock_server";
+    }
+    {
+      assertion = bedrockServiceConfig.StateDirectory == "minecraft-bedrock";
+      message = "minecraft-bedrock service should get a managed state directory";
     }
     {
       assertion = remoteDesktopConfig.ix.image.name == "ix-remote-desktop";

@@ -4,6 +4,7 @@ Pre-built OCI images for [ix](https://ix.dev) VMs.
 
 ```bash
 ix new minecraft          # Fabric server
+ix new minecraft-bedrock  # Bedrock dedicated server
 ix new remote-desktop     # Xpra HTML5 desktop
 ix new kernel-dev         # Linux kernel source + build tools
 ```
@@ -29,6 +30,24 @@ ix-images.lib.mkImage {
     services.remote-desktop.enable = true;
     environment.systemPackages = [ pkgs.htop pkgs.vim ];
   })];
+}
+```
+
+### Minecraft Bedrock
+
+`minecraft-bedrock` runs Mojang's native Bedrock Dedicated Server through `services.minecraft-bedrock`. It listens on UDP 19132 and 19133 by default.
+
+```nix
+{
+  ix.image.name = "my-bedrock";
+
+  services.minecraft-bedrock = {
+    enable = true;
+    settings = {
+      server-name = "ix-powered Bedrock";
+      max-players = 20;
+    };
+  };
 }
 ```
 
