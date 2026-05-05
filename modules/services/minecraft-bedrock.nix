@@ -33,6 +33,9 @@ let
     };
 
     strictDeps = true;
+    # The bedrock zip has no wrapper directory: files land directly in $PWD.
+    # Without this, Nix's unpackPhase tries to auto-detect a single extracted
+    # directory to cd into, and fails because it finds multiple entries instead.
     sourceRoot = ".";
     nativeBuildInputs = [
       pkgs.autoPatchelfHook
