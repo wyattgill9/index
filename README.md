@@ -112,7 +112,7 @@ Community contributions are welcome through [issues](https://github.com/indexabl
 - [ix CLI](https://github.com/indexable-inc/ix) - command-line interface
 - [NixOS](https://nixos.org) - the module system and packages underneath
 
-Inspired by [nixpkgs](https://github.com/NixOS/nixpkgs) and [Raycast Extensions](https://github.com/raycast/extensions).
+Inspired by [nixpkgs](https://github.com/NixOS/nixpkgs), [Colmena](https://github.com/zhaofengli/colmena), and [Raycast Extensions](https://github.com/raycast/extensions).
 
 ## License
 
