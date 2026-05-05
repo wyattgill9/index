@@ -221,6 +221,6 @@ let
   failures = map (test: test.message) (lib.filter (test: !test.assertion) assertions);
 in
 assert lib.assertMsg (failures == [ ]) (lib.concatStringsSep "\n" failures);
-pkgs.runCommand "ix-images-eval-tests" { __structuredAttrs = true; } ''
+pkgs.runCommand "ix-images-eval-tests" {} ''
   mkdir -p "$out"
 ''

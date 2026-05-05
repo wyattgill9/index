@@ -199,7 +199,7 @@ Run `nix run nixpkgs#ast-grep -- scan` before committing. Hard rules:
 - No `..` paths inside `modules/`. Cross-cutting helpers come through `specialArgs.ix`.
 - No `writeShellScriptBin`. Use `writeShellScript` (or `writeShellApplication` for orchestrators).
 - No bare `assert cond;`. Use `assert lib.assertMsg cond "why";`.
-- `__structuredAttrs = true` on every `runCommand` and `mkDerivation`. `mkDerivation` also gets `strictDeps = true`.
+- `strictDeps = true` on every `mkDerivation`. `__structuredAttrs` is the nixpkgs default; do not set it explicitly.
 - `hash = "sha256-...="` (SRI) on fetchers. Never `sha256 = ...`.
 - No fake hash helpers or placeholder hashes in tracked Nix files. Compute the real SRI hash first.
 - x86_64-linux only. `system` is a single string, not a `forAllSystems` fold.

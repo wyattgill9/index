@@ -32,7 +32,6 @@ let
       ];
     };
 
-    __structuredAttrs = true;
     strictDeps = true;
     sourceRoot = ".";
     nativeBuildInputs = [
