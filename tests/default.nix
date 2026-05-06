@@ -48,6 +48,55 @@ let
 
   kernelDevConfig = evalConfig [ ../images/dev/kernel-dev ];
 
+  fleet = ix.mkFleet {
+    defaults = (
+      { name, lib, ... }:
+      {
+        ix.image.name = lib.mkDefault "fleet-${name}";
+        networking.hostName = name;
+      }
+    );
+
+    deployment.region = "hil-1";
+
+    groups.web = {
+      tags = [ "http" ];
+      deployment.region = "vint-1";
+      modules = [
+        {
+          environment.etc."ix-fleet-role".text = "web";
+        }
+      ];
+    };
+
+    nodes = {
+      db = {
+        modules = [
+          {
+            services.ix-postgresql.enable = true;
+          }
+        ];
+        deployment.destination = "fleet-db:latest";
+      };
+
+      web = {
+        group = "web";
+        tags = [ "edge" ];
+        modules = [
+          (
+            { nodes, ... }:
+            {
+              services.remote-desktop.enable = true;
+              environment.etc."db-host".text = nodes.db.config.networking.hostName;
+            }
+          )
+        ];
+      };
+    };
+  };
+
+  fleetPlan = fleet.planValue.nodes;
+
   packageNames = builtins.attrNames (ix.discoverImages ../images);
 
   expectedPackages = [
@@ -216,11 +265,36 @@ let
       assertion = !(remoteDesktopConfig.systemd.services ? novnc);
       message = "remote-desktop should not use a separate noVNC websockify service";
     }
+    {
+      assertion = fleet.nodes.db.networking.hostName == "db";
+      message = "fleet defaults should receive the node name";
+    }
+    {
+      assertion = fleet.nodes.web.environment.etc."db-host".text == "db";
+      message = "fleet node modules should be able to reference nodes.<name>.config";
+    }
+    {
+      assertion = fleetPlan.db.destination == "fleet-db:latest";
+      message = "fleet deployment destination should flow into the generated plan";
+    }
+    {
+      assertion = fleetPlan.web.region == "vint-1";
+      message = "fleet group deployment settings should apply to member nodes";
+    }
+    {
+      assertion =
+        fleetPlan.web.tags == [
+          "web"
+          "http"
+          "edge"
+        ];
+      message = "fleet plan should combine group and node tags in order";
+    }
   ];
 
   failures = map (test: test.message) (lib.filter (test: !test.assertion) assertions);
 in
 assert lib.assertMsg (failures == [ ]) (lib.concatStringsSep "\n" failures);
-pkgs.runCommand "ix-images-eval-tests" {} ''
+pkgs.runCommand "ix-images-eval-tests" { } ''
   mkdir -p "$out"
 ''

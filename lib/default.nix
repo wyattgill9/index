@@ -26,6 +26,7 @@ let
   inherit (nixpkgs) lib;
 
   system = "x86_64-linux";
+  pkgs = nixpkgs.legacyPackages.${system};
 
   # Overlays: llm-agents base + claude/codex from dedicated flakes.
   overlays = [
@@ -49,18 +50,31 @@ let
     inherit mkMinecraftLoader;
   };
 
-  mkImage =
+  evalImageConfig =
     {
       modules ? [ ],
     }:
     (lib.nixosSystem {
+      inherit system;
       specialArgs.ix = ixSpecialArgs;
       modules = [
         { nixpkgs.overlays = overlays; }
         ./ix-platform.nix
         ./ix-oci-layer.nix
-      ] ++ moduleList ++ modules;
-    }).config.ix.build.ociImage;
+      ]
+      ++ moduleList
+      ++ modules;
+    }).config;
+
+  mkImage = args: (evalImageConfig args).ix.build.ociImage;
+
+  mkFleet = import ./fleet.nix {
+    inherit
+      lib
+      pkgs
+      evalImageConfig
+      ;
+  };
 
   # Subdirectories of `dir`. Used to walk images/<cat>/<name>/.
   subdirs =
@@ -113,7 +127,9 @@ in
 {
   inherit
     system
+    evalImageConfig
     mkImage
+    mkFleet
     discoverImages
     mkMinecraftLoader
     ;

@@ -46,6 +46,65 @@ ix-images.lib.mkImage {
 }
 ```
 
+## Fleets
+
+For Colmena-style groups of ix VMs, use `ix-images.lib.mkFleet`. Each node is
+still a normal NixOS image module, but the fleet evaluates all nodes together
+so modules can reference `nodes.<name>.config`.
+
+```nix
+ix-images.lib.mkFleet {
+  defaults = { name, lib, ... }: {
+    ix.image.name = lib.mkDefault "acme-${name}";
+    networking.hostName = name;
+  };
+
+  deployment.region = "hil-1";
+
+  groups.minecraft = {
+    tags = [ "games" ];
+    deployment = {
+      region = "vint-1";
+      ipv4 = true;
+    };
+  };
+
+  nodes = {
+    db = {
+      modules = [
+        {
+          services.ix-postgresql.enable = true;
+        }
+      ];
+    };
+
+    lobby = {
+      group = "minecraft";
+      modules = [
+        ({ nodes, ... }: {
+          services.minecraft = {
+            paper.enable = true;
+            serverFiles."server.properties".motd =
+              "database host: ${nodes.db.config.networking.hostName}";
+          };
+        })
+      ];
+    };
+  };
+}
+```
+
+The result exposes:
+
+- `packages.<node>`: OCI archives for each VM image.
+- `nodes.<node>`: evaluated NixOS configs.
+- `plan`: a JSON deployment plan with image archive paths, destination refs,
+  region, tags, ports, env, and update policy.
+
+Deployment should live in the ix CLI or TypeScript SDK apply engine. The Nix
+side owns evaluation and graph shape; the imperative runner should consume
+`plan` and perform typed create/update operations.
+
 ### Minecraft Bedrock
 
 `minecraft-bedrock` runs Mojang's native Bedrock Dedicated Server through `services.minecraft-bedrock`. It listens on UDP 19132 and 19133 by default.
