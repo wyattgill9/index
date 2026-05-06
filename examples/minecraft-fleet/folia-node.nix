@@ -32,6 +32,8 @@
           };
         };
 
+        # Backends are private. Public Java and Bedrock clients enter through
+        # Velocity; only the proxy should reach Folia directly.
         ix.networking.eastWest.firewall.allowedTCPPorts = [ 25565 ];
       }
     )

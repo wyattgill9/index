@@ -16,7 +16,7 @@ examples/minecraft-fleet/
 - Geyser runs on the proxy as the Bedrock-to-Java protocol bridge.
 - Floodgate runs on the proxy as the Bedrock identity/auth bridge, so Bedrock players can join without Java accounts.
 - Java players enter on TCP 25565. Bedrock players enter on UDP 19132.
-- Folia runs the lobby and survival shards.
+- Folia runs the lobby and survival shards. These backends expose 25565 only on east-west and must be reached through Velocity.
 - `survival` expands into stable VM identities: `survival-0`, `survival-1`, `survival-2`.
 - Every VM automatically has two virtio-net devices: north-south for public ingress and east-west for the private mesh. Users do not define or attach these networks.
 
@@ -54,13 +54,13 @@ deployment.expose.northSouth = {
 };
 ```
 
-Use east-west for private VM-to-VM traffic:
+Use east-west for private VM-to-VM traffic. Folia backends expose 25565 only here:
 
 ```nix
 ix.networking.eastWest.firewall.allowedTCPPorts = [ 25565 ];
 ```
 
-The proxy accepts public Java/Bedrock traffic on north-south, then talks to Folia backends over east-west hostnames.
+The proxy is the only north-south Minecraft entrypoint. It accepts public Java/Bedrock traffic, then talks to Folia backends over east-west hostnames.
 
 ## Use
 
