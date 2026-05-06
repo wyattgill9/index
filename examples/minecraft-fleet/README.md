@@ -18,7 +18,7 @@ examples/minecraft-fleet/
 - Java players enter on TCP 25565. Bedrock players enter on UDP 19132.
 - Folia runs the lobby and survival shards.
 - `survival` expands into stable VM identities: `survival-0`, `survival-1`, `survival-2`.
-- VMs have two virtio-net devices: north-south for public ingress and east-west for the private mesh.
+- Every VM automatically has two virtio-net devices: north-south for public ingress and east-west for the private mesh. Users do not define or attach these networks.
 
 The Velocity/Geyser/Floodgate modules shown here are the intended API shape, not a claim that those modules all exist in this repo today. The OCI image is only the bootstrap artifact; normal updates use `switch` to activate a new NixOS system closure in place.
 
@@ -42,6 +42,8 @@ services.minecraft.serverFiles."config/paper-global.yml".proxies.velocity.secret
 The exact `secrets` API is hypothetical here, but the invariant is real: generated once, shared with every node that references it, materialized at activation time, and rotated deliberately.
 
 ## Network Exposure
+
+Every VM automatically has both network planes. The fleet config only decides what to expose.
 
 Use north-south only for public ingress:
 

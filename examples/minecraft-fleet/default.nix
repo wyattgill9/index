@@ -7,10 +7,6 @@ let
     velocityForwarding.generate = true;
   };
   forwardingSecret = secrets.velocityForwarding;
-  networks = {
-    northSouth = "public";
-    eastWest = "mesh";
-  };
   survivalReplicas = 3;
   replicaNames = name: count: builtins.genList (index: "${name}-${toString index}") count;
   survivalNodes = replicaNames "survival" survivalReplicas;
@@ -30,7 +26,6 @@ ix.lib.mkFleet {
     proxy = import ./proxy.nix {
       inherit
         forwardingSecret
-        networks
         survivalNodes
         ;
     };

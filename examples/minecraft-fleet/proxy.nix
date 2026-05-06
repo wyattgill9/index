@@ -1,6 +1,5 @@
 {
   forwardingSecret,
-  networks,
   survivalNodes,
 }:
 {
@@ -17,10 +16,6 @@
         udp = [ 19132 ];
       };
     };
-    networks = [
-      networks.northSouth
-      networks.eastWest
-    ];
   };
 
   modules = [
