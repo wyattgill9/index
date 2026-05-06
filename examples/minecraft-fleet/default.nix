@@ -12,11 +12,9 @@ let
     };
   };
   forwardingSecret = secrets.velocityForwarding;
-  survivalNodes = [
-    "survival-0"
-    "survival-1"
-    "survival-2"
-  ];
+  survivalReplicas = 3;
+  replicaNames = name: count: builtins.genList (index: "${name}-${toString index}") count;
+  survivalNodes = replicaNames "survival" survivalReplicas;
   survival = import ./folia-node.nix {
     inherit forwardingSecret;
     motd = "ix survival";
@@ -40,7 +38,7 @@ ix.lib.mkFleet {
     };
 
     survival = survival // {
-      replicas = 3;
+      replicas = survivalReplicas;
     };
   };
 }
