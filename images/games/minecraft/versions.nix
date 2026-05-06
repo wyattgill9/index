@@ -56,6 +56,14 @@ let
         "terrain-diffusion"
       ];
     };
+
+    "1.21.11-paper" = {
+      loader = "paper";
+      version = "1.21.11";
+      build = 69;
+      hash = "sha256-zzdPKvnXHfzHU0Pze3IqerywkcV0ExuV47E8b8LLj64=";
+      mods = [ ];
+    };
   };
 
   mkVariant =
