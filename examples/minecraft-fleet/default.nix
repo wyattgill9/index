@@ -1,4 +1,4 @@
-{ ix-images }:
+{ ix }:
 let
   forwardingSecretFile = /run/secrets/velocity-forwarding-secret;
   survivalNodes = [
@@ -15,7 +15,7 @@ let
     };
   };
 in
-ix-images.lib.mkFleet {
+ix.lib.mkFleet {
   nodes = {
     proxy = import ./proxy.nix {
       inherit forwardingSecretFile survivalNodes;

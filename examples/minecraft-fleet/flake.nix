@@ -4,7 +4,8 @@
   outputs =
     { ix-images, ... }:
     let
-      fleet = import ./default.nix { inherit ix-images; };
+      ix = ix-images;
+      fleet = import ./default.nix { inherit ix; };
     in
     {
       apps.x86_64-linux = {
