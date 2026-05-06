@@ -16,8 +16,8 @@
     "url": "https://cdn.modrinth.com/data/Wnxd13zP/versions/RXNrUIjA/Clumps-fabric-26.1.2-26.1.2.1.jar"
   },
   "distanthorizons": {
-    "hash": "sha512-mmTxJb1NlRr8metp4Ny9zBIt1UEWmrmOZRB5ee4S1JsDKuISTq1HTln3MDX45bmzBiacIhJHOzeYiSxaZrAyEA==",
-    "url": "https://cdn.modrinth.com/data/uCdwusMi/versions/eikDE1mo/DistantHorizons-3.0.2-b-26.1.2-fabric-neoforge.jar"
+    "hash": "sha512-EbJS3jMI1ymdNGJazmUiPZxdQuUqNAu5yF+gJQwMNUrVlLcvCoJ9nXwEa5XdF6XlAPk5VPFNA9qf2sdZbEG1FA==",
+    "url": "https://cdn.modrinth.com/data/uCdwusMi/versions/FJrLlu3p/DistantHorizons-3.0.3-b-26.1.2-fabric-neoforge.jar"
   },
   "fabric-api": {
     "hash": "sha512-fjwF394NLFXRTvaOQDisHTM17Ujfyk28+ym4c9aYrgaevYXyR9igtIQ35IRCJUmhf/XLv+c00VkVPDvA4AN0Fw==",
@@ -28,8 +28,8 @@
     "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/d5ddUdiB/ferritecore-9.0.0-fabric.jar"
   },
   "grimac": {
-    "hash": "sha512-sht8NAxWICE7X2MerWIIbgGojjBvYuU5J+2H8EyVEbD8cRb6BGRWnI77/LP0ANmYoJOl/LIajMysQMair3dzJA==",
-    "url": "https://cdn.modrinth.com/data/LJNGWSvH/versions/WbwCPt32/grimac-fabric-2.3.74-7d823f5.jar"
+    "hash": "sha512-1lWcGD1JsHADp65o47BhkLAtYxihhn4CZ/KL10FqxJrlz3FZa+rHM2kZheS+cbJ9+DBwtN8IokUjIa7Um7nZTw==",
+    "url": "https://cdn.modrinth.com/data/LJNGWSvH/versions/65YzWD8i/grimac-fabric-2.3.74-ce86075.jar"
   },
   "krypton": {
     "hash": "sha512-FCMyECg6dvPPQ1o7jdvL1lqFjSsaELiP9kPAoBSG39K/GEO9NFbNT7hsuzsG8t6gxOZjsZdqSOlt4W07WnB+yQ==",
@@ -52,8 +52,8 @@
     "url": "https://cdn.modrinth.com/data/4WWQxlQP/versions/P8k080Af/servercore-fabric-1.5.16%2B26.1.jar"
   },
   "simple-voice-chat": {
-    "hash": "sha512-4yYe3fIKcJSQhsNH+VZxMH88WV4lZEekAiJ4Mga4mWJQ1vZrLFZ71WZm2HFiUztBkjfeR6NQIXbcKMrjYLxi+Q==",
-    "url": "https://cdn.modrinth.com/data/9eGKb6K1/versions/eGxtLv6D/voicechat-fabric-2.6.16%2B26.1.2.jar"
+    "hash": "sha512-HraHpSEOfhWIfoSpMZXdjrz0XYWitlfSfHEa0B7Y6QlvSZ/LhNZWSFSYntLBO2qABmX7s4IimXfREl4NPrWoNg==",
+    "url": "https://cdn.modrinth.com/data/9eGKb6K1/versions/gVPjsMto/voicechat-fabric-2.6.17%2B26.1.2.jar"
   },
   "spark": {
     "hash": "sha512-4Gl2Y2icVFm37ZLyHYawGRu+f2MnrH6Jcq2fYxjveoypPaOoSVRZ7m8UQ8rf92VrFQ6g78gfjPEwDJMBSDovsw==",

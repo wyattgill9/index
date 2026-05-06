@@ -126,6 +126,20 @@ let
       message = "default minecraft image tag should follow versions.nix default";
     }
     {
+      assertion = defaultMinecraftVersion == "26.1.2-fabric";
+      message = "default minecraft image should use the stable 26.1.2 Fabric variant";
+    }
+    {
+      assertion = lib.all (slug: builtins.hasAttr slug minecraftConfig.services.minecraft.mods) [
+        "fabric-api"
+        "lithium"
+        "c2me-fabric"
+        "spark"
+        "grimac"
+      ];
+      message = "default minecraft image should include the 26.1.2 Fabric server mod set";
+    }
+    {
       assertion = minecraftConfig.services.minecraft.javaPackage == pkgs.temurin-jre-bin-25;
       message = "minecraft should default to the latest Temurin JRE available in the pinned nixpkgs";
     }

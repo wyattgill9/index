@@ -9,7 +9,7 @@
 # ./mods/common.json via the image base (./default.nix).
 { lib, ... }:
 let
-  default = "26w17a-fabric";
+  default = "26.1.2-fabric";
 
   catalogFor = ver: builtins.fromJSON (builtins.readFile ./mods/${ver}.json);
 
@@ -41,6 +41,7 @@ let
         "servercore"
         "vmp-fabric"
         "clumps"
+        "spark"
         "grimac"
       ];
     };
