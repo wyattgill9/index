@@ -1,6 +1,16 @@
 # Minecraft Fleet
 
-Hypothetical target shape for a production Minecraft network on ix:
+This directory is a multi-file example of a production-shaped Minecraft network on ix.
+
+```text
+examples/minecraft-fleet/
+  flake.nix        # exposes runnable fleet commands
+  default.nix      # defines the fleet graph
+  proxy.nix        # Velocity + Geyser + Floodgate edge node
+  folia-node.nix   # shared Folia backend node module
+```
+
+## Topology
 
 - Velocity is the edge proxy. Prefer it over BungeeCord or Waterfall; Waterfall is end-of-life.
 - Geyser runs on the proxy as the Bedrock-to-Java protocol bridge.
@@ -11,17 +21,24 @@ Hypothetical target shape for a production Minecraft network on ix:
 
 The Velocity/Geyser/Floodgate modules shown here are the intended API shape, not a claim that those modules all exist in this repo today. The OCI image is only the bootstrap artifact; normal updates use `switch` to activate a new NixOS system closure in place.
 
-```nix
-let
-  ix-images = builtins.getFlake "github:indexable-inc/images";
-  fleet = import ./default.nix { inherit ix-images; };
-in
-{
-  apps.x86_64-linux.switch = {
-    type = "app";
-    program = "${fleet.switch}/bin/ix-fleet-switch";
-  };
-}
+## Use
+
+From this directory:
+
+```bash
+nix run .#plan -- plan      # show the resolved fleet plan
+nix run .#plan -- diff      # compare desired systems with live ix state
+nix run .#switch
+nix run .#replace -- replace
 ```
 
-`nix run .#switch` snapshots and switches nodes in dependency order. Use `ix-fleet replace` only when VM recreation is intended.
+`switch` snapshots and switches nodes in dependency order. Use `replace` only when VM recreation is intended.
+
+If ix grows a first-class command wrapper, the same flow should become:
+
+```bash
+ix fleet plan
+ix fleet diff
+ix switch
+ix replace
+```
