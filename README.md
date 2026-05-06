@@ -11,6 +11,19 @@ ix new kernel-dev         # Linux kernel source + build tools
 
 See [`images/`](images) for all available images.
 
+## Goals
+
+A cosy starter pack of NixOS images for [ix](https://ix.dev) VMs. Pick one, deploy, get a server. Each image is a real NixOS system with systemd as PID 1, so you compose modules instead of patching shell scripts. Every package compiles with `-march=znver5` for AMD EPYC Gen 5.
+
+Where this is heading:
+
+- More images covering game servers, dev environments, media servers, self-hosted apps. If you'd otherwise spin it up by piping a `curl` into `bash`, it belongs here.
+- WireGuard mesh so you can reach any of your VMs by hostname from your laptop over ix's internal network, without exposing public ports.
+- GPU presets (CUDA, ROCm, llama.cpp, ComfyUI) ready for when the platform exposes GPUs.
+- One-file additions: drop a file into `images/`, the flake picks it up, you get an OCI artifact you can `ix push`.
+
+Suggestions and PRs welcome. Open an [issue](https://github.com/indexable-inc/images/issues) or send a patch.
+
 ## Build from source
 
 ```bash
