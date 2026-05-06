@@ -54,8 +54,6 @@ so modules can reference `nodes.<name>.config`.
 
 ```nix
 ix-images.lib.mkFleet {
-  deployment.region = "hil-1";
-
   nodes = {
     db = {
       services.ix-postgresql.enable = true;
