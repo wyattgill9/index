@@ -22,13 +22,15 @@ ix-images.lib.mkFleet {
 }
 ```
 
-Outputs `packages.<node>` (OCI archives), `plan` (JSON), `command`, and `deploy`.
+Fleets are VM-level NixOS systems, not primarily OCI rollouts. The OCI image is a bootstrap artifact for creating or intentionally replacing a VM; normal stateful updates use `switch` to activate a new NixOS system closure in place. ix VMs have implicit snapshots and effectively unbounded disk, so stateful services should snapshot before data-format changes and upgrade persistent data directly instead of replacing the VM.
+
+Outputs `packages.<node>` (bootstrap OCI archives), `plan` (JSON), `command`, and `switch`.
 
 ```nix
-apps.deploy.program = "${fleet.deploy}/bin/ix-fleet-deploy";
+apps.switch.program = "${fleet.switch}/bin/ix-fleet-switch";
 ```
 
-`nix run .#deploy` builds the fleet images, pushes them, and deploys nodes in dependency order.
+`nix run .#switch` snapshots and switches nodes in dependency order. Use `ix-fleet replace` only when VM recreation is intended.
 
 ## Contributing
 

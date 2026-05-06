@@ -24,7 +24,7 @@ let
   deploymentDefaults = {
     region = "hil-1";
     ipv4 = false;
-    replace = true;
+    snapshot = true;
   };
 
   mergeDeployments =
@@ -56,9 +56,45 @@ let
       tags = lib.unique (asList (spec.tags or [ ]));
       deployment = mergeDeployments deploymentParts;
       dependsOn = asList (spec.dependsOn or [ ]);
+      replicas = spec.replicas or 1;
     };
 
-  nodeSpecs = lib.mapAttrs normalizeNode nodes;
+  expandReplicas =
+    name: spec:
+    assert lib.assertMsg (
+      builtins.isInt spec.replicas && spec.replicas > 0
+    ) "fleet node '${name}': replicas must be a positive integer";
+    if spec.replicas == 1 then
+      {
+        ${name} = spec // {
+          baseName = name;
+        };
+      }
+    else
+      builtins.listToAttrs (
+        lib.genList (index: {
+          name = "${name}-${toString index}";
+          value = spec // {
+            name = "${name}-${toString index}";
+            baseName = name;
+            replicaIndex = index;
+          };
+        }) spec.replicas
+      );
+
+  rawNodeSpecs = lib.mapAttrs normalizeNode nodes;
+  nodeSpecs = lib.foldl' (acc: name: acc // expandReplicas name rawNodeSpecs.${name}) { } (
+    builtins.attrNames rawNodeSpecs
+  );
+  expandDependency =
+    dep:
+    if builtins.hasAttr dep rawNodeSpecs then
+      if rawNodeSpecs.${dep}.replicas == 1 then
+        [ dep ]
+      else
+        lib.genList (index: "${dep}-${toString index}") rawNodeSpecs.${dep}.replicas
+    else
+      [ dep ];
 
   nodeConfigs = lib.mapAttrs (
     name: spec:
@@ -93,18 +129,25 @@ let
     {
       inherit
         name
-        imageName
-        imageTag
-        destination
         ;
-      source = "${config.ix.build.ociImage}";
+      baseName = spec.baseName;
+      replicaIndex = spec.replicaIndex or null;
+      system = "${config.system.build.toplevel}";
+      bootstrapImage = {
+        inherit
+          imageName
+          imageTag
+          destination
+          ;
+        source = "${config.ix.build.ociImage}";
+      };
       region = deploy.region;
       ipv4 = deploy.ipv4;
-      replace = deploy.replace;
+      snapshot = deploy.snapshot;
       tags = spec.tags;
       env = deploy.env;
       l7ProxyPorts = deploy.l7ProxyPorts;
-      dependsOn = spec.dependsOn;
+      dependsOn = lib.concatMap expandDependency spec.dependsOn;
     }
   ) nodeSpecs;
 
@@ -120,18 +163,18 @@ let
     runtimeInputs = [ python ];
     text = ''exec python3 ${../tools/ix-fleet.py} --plan ${plan} "$@"'';
   };
-  deploy = pkgs.writeShellApplication {
-    name = "ix-fleet-deploy";
+  switch = pkgs.writeShellApplication {
+    name = "ix-fleet-switch";
     runtimeInputs = [ python ];
-    text = ''exec python3 ${../tools/ix-fleet.py} --plan ${plan} deploy "$@"'';
+    text = ''exec python3 ${../tools/ix-fleet.py} --plan ${plan} switch "$@"'';
   };
 
 in
 {
   inherit
     command
-    deploy
     plan
+    switch
     ;
 
   inherit planValue;

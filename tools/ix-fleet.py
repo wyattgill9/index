@@ -24,17 +24,26 @@ def empty_str_dict() -> dict[str, str]:
     return {}
 
 
-class FleetNode(BaseModel):
+class BootstrapImage(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    name: str = Field(min_length=1)
     imageName: str = Field(min_length=1)
     imageTag: str = Field(min_length=1)
     destination: str = Field(min_length=1)
     source: str = Field(min_length=1)
+
+
+class FleetNode(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1)
+    baseName: str = Field(min_length=1)
+    replicaIndex: int | None = None
+    system: str = Field(min_length=1)
+    bootstrapImage: BootstrapImage
     region: str = Field(min_length=1)
     ipv4: bool
-    replace: bool
+    snapshot: bool
     tags: list[str] = Field(default_factory=empty_str_list)
     env: dict[str, str] = Field(default_factory=empty_str_dict)
     l7ProxyPorts: list[int] = Field(default_factory=empty_int_list)
@@ -123,16 +132,13 @@ def run_cli(command: list[str], *, dry_run: bool) -> str:
     return result.stdout
 
 
-def import_ix_sdk() -> tuple[typing.Any, typing.Any | None]:
+def import_ix_sdk() -> typing.Any:
     try:
         import ix_sdk  # type: ignore[import-not-found]
     except ModuleNotFoundError:
-        return None, None
+        return None
     client = getattr(ix_sdk, "Client", None) or getattr(ix_sdk, "IxClient", None)
-    branch = getattr(ix_sdk, "Branch", None)
-    if client is None:
-        return None, branch
-    return client(), branch
+    return None if client is None else client()
 
 
 async def maybe_await(value: typing.Any) -> typing.Any:
@@ -141,54 +147,77 @@ async def maybe_await(value: typing.Any) -> typing.Any:
     return value
 
 
-async def push_node(client: typing.Any, node: FleetNode, *, dry_run: bool) -> str:
+async def push_bootstrap_image(client: typing.Any, node: FleetNode, *, dry_run: bool) -> str:
+    image = node.bootstrapImage
     push_archive = getattr(client, "push_image_archive", None) if client is not None else None
     if push_archive is not None:
-        step(f"push {node.source} -> {node.destination}")
+        step(f"push {image.source} -> {image.destination}")
         if dry_run:
-            return node.destination
-        pushed = await maybe_await(push_archive(source=node.source, destination=node.destination))
+            return image.destination
+        pushed = await maybe_await(push_archive(source=image.source, destination=image.destination))
         if not isinstance(pushed, str):
             raise TypeError("ix_sdk.Client.push_image_archive must return the pushed image ref")
         return pushed
 
-    out = run_cli(["ix", "push", node.source, node.destination], dry_run=dry_run)
+    out = run_cli(["ix", "push", image.source, image.destination], dry_run=dry_run)
     refs = [line.strip() for line in out.splitlines() if line.strip()]
-    return refs[-1] if refs else node.destination
+    return refs[-1] if refs else image.destination
 
 
-async def deploy_node(
-    client: typing.Any,
-    branch_type: typing.Any | None,
-    node: FleetNode,
-    image: str,
-    *,
-    dry_run: bool,
-) -> None:
-    deploy = getattr(client, "deploy", None) if client is not None else None
-    if deploy is not None:
-        step(f"deploy {node.name} from {image}")
-        if dry_run:
-            return
-        result = await maybe_await(
-            deploy(
+async def snapshot_node(client: typing.Any, node: FleetNode, *, dry_run: bool) -> None:
+    snapshot = getattr(client, "snapshot", None) if client is not None else None
+    if snapshot is None:
+        step(f"snapshot {node.name}")
+        if not dry_run:
+            raise RuntimeError("ix_sdk.Client.snapshot is required for fleet switch")
+        return
+    step(f"snapshot {node.name}")
+    if not dry_run:
+        await maybe_await(snapshot(name=node.name))
+
+
+async def switch_node(client: typing.Any, node: FleetNode, *, dry_run: bool) -> None:
+    switch_system = getattr(client, "switch_system", None) if client is not None else None
+    if switch_system is None:
+        step(f"switch {node.name} -> {node.system}")
+        if not dry_run:
+            raise RuntimeError("ix_sdk.Client.switch_system is required for fleet switch")
+        return
+    step(f"switch {node.name} -> {node.system}")
+    if not dry_run:
+        await maybe_await(
+            switch_system(
                 name=node.name,
-                image=image,
+                system=node.system,
                 region=node.region,
                 env=node.env,
                 l7_proxy_ports=node.l7ProxyPorts,
                 ipv4=node.ipv4,
-                replace=node.replace,
             )
         )
-        if branch_type is not None and not isinstance(result, branch_type):
-            raise TypeError("ix_sdk.Client.deploy returned an unexpected object")
+
+
+async def replace_node(client: typing.Any, node: FleetNode, image: str, *, dry_run: bool) -> None:
+    replace = getattr(client, "replace", None) if client is not None else None
+    if replace is not None:
+        step(f"replace {node.name} from {image}")
+        if not dry_run:
+            await maybe_await(
+                replace(
+                    name=node.name,
+                    image=image,
+                    region=node.region,
+                    env=node.env,
+                    l7_proxy_ports=node.l7ProxyPorts,
+                    ipv4=node.ipv4,
+                )
+            )
         return
 
-    if node.env or node.l7ProxyPorts or node.replace is False:
+    if node.env or node.l7ProxyPorts:
         raise RuntimeError(
-            f"node {node.name!r} needs typed ix_sdk deploy support "
-            "(env/l7 ports/non-replace are not representable through the current ix CLI fallback)"
+            f"node {node.name!r} needs typed ix_sdk replace support "
+            "(env/l7 ports are not representable through the current ix CLI fallback)"
         )
 
     command = [
@@ -206,21 +235,35 @@ async def deploy_node(
     run_cli(command, dry_run=dry_run)
 
 
-async def cmd_push(plan: FleetPlan, args: argparse.Namespace) -> None:
-    client, _branch_type = import_ix_sdk()
-    refs: dict[str, str] = {}
+async def cmd_diff(plan: FleetPlan, args: argparse.Namespace) -> None:
+    client = import_ix_sdk()
+    diff = getattr(client, "diff_system", None) if client is not None else None
+    if diff is None:
+        for node in selected_nodes(plan, args.on):
+            print(f"{node.name}\twant system {node.system}")
+        return
+
+    rows = []
     for node in selected_nodes(plan, args.on):
-        refs[node.name] = await push_node(client, node, dry_run=args.dry_run)
-    print(json.dumps(refs, indent=2))
+        rows.append(await maybe_await(diff(name=node.name, system=node.system)))
+    print(json.dumps(rows, indent=2, default=str))
 
 
-async def cmd_deploy(plan: FleetPlan, args: argparse.Namespace) -> None:
-    client, branch_type = import_ix_sdk()
+async def cmd_switch(plan: FleetPlan, args: argparse.Namespace) -> None:
+    client = import_ix_sdk()
     for node in selected_nodes(plan, args.on):
-        image = node.destination
+        if node.snapshot and not args.no_snapshot:
+            await snapshot_node(client, node, dry_run=args.dry_run)
+        await switch_node(client, node, dry_run=args.dry_run)
+
+
+async def cmd_replace(plan: FleetPlan, args: argparse.Namespace) -> None:
+    client = import_ix_sdk()
+    for node in selected_nodes(plan, args.on):
+        image = node.bootstrapImage.destination
         if not args.skip_push:
-            image = await push_node(client, node, dry_run=args.dry_run)
-        await deploy_node(client, branch_type, node, image, dry_run=args.dry_run)
+            image = await push_bootstrap_image(client, node, dry_run=args.dry_run)
+        await replace_node(client, node, image, dry_run=args.dry_run)
 
 
 def parser() -> argparse.ArgumentParser:
@@ -230,23 +273,27 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--dry-run", action="store_true")
 
     sub = p.add_subparsers(dest="command", required=True)
-    sub.add_parser("show")
-    sub.add_parser("push")
-    deploy = sub.add_parser("deploy")
-    deploy.add_argument("--skip-push", action="store_true")
+    sub.add_parser("plan")
+    sub.add_parser("diff")
+    switch = sub.add_parser("switch")
+    switch.add_argument("--no-snapshot", action="store_true")
+    replace = sub.add_parser("replace")
+    replace.add_argument("--skip-push", action="store_true")
     return p
 
 
 async def main() -> None:
     args = parser().parse_args()
     plan = load_plan(args.plan)
-    if args.command == "show":
+    if args.command == "plan":
         nodes = [node.model_dump() for node in selected_nodes(plan, args.on)]
         print(json.dumps({"nodes": nodes}, indent=2))
-    elif args.command == "push":
-        await cmd_push(plan, args)
-    elif args.command == "deploy":
-        await cmd_deploy(plan, args)
+    elif args.command == "diff":
+        await cmd_diff(plan, args)
+    elif args.command == "switch":
+        await cmd_switch(plan, args)
+    elif args.command == "replace":
+        await cmd_replace(plan, args)
     else:
         raise AssertionError(args.command)
 
@@ -254,7 +301,14 @@ async def main() -> None:
 def run() -> None:
     try:
         asyncio.run(main())
-    except (OSError, ValidationError, ValueError, TypeError, RuntimeError, subprocess.CalledProcessError) as error:
+    except (
+        OSError,
+        ValidationError,
+        ValueError,
+        TypeError,
+        RuntimeError,
+        subprocess.CalledProcessError,
+    ) as error:
         print(f"ix-fleet: {error}", file=sys.stderr)
         raise SystemExit(1) from error
 

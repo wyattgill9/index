@@ -72,6 +72,16 @@ let
           )
         ];
       };
+
+      worker = {
+        replicas = 2;
+        dependsOn = [ "db" ];
+        modules = [
+          {
+            services.remote-desktop.enable = true;
+          }
+        ];
+      };
     };
   };
 
@@ -258,8 +268,12 @@ let
       message = "fleet plain attrset nodes should be treated as modules";
     }
     {
-      assertion = fleetPlan.web.destination == "fleet-web:latest";
+      assertion = fleetPlan.web.bootstrapImage.destination == "fleet-web:latest";
       message = "fleet wrapped-node deployment destination should flow into the generated plan";
+    }
+    {
+      assertion = fleetPlan.web.system == "${fleet.nodes.web.system.build.toplevel}";
+      message = "fleet plans should expose the NixOS system closure for switch";
     }
     {
       assertion = fleetPlan.web.region == "hil-1";
@@ -272,6 +286,14 @@ let
     {
       assertion = fleetPlan.web.ipv4;
       message = "fleet wrapped-node deployment overrides should flow into the generated plan";
+    }
+    {
+      assertion = fleetPlan."worker-0".baseName == "worker" && fleetPlan."worker-1".replicaIndex == 1;
+      message = "fleet replicas should expand into stable node identities";
+    }
+    {
+      assertion = fleetPlan."worker-0".dependsOn == [ "db" ];
+      message = "fleet replica dependencies should point at expanded node identities";
     }
   ];
 

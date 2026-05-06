@@ -8,6 +8,10 @@ Every image is an independent NixOS system closure: `boot.isContainer = true`, s
 
 Images are not stacked at runtime. ix runs one image. Layering is purely a build-time concern: the closure is split into ~67 OCI layers so the registry stores each shared store path once and clients only pay for deltas. Single-layer would force every image to ship a private copy of the multi-hundred-MB base closure.
 
+## VM assumptions
+
+ix VMs implicitly have snapshots and effectively unbounded disk. Fleet and stateful-service designs should lean on those primitives: take snapshots before destructive or data-format-changing operations, prefer in-place NixOS/system switches for stateful nodes, and do not design around fixed-root-disk exhaustion as a primary constraint.
+
 ## Layout
 
 ```
