@@ -1,20 +1,16 @@
 { ix }:
 let
-  # TODO: settle the fleet secret API. This sketches "generate once and share
-  # with these nodes", but the final design may want scoped secret objects,
-  # automatic dependency wiring, rotation policy, or module-owned secrets.
+  # TODO: settle the secret-ref implementation. The intended shape is opaque
+  # refs: modules depend on a ref, ix infers sharing, materializes the file at
+  # activation time, and owns rotation. Users should not hand-wire /run paths.
   secrets = {
-    velocityForwarding = {
-      generate = true;
-      path = "/run/ix-secrets/velocity-forwarding";
-      sharedWith = [
-        "proxy"
-        "lobby"
-        "survival"
-      ];
-    };
+    velocityForwarding.generate = true;
   };
   forwardingSecret = secrets.velocityForwarding;
+  networks = {
+    northSouth = "public";
+    eastWest = "mesh";
+  };
   survivalReplicas = 3;
   replicaNames = name: count: builtins.genList (index: "${name}-${toString index}") count;
   survivalNodes = replicaNames "survival" survivalReplicas;
@@ -32,7 +28,11 @@ ix.lib.mkFleet {
 
   nodes = {
     proxy = import ./proxy.nix {
-      inherit forwardingSecret survivalNodes;
+      inherit
+        forwardingSecret
+        networks
+        survivalNodes
+        ;
     };
 
     lobby = import ./folia-node.nix {

@@ -27,10 +27,12 @@
             "config/paper-global.yml".proxies.velocity = {
               enabled = true;
               online-mode = true;
-              secret = "@secret:${forwardingSecret.path}";
+              secret = forwardingSecret;
             };
           };
         };
+
+        ix.networking.eastWest.firewall.allowedTCPPorts = [ 25565 ];
       }
     )
   ];

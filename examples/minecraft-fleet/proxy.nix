@@ -1,5 +1,6 @@
 {
   forwardingSecret,
+  networks,
   survivalNodes,
 }:
 {
@@ -10,7 +11,16 @@
   ];
   deployment = {
     ipv4 = true;
-    l7ProxyPorts = [ 25565 ];
+    expose = {
+      northSouth = {
+        tcp = [ 25565 ];
+        udp = [ 19132 ];
+      };
+    };
+    networks = [
+      networks.northSouth
+      networks.eastWest
+    ];
   };
 
   modules = [
@@ -23,16 +33,16 @@
           onlineMode = true;
           forwarding = {
             mode = "modern";
-            secretFile = forwardingSecret.path;
+            secret = forwardingSecret;
           };
 
           servers = {
-            lobby = "${nodes.lobby.config.networking.hostName}:25565";
+            lobby = "${nodes.lobby.config.ix.networking.eastWest.hostName}:25565";
           }
           // builtins.listToAttrs (
             map (name: {
               inherit name;
-              value = "${nodes.${name}.config.networking.hostName}:25565";
+              value = "${nodes.${name}.config.ix.networking.eastWest.hostName}:25565";
             }) survivalNodes
           );
 
@@ -58,8 +68,13 @@
           platform = "velocity";
         };
 
-        networking.firewall.allowedTCPPorts = [ 25565 ];
-        networking.firewall.allowedUDPPorts = [ 19132 ];
+        ix.networking = {
+          eastWest.firewall.allowedTCPPorts = [ 25565 ];
+          northSouth.firewall = {
+            allowedTCPPorts = [ 25565 ];
+            allowedUDPPorts = [ 19132 ];
+          };
+        };
       }
     )
   ];

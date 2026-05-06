@@ -18,6 +18,7 @@ examples/minecraft-fleet/
 - Java players enter on TCP 25565. Bedrock players enter on UDP 19132.
 - Folia runs the lobby and survival shards.
 - `survival` expands into stable VM identities: `survival-0`, `survival-1`, `survival-2`.
+- VMs have two virtio-net devices: north-south for public ingress and east-west for the private mesh.
 
 The Velocity/Geyser/Floodgate modules shown here are the intended API shape, not a claim that those modules all exist in this repo today. The OCI image is only the bootstrap artifact; normal updates use `switch` to activate a new NixOS system closure in place.
 
@@ -25,21 +26,39 @@ The Velocity/Geyser/Floodgate modules shown here are the intended API shape, not
 
 Velocity modern forwarding needs one shared secret. The proxy uses it to sign forwarded player identity, and the Folia backends use the same secret to trust only the proxy.
 
-In this example the fleet asks ix to generate that secret once and mount it on the proxy and backend nodes:
+In this example the fleet asks ix to generate an opaque secret ref:
 
 ```nix
-secrets.velocityForwarding = {
-  generate = true;
-  path = "/run/ix-secrets/velocity-forwarding";
-  sharedWith = [
-    "proxy"
-    "lobby"
-    "survival"
-  ];
+secrets.velocityForwarding.generate = true;
+```
+
+Modules consume the ref directly:
+
+```nix
+services.velocity.forwarding.secret = forwardingSecret;
+services.minecraft.serverFiles."config/paper-global.yml".proxies.velocity.secret = forwardingSecret;
+```
+
+The exact `secrets` API is hypothetical here, but the invariant is real: generated once, shared with every node that references it, materialized at activation time, and rotated deliberately.
+
+## Network Exposure
+
+Use north-south only for public ingress:
+
+```nix
+deployment.expose.northSouth = {
+  tcp = [ 25565 ];
+  udp = [ 19132 ];
 };
 ```
 
-Then the proxy reads `secretFile = forwardingSecret.path`, and the Folia nodes reference the same file from `paper-global.yml`. The exact `secrets` API is hypothetical here, but the invariant is real: generated once, shared with every node that participates in Velocity forwarding, and rotated deliberately.
+Use east-west for private VM-to-VM traffic:
+
+```nix
+ix.networking.eastWest.firewall.allowedTCPPorts = [ 25565 ];
+```
+
+The proxy accepts public Java/Bedrock traffic on north-south, then talks to Folia backends over east-west hostnames.
 
 ## Use
 
