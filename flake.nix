@@ -40,8 +40,11 @@
     {
       lib = ix;
       modules = import ./modules;
+      overlays.default = ix.overlay;
 
-      packages.${ix.system} = ix.discoverImages ./images;
+      packages.${ix.system} = (ix.discoverImages ./images) // {
+        inherit (ix.pkgs) tonbo-artifacts;
+      };
       checks.${ix.system}.eval = import ./tests { inherit nixpkgs ix; };
       formatter = builtins.listToAttrs (
         map (system: {

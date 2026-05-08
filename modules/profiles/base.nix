@@ -44,6 +44,9 @@
         jq
         ;
 
+      # remote workspaces
+      inherit (pkgs) tonbo-artifacts fuse3;
+
       # debug
       inherit (pkgs)
         btop
