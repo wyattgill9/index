@@ -167,9 +167,7 @@ async def push_bootstrap_image(client: typing.Any, node: FleetNode, *, dry_run: 
 async def snapshot_node(client: typing.Any, node: FleetNode, *, dry_run: bool) -> None:
     snapshot = getattr(client, "snapshot", None) if client is not None else None
     if snapshot is None:
-        step(f"snapshot {node.name}")
-        if not dry_run:
-            raise RuntimeError("ix_sdk.Client.snapshot is required for fleet switch")
+        run_cli(["ix", "snapshot", "create", node.name], dry_run=dry_run)
         return
     step(f"snapshot {node.name}")
     if not dry_run:
@@ -179,9 +177,7 @@ async def snapshot_node(client: typing.Any, node: FleetNode, *, dry_run: bool) -
 async def switch_node(client: typing.Any, node: FleetNode, *, dry_run: bool) -> None:
     switch_system = getattr(client, "switch_system", None) if client is not None else None
     if switch_system is None:
-        step(f"switch {node.name} -> {node.system}")
-        if not dry_run:
-            raise RuntimeError("ix_sdk.Client.switch_system is required for fleet switch")
+        run_cli(["ix", "switch", node.name, node.system], dry_run=dry_run)
         return
     step(f"switch {node.name} -> {node.system}")
     if not dry_run:
@@ -236,7 +232,7 @@ async def replace_node(client: typing.Any, node: FleetNode, image: str, *, dry_r
 
 
 async def cmd_diff(plan: FleetPlan, args: argparse.Namespace) -> None:
-    client = import_ix_sdk()
+    client = None if args.dry_run else import_ix_sdk()
     diff = getattr(client, "diff_system", None) if client is not None else None
     if diff is None:
         for node in selected_nodes(plan, args.on):
@@ -250,7 +246,7 @@ async def cmd_diff(plan: FleetPlan, args: argparse.Namespace) -> None:
 
 
 async def cmd_switch(plan: FleetPlan, args: argparse.Namespace) -> None:
-    client = import_ix_sdk()
+    client = None if args.dry_run else import_ix_sdk()
     for node in selected_nodes(plan, args.on):
         if node.snapshot and not args.no_snapshot:
             await snapshot_node(client, node, dry_run=args.dry_run)
@@ -258,7 +254,7 @@ async def cmd_switch(plan: FleetPlan, args: argparse.Namespace) -> None:
 
 
 async def cmd_replace(plan: FleetPlan, args: argparse.Namespace) -> None:
-    client = import_ix_sdk()
+    client = None if args.dry_run else import_ix_sdk()
     for node in selected_nodes(plan, args.on):
         image = node.bootstrapImage.destination
         if not args.skip_push:
@@ -267,17 +263,33 @@ async def cmd_replace(plan: FleetPlan, args: argparse.Namespace) -> None:
 
 
 def parser() -> argparse.ArgumentParser:
+    def add_common_options(target: argparse.ArgumentParser, *, defaults: bool) -> None:
+        target.add_argument(
+            "--on",
+            action="append",
+            default=[] if defaults else argparse.SUPPRESS,
+            metavar="NODE_OR_@TAG",
+        )
+        target.add_argument(
+            "--dry-run",
+            action="store_true",
+            default=False if defaults else argparse.SUPPRESS,
+        )
+
     p = argparse.ArgumentParser(prog="ix-fleet")
     p.add_argument("--plan", required=True, type=Path)
-    p.add_argument("--on", action="append", default=[], metavar="NODE_OR_@TAG")
-    p.add_argument("--dry-run", action="store_true")
+    add_common_options(p, defaults=True)
 
     sub = p.add_subparsers(dest="command", required=True)
-    sub.add_parser("plan")
-    sub.add_parser("diff")
+    plan = sub.add_parser("plan")
+    add_common_options(plan, defaults=False)
+    diff = sub.add_parser("diff")
+    add_common_options(diff, defaults=False)
     switch = sub.add_parser("switch")
+    add_common_options(switch, defaults=False)
     switch.add_argument("--no-snapshot", action="store_true")
     replace = sub.add_parser("replace")
+    add_common_options(replace, defaults=False)
     replace.add_argument("--skip-push", action="store_true")
     return p
 

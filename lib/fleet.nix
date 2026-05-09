@@ -7,6 +7,7 @@
 {
   defaults ? [ ],
   deployment ? { },
+  secrets ? { },
   nodes,
 }:
 let
@@ -154,6 +155,7 @@ let
   planValue = {
     order = builtins.attrNames nodeSpecs;
     nodes = nodePlan;
+    inherit secrets;
   };
 
   plan = pkgs.writeText "ix-fleet-plan.json" (builtins.toJSON planValue);

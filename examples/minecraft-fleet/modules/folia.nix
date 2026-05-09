@@ -7,13 +7,14 @@
   tags = [ "minecraft" ];
   modules = [
     (
-      { name, ... }:
+      { name, pkgs, ... }:
       {
         services.minecraft = {
           folia = {
             enable = true;
             version = "1.21.10";
             build = 12;
+            src = pkgs.emptyFile;
           };
 
           serverFiles = {

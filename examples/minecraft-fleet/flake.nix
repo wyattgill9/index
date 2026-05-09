@@ -12,22 +12,27 @@
       ];
     in
     {
-      apps.x86_64-linux = {
-        switch = {
-          type = "app";
-          program = "${fleet.switch}/bin/ix-fleet-switch";
-        };
+      apps = builtins.listToAttrs (
+        map (system: {
+          name = system;
+          value = {
+            switch = {
+              type = "app";
+              program = "${fleet.switch}/bin/ix-fleet-switch";
+            };
 
-        plan = {
-          type = "app";
-          program = "${fleet.command}/bin/ix-fleet";
-        };
+            plan = {
+              type = "app";
+              program = "${fleet.command}/bin/ix-fleet";
+            };
 
-        replace = {
-          type = "app";
-          program = "${fleet.command}/bin/ix-fleet";
-        };
-      };
+            replace = {
+              type = "app";
+              program = "${fleet.command}/bin/ix-fleet";
+            };
+          };
+        }) systems
+      );
 
       packages = builtins.listToAttrs (
         map (system: {

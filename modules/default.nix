@@ -8,11 +8,14 @@
 # `profiles/base.nix`, which `ix-base.nix` enables by default.
 {
   base = ./profiles/base.nix;
+  floodgate = ./services/floodgate.nix;
+  geyser = ./services/geyser.nix;
   git-clone = ./services/git-clone.nix;
   minestom = ./services/minestom.nix;
   minecraft-bedrock = ./services/minecraft-bedrock.nix;
   postgresql = ./services/postgresql.nix;
   remote-desktop = ./services/remote-desktop.nix;
+  velocity = ./services/velocity.nix;
 
   minecraft = {
     runtime = ./services/minecraft;

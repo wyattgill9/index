@@ -53,6 +53,7 @@ let
 
   fleet = ix.mkFleet {
     deployment.region = "hil-1";
+    secrets.sessionKey.generate = true;
 
     nodes = {
       db = {
@@ -89,6 +90,11 @@ let
   };
 
   fleetPlan = fleet.planValue.nodes;
+  minecraftFleet = import ../examples/minecraft-fleet/default.nix {
+    ix = ix // {
+      lib = ix;
+    };
+  };
 
   packageNames = builtins.attrNames (ix.discoverImages ../images);
 
@@ -277,6 +283,10 @@ let
       message = "fleet nodes should default hostName to the node name";
     }
     {
+      assertion = fleet.nodes.db.ix.networking.eastWest.hostName == "db";
+      message = "fleet nodes should expose their east-west host name through ix.networking";
+    }
+    {
       assertion = fleet.nodes.web.environment.etc."db-host".text == "db";
       message = "fleet node modules should be able to reference nodes.<name>.config";
     }
@@ -305,12 +315,31 @@ let
       message = "fleet wrapped-node deployment overrides should flow into the generated plan";
     }
     {
+      assertion = fleet.planValue.secrets.sessionKey.generate;
+      message = "fleet plans should carry declarative secret specs";
+    }
+    {
       assertion = fleetPlan."worker-0".baseName == "worker" && fleetPlan."worker-1".replicaIndex == 1;
       message = "fleet replicas should expand into stable node identities";
     }
     {
       assertion = fleetPlan."worker-0".dependsOn == [ "db" ];
       message = "fleet replica dependencies should point at expanded node identities";
+    }
+    {
+      assertion =
+        minecraftFleet.planValue.order == [
+          "lobby"
+          "proxy"
+          "survival-0"
+          "survival-1"
+          "survival-2"
+        ];
+      message = "minecraft fleet example should evaluate to the expected switch order";
+    }
+    {
+      assertion = minecraftFleet.planValue.secrets.velocityForwarding.generate;
+      message = "minecraft fleet example should expose its generated forwarding secret";
     }
   ];
 
