@@ -5,41 +5,50 @@
     { ix-images, ... }:
     let
       ix = ix-images;
-      fleet = import ./default.nix { inherit ix; };
       systems = [
         "x86_64-linux"
         "aarch64-darwin"
       ];
+      fleetFor = hostSystem: import ./default.nix { inherit ix hostSystem; };
     in
     {
       apps = builtins.listToAttrs (
         map (system: {
           name = system;
-          value = {
-            switch = {
-              type = "app";
-              program = "${fleet.switch}/bin/ix-fleet-switch";
-            };
+          value =
+            let
+              fleet = fleetFor system;
+            in
+            {
+              switch = {
+                type = "app";
+                program = "${fleet.switch}/bin/ix-fleet-switch";
+              };
 
-            plan = {
-              type = "app";
-              program = "${fleet.command}/bin/ix-fleet";
-            };
+              plan = {
+                type = "app";
+                program = "${fleet.command}/bin/ix-fleet";
+              };
 
-            replace = {
-              type = "app";
-              program = "${fleet.command}/bin/ix-fleet";
+              replace = {
+                type = "app";
+                program = "${fleet.command}/bin/ix-fleet";
+              };
             };
-          };
         }) systems
       );
 
       packages = builtins.listToAttrs (
         map (system: {
           name = system;
-          value = fleet.packages // {
-            inherit (fleet) command switch;
-          };
+          value =
+            let
+              fleet = fleetFor system;
+            in
+            fleet.packages
+            // {
+              inherit (fleet) command switch;
+            };
         }) systems
       );
     };

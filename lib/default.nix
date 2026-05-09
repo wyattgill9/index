@@ -150,13 +150,17 @@ let
 
   mkImage = args: (evalImageConfig args).ix.build.ociImage;
 
-  mkFleet = import ./fleet.nix {
-    inherit
-      lib
-      pkgs
-      evalImageConfig
-      ;
-  };
+  mkFleetFor =
+    hostSystem:
+    import ./fleet.nix {
+      inherit
+        lib
+        evalImageConfig
+        ;
+      pkgs = nixpkgs.legacyPackages.${hostSystem};
+    };
+
+  mkFleet = mkFleetFor system;
 
   # Subdirectories of `dir`. Used to walk images/<cat>/<name>/.
   subdirs =
@@ -215,6 +219,7 @@ in
     evalImageConfig
     mkImage
     mkFleet
+    mkFleetFor
     discoverImages
     artifacts
     mkMinecraftLoader

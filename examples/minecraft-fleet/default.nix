@@ -1,4 +1,7 @@
-{ ix }:
+{
+  ix,
+  hostSystem ? ix.lib.system,
+}:
 let
   # TODO: settle the secret-ref implementation. The intended shape is opaque
   # refs: modules depend on a ref, ix infers sharing, materializes the file at
@@ -19,7 +22,7 @@ let
     };
   };
 in
-ix.lib.mkFleet {
+ix.lib.mkFleetFor hostSystem {
   inherit secrets;
 
   nodes = {
