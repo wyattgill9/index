@@ -1,4 +1,4 @@
-# ix/images
+# ix/index
 
 NixOS images and modules for [ix](https://ix.dev) VMs. Built with `-march=znver5` for AMD EPYC Gen 5.
 
