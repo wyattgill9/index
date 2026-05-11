@@ -184,6 +184,12 @@ In fleet examples, `ix.image.name` usually defaults to the node name. Set it onl
 
 Comments should explain why a line exists, not restate Nix syntax. Prefer comments that answer "why is this needed in an ix fleet?" over comments that paraphrase the option name.
 
+Use the ecosystem's normal project shape before inventing local scaffolding. Java examples should be Maven or Gradle projects with a `pom.xml`/build file, `src/main/java`, and resources; build them from Nix with `maven.buildMavenPackage` or the corresponding standard builder. Do not generate source files from Nix heredocs, vendor fake API stubs, or hand-roll classpaths when a normal build tool dependency is available.
+
+Do not hide real source files inside Nix strings just to keep the file count small. If an example needs Java, scripts, config templates, or assets, put them in ordinary files with normal paths and keep the Nix derivation as the build recipe. Inline generated files are acceptable only for tiny machine-owned glue where reading a separate file would be worse.
+
+At the same time, do not spray files around without a boundary. Group example-specific support code under a named subdirectory (for example, `claude-code-scoreboard-plugin/`) with a small `default.nix`, source files, and assets it needs.
+
 ## Artifact inputs
 
 Fixed upstream artifacts belong in `flake.nix` as non-flake inputs. This keeps content hashes in `flake.lock`, so `nix flake update` is the one update path for nixpkgs, tooling flakes, server jars, mod jars, and other pinned downloads.

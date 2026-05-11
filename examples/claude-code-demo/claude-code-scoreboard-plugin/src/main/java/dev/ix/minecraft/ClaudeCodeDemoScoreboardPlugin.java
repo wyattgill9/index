@@ -11,7 +11,7 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 
-public final class TimeScoreboardPlugin extends JavaPlugin {
+public final class ClaudeCodeDemoScoreboardPlugin extends JavaPlugin {
     private BukkitTask task;
 
     @Override
@@ -49,7 +49,7 @@ public final class TimeScoreboardPlugin extends JavaPlugin {
 
             Scoreboard board = manager.getNewScoreboard();
             Objective objective = board.registerNewObjective(
-                "ix_time",
+                "claude_demo",
                 "dummy",
                 ChatColor.GOLD + "Claude Code Demo"
             );

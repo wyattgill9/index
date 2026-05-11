@@ -1,14 +1,15 @@
 {
   jdk25,
-  paperServer,
-  runCommand,
+  maven,
 }:
-runCommand "claude-code-demo-scoreboard-plugin.jar" { nativeBuildInputs = [ jdk25 ]; } ''
-  mkdir -p classes
-  javac \
-    -cp ${paperServer} \
-    -d classes \
-    ${./src/dev/ix/minecraft/TimeScoreboardPlugin.java}
-  cp ${./plugin.yml} classes/plugin.yml
-  jar --create --file "$out" -C classes .
-''
+maven.buildMavenPackage {
+  pname = "claude-code-demo-scoreboard-plugin";
+  version = "1.0.0";
+  src = ./.;
+  mvnJdk = jdk25;
+  mvnHash = "sha256-73BlPe8XtIJL6k86nrwqoWQWlZG6ErXQKA5nqbpcuAo=";
+
+  installPhase = ''
+    cp target/claude-code-demo-scoreboard-plugin-1.0.0.jar "$out"
+  '';
+}

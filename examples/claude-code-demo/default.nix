@@ -6,9 +6,7 @@ let
   pkgs = ix.lib.pkgs;
   paperVersion = "1.21.11";
   paperServer = ix.lib.artifacts.minecraft.paperServers.${paperVersion};
-  claudeCodeScoreboardPlugin = pkgs.callPackage ./claude-code-scoreboard-plugin {
-    paperServer = paperServer.src;
-  };
+  claudeCodeScoreboardPlugin = pkgs.callPackage ./claude-code-scoreboard-plugin { };
 in
 (ix.lib.mkFleetFor hostSystem) {
   deployment.switch = {

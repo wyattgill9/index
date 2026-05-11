@@ -6,7 +6,7 @@ This directory is a small ix fleet for demoing Claude Code against a live Paper 
 examples/claude-code-demo/
   flake.nix                       # declares inputs and exposes runnable commands
   default.nix                     # fleet definition imported by flake outputs/tests
-  claude-code-scoreboard-plugin/  # local Paper plugin built into a jar by Nix
+  claude-code-scoreboard-plugin/  # local Paper plugin Maven project
 ```
 
 ## Topology
@@ -31,6 +31,8 @@ deployment.expose.northSouth.tcp = [ 25565 ];
 `services.minecraft.autoReload.driver = "plugman"` makes managed plugin changes reload instead of restarting the Minecraft service. The runtime syncs declarative plugins into `/var/lib/minecraft/plugins`, computes a per-plugin plan from the previous manifest, and sends `plugman load`, `plugman reload`, or `plugman unload` over local RCON.
 
 `services.minecraft.plugins` mirrors Paper's own vocabulary. Empty `{}` means "use the pinned plugin catalog"; setting `src` means "install this local or private plugin jar". Fabric-style mods still use `services.minecraft.mods`.
+
+The local plugin is a normal Maven project. Its `pom.xml` depends on `paper-api` with Maven's `provided` scope, so the plugin compiles against Paper's API without bundling server classes into the jar.
 
 The two Nix files split responsibilities: `flake.nix` is the executable wrapper that declares inputs and exposes `nix run .#switch`; `default.nix` is the actual fleet value. Keeping the fleet in `default.nix` makes it easy for tests and other flakes to import the same definition without going through flake output plumbing.
 
