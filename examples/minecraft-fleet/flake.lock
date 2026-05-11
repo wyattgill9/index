@@ -578,11 +578,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1778460401,
-        "narHash": "sha256-SVhvg7q19FLezvxXCr5gE5nFH+LKIp+GYqVvivydbaM=",
+        "lastModified": 1778460561,
+        "narHash": "sha256-sBPfeD88cUDLvcpbo0hrz6Q3Z7oZFwhqp4iYmrZQ9wk=",
         "owner": "indexable-inc",
         "repo": "images",
-        "rev": "d45ad781f00b8c6f75d199344fc15fc8f0f5eb59",
+        "rev": "a8efdfb31f052d96ec329180f22e7cf1d1a764e9",
         "type": "github"
       },
       "original": {
