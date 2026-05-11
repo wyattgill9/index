@@ -16,7 +16,9 @@
   config = lib.mkIf config.ix.profiles.base.enable {
     environment.systemPackages = builtins.attrValues {
       # AI
-      inherit (pkgs.llm-agents) claude-code codex;
+      # TODO: re-enable once binary cache is available. These come from custom
+      # flakes (claude-code-nix, codex-cli-nix) and build from source.
+      # inherit (pkgs.llm-agents) claude-code codex;
 
       # editors
       inherit (pkgs) neovim;
@@ -45,7 +47,8 @@
         ;
 
       # remote workspaces
-      inherit (pkgs) tonbo-artifacts fuse3;
+      # TODO: re-enable tonbo-artifacts (custom Rust build, no cache hits).
+      inherit (pkgs) fuse3;
 
       # debug
       inherit (pkgs)
