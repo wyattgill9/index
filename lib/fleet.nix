@@ -128,10 +128,17 @@ let
       imageTag = config.ix.image.tag;
       deploy = spec.deployment;
       replacementDestination = deploy.destination or "${imageName}:${imageTag}";
-      switchTarget =
-        deploy.switch.target or builtins.unsafeDiscardStringContext
-          config.system.build.toplevel.drvPath;
       switchBuildOn = deploy.switch.buildOn or "remote";
+      # ix switch expects a system out-path for local copy and a .drv for remote
+      # build. Picking the wrong shape uploads the build-time closure and tries
+      # to run `<drv>/bin/switch-to-configuration`, which deadlocks.
+      switchTarget =
+        deploy.switch.target or builtins.unsafeDiscardStringContext (
+          if switchBuildOn == "local" then
+            "${config.system.build.toplevel}"
+          else
+            config.system.build.toplevel.drvPath
+        );
     in
     {
       inherit
