@@ -218,6 +218,8 @@ Run `nix run nixpkgs#ast-grep -- scan` before committing. Hard rules:
 
 Keep issue bodies short. State the problem, the context, and the desired outcome. Don't prescribe implementation steps or section headers unless explicitly asked. A few sentences is enough.
 
+When you hit a real bug, broken assumption, or unidiomatic pattern while working in this repo, file a GitHub issue right then (`gh issue create -R indexable-inc/index ...`). Don't batch and don't wait to be asked. One concrete observation per issue.
+
 ## Searching
 
 Use `mgrep search -c {natural language}` to search the codebase. Do not use subagents for search.

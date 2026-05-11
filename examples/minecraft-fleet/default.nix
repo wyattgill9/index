@@ -25,7 +25,10 @@ in
 ix.lib.mkFleetFor hostSystem {
   inherit secrets;
 
-  deployment.switch.overrideInputs.ix-images = ".";
+  deployment.switch = {
+    buildOn = "local";
+    overrideInputs.ix-images = ".";
+  };
 
   nodes = {
     proxy = import ./nodes/proxy.nix {
