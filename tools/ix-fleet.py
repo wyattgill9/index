@@ -136,11 +136,27 @@ def step(message: str) -> None:
     print(message, flush=True)
 
 
-def run_cli(command: list[str], *, dry_run: bool) -> str:
+def run_cli(
+    command: list[str],
+    *,
+    dry_run: bool,
+    timeout: int | None = None,
+) -> str:
     step("+ " + " ".join(command))
     if dry_run:
         return ""
-    result = subprocess.run(command, check=True, text=True, stdout=subprocess.PIPE)
+    try:
+        result = subprocess.run(
+            command,
+            check=True,
+            text=True,
+            stdout=subprocess.PIPE,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(
+            f"command timed out after {timeout}s: {' '.join(command)}"
+        )
     if result.stdout:
         print(result.stdout, end="")
     return result.stdout
@@ -264,9 +280,11 @@ async def switch_node(node: FleetNode, *, dry_run: bool) -> None:
             ["nix", "build", "--no-link", "--print-out-paths", node.switch.sourceInstallable],
             dry_run=dry_run,
         )
+    step(f"switching {node.name} (build-on={node.switch.buildOn})")
     run_cli(
         ["ix", "switch", node.name, node.switch.target, "--build-on", node.switch.buildOn],
         dry_run=dry_run,
+        timeout=1800,
     )
 
 
@@ -286,6 +304,10 @@ def default_source_workdir(cwd: Path, source_root: Path) -> Path:
         return cwd.resolve().relative_to(source_root.resolve())
     except ValueError:
         return Path(".")
+
+
+MAX_SWITCH_RETRIES = 3
+RETRY_DELAY_SECS = 10
 
 
 async def switch_node_from_source(
@@ -311,7 +333,19 @@ async def switch_node_from_source(
         command.extend(["--build-vm", node.switch.buildVm])
     for name, path in sorted(node.switch.overrideInputs.items()):
         command.extend(["--override-input", f"{name}={path}"])
-    run_cli(command, dry_run=dry_run)
+
+    for attempt in range(1, MAX_SWITCH_RETRIES + 1):
+        try:
+            step(f"switching {node.name} from source (attempt {attempt}/{MAX_SWITCH_RETRIES})")
+            run_cli(command, dry_run=dry_run, timeout=3600)
+            return
+        except (subprocess.CalledProcessError, RuntimeError) as e:
+            error_msg = str(e)
+            if "stream framing error" in error_msg and attempt < MAX_SWITCH_RETRIES:
+                step(f"transient error, retrying in {RETRY_DELAY_SECS}s: {error_msg[:100]}")
+                await asyncio.sleep(RETRY_DELAY_SECS)
+            else:
+                raise
 
 
 async def replace_node(node: FleetNode, image: str, *, dry_run: bool) -> None:
