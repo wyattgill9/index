@@ -40,7 +40,8 @@ ix.lib.mkFleetFor hostSystem {
   inherit secrets;
 
   deployment.switch = {
-    buildOn = "local";
+    buildOn = "remote";
+    buildVm = "nix-builder";
     overrideInputs.ix-images = ".";
   };
 
@@ -68,8 +69,15 @@ ix.lib.mkFleetFor hostSystem {
       replicas = survivalReplicas;
     };
 
-    nix-builder = import ./nodes/nix-builder.nix {
-      inherit nixBuilder;
-    };
+    nix-builder =
+      import ./nodes/nix-builder.nix {
+        inherit nixBuilder;
+      }
+      // {
+        deployment.switch = {
+          buildOn = "remote";
+          overrideInputs.ix-images = ".";
+        };
+      };
   };
 }

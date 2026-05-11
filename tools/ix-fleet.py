@@ -39,6 +39,7 @@ class SwitchSpec(BaseModel):
 
     target: str = Field(min_length=1)
     buildOn: typing.Literal["auto", "local", "remote"] = "auto"
+    buildVm: str | None = None
     sourceInstallable: str = Field(min_length=1)
     overrideInputs: dict[str, str] = Field(default_factory=empty_str_dict)
 
@@ -306,6 +307,8 @@ async def switch_node_from_source(
         "--source-workdir",
         str(source_workdir),
     ]
+    if node.switch.buildVm is not None:
+        command.extend(["--build-vm", node.switch.buildVm])
     for name, path in sorted(node.switch.overrideInputs.items()):
         command.extend(["--override-input", f"{name}={path}"])
     run_cli(command, dry_run=dry_run)

@@ -379,6 +379,7 @@ let
         fleetPlan.web.switch == {
           target = builtins.unsafeDiscardStringContext fleet.nodes.web.system.build.toplevel.drvPath;
           buildOn = "remote";
+          buildVm = null;
           sourceInstallable = ".#web-system";
           overrideInputs = { };
         };
@@ -425,6 +426,12 @@ let
           "survival-2"
         ];
       message = "minecraft fleet example should evaluate to the expected switch order";
+    }
+    {
+      assertion =
+        minecraftFleet.planValue.nodes.lobby.switch.buildVm == "nix-builder"
+        && minecraftFleet.planValue.nodes.nix-builder.switch.buildVm == null;
+      message = "minecraft fleet example should build non-builder nodes on the nix-builder VM";
     }
     {
       assertion = minecraftFleet.planValue.secrets.velocityForwarding.generate;

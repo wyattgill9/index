@@ -78,7 +78,16 @@ nix.buildMachines = [
 
 That makes in-VM `nix build`, `nixos-rebuild`, or future hot-switch work use `nix-builder` for builds and then copy results back to the requesting VM.
 
-This does not currently make the initial `ix fleet switch` build each node's system on `nix-builder`. The fleet plan only has `deployment.switch.buildOn = "local" | "remote" | "auto"`; it has no field for "remote, but specifically this fleet VM". To support that, ix would need the switch command to accept a named builder or builder endpoint and provision credentials before the first switch.
+The fleet switch path also asks ix to build non-builder nodes on the builder VM:
+
+```nix
+deployment.switch = {
+  buildOn = "remote";
+  buildVm = "nix-builder";
+};
+```
+
+That maps to `ix switch --source ... --build-vm nix-builder`: ix uploads the source to the builder VM, builds the target system there, exports the resulting closure, imports it into the VM being switched, and activates it. The builder node itself omits `buildVm` so the first builder activation can bootstrap normally.
 
 ## Network Exposure
 
