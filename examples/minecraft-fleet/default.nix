@@ -3,81 +3,58 @@
   hostSystem ? ix.lib.system,
 }:
 let
-  # TODO: settle the secret-ref implementation. The intended shape is opaque
-  # refs: modules depend on a ref, ix infers sharing, materializes the file at
-  # activation time, and owns rotation. Users should not hand-wire /run paths.
-  secrets = {
-    velocityForwarding.generate = true;
-    nixBuilderCacheSecretKey.generate = true;
-    nixBuilderClientKey.generate = true;
-  };
-  forwardingSecret = secrets.velocityForwarding;
-  nixBuilder = {
-    cacheSecretKeyFile = "/run/ix/secrets/nix-builder-cache-secret-key";
-    clientKeyFile = "/run/ix/secrets/nix-builder-client-key";
-    clientPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMinecraftFleetBuilderClient example";
-    hostPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMinecraftFleetBuilderHost example";
-    publicCacheKey = "minecraft-fleet-builder.example:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-  };
-  nixBuilderClientModule = import ./modules/nix-builder-client.nix {
-    inherit nixBuilder;
-    builderName = "nix-builder";
-  };
-  survivalReplicas = 3;
-  replicaNames = name: count: builtins.genList (index: "${name}-${toString index}") count;
-  survivalNodes = replicaNames "survival" survivalReplicas;
-  survival = import ./nodes/survival.nix {
-    inherit forwardingSecret;
-    extraModules = [ nixBuilderClientModule ];
-    motd = "ix survival";
-    extraServerProperties = {
-      view-distance = 10;
-      simulation-distance = 8;
-    };
+  pluginCatalog = ix.lib.artifacts.attachArtifactSources {
+    luckperms.url = "https://cdn.modrinth.com/data/Vebnzrzj/versions/OrIs0S6b/LuckPerms-Bukkit-5.5.17.jar";
   };
 in
-ix.lib.mkFleetFor hostSystem {
-  inherit secrets;
-
+(ix.lib.mkFleetFor hostSystem) {
   deployment.switch = {
     buildOn = "remote";
-    buildVm = "nix-builder";
-    overrideInputs.ix-images = ".";
+    overrideInputs.index = ".";
   };
 
   nodes = {
-    proxy = import ./nodes/proxy.nix {
-      inherit
-        forwardingSecret
-        nixBuilderClientModule
-        survivalNodes
-        ;
+    minecraft = {
+      deployment.expose.northSouth.tcp = [ 25565 ];
+      modules = [
+        (
+          { ix, ... }:
+          {
+            ix.image = {
+              name = "minecraft";
+              tag = "paper-hot-reload";
+            };
+
+            services.minecraft = {
+              enable = true;
+
+              paper = {
+                enable = true;
+                version = "1.21.11";
+                build = 69;
+                src = ix.artifacts.minecraft.servers."1.21.11-paper";
+              };
+
+              mods.luckperms = { };
+              modCatalog = pluginCatalog;
+
+              autoReload = {
+                enable = true;
+                driver = "plugman";
+                plugman.pluginNames.luckperms = "LuckPerms";
+              };
+
+              serverFiles."server.properties" = {
+                motd = "ix Paper";
+                max-players = 20;
+                online-mode = true;
+                view-distance = 10;
+                simulation-distance = 8;
+              };
+            };
+          }
+        )
+      ];
     };
-
-    lobby =
-      import ./nodes/lobby.nix {
-        inherit forwardingSecret;
-        extraModules = [ nixBuilderClientModule ];
-        motd = "ix lobby";
-      }
-      // {
-        dependsOn = [ "nix-builder" ];
-      };
-
-    survival = survival // {
-      dependsOn = [ "nix-builder" ];
-      replicas = survivalReplicas;
-    };
-
-    nix-builder =
-      import ./nodes/nix-builder.nix {
-        inherit nixBuilder;
-      }
-      // {
-        deployment.switch = {
-          buildOn = "remote";
-          overrideInputs.ix-images = ".";
-        };
-      };
   };
 }

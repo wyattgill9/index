@@ -96,6 +96,10 @@
       url = "https://cdn.modrinth.com/data/Vebnzrzj/versions/fTIdfb46/LuckPerms-Fabric-5.5.42.jar";
       flake = false;
     };
+    artifact-minecraft-plugin-luckperms-bukkit = {
+      url = "https://cdn.modrinth.com/data/Vebnzrzj/versions/OrIs0S6b/LuckPerms-Bukkit-5.5.17.jar";
+      flake = false;
+    };
     artifact-minecraft-mod-servercore = {
       url = "https://cdn.modrinth.com/data/4WWQxlQP/versions/P8k080Af/servercore-fabric-1.5.16%2B26.1.jar";
       flake = false;

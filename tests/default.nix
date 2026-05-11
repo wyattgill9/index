@@ -416,26 +416,19 @@ let
       message = "fleet replica dependencies should point at expanded node identities";
     }
     {
-      assertion =
-        minecraftFleet.planValue.order == [
-          "lobby"
-          "nix-builder"
-          "proxy"
-          "survival-0"
-          "survival-1"
-          "survival-2"
-        ];
-      message = "minecraft fleet example should evaluate to the expected switch order";
+      assertion = minecraftFleet.planValue.order == [ "minecraft" ];
+      message = "minecraft fleet example should evaluate to one Minecraft node";
+    }
+    {
+      assertion = minecraftFleet.nodes.minecraft.services.minecraft.paper.enable;
+      message = "minecraft fleet example should use Paper";
     }
     {
       assertion =
-        minecraftFleet.planValue.nodes.lobby.switch.buildVm == "nix-builder"
-        && minecraftFleet.planValue.nodes.nix-builder.switch.buildVm == null;
-      message = "minecraft fleet example should build non-builder nodes on the nix-builder VM";
-    }
-    {
-      assertion = minecraftFleet.planValue.secrets.velocityForwarding.generate;
-      message = "minecraft fleet example should expose its generated forwarding secret";
+        minecraftFleet.nodes.minecraft.services.minecraft.autoReload.driver == "plugman"
+        && minecraftFleet.nodes.minecraft.services.minecraft.mods ? luckperms
+        && minecraftFleet.nodes.minecraft.services.minecraft.autoReload.plugman.pluginNames.luckperms == "LuckPerms";
+      message = "minecraft fleet example should configure PlugManX reload for a managed plugin";
     }
   ];
 

@@ -89,6 +89,8 @@ let
       artifactInputs.artifact-minecraft-mod-lmd;
     "https://cdn.modrinth.com/data/Vebnzrzj/versions/fTIdfb46/LuckPerms-Fabric-5.5.42.jar" =
       artifactInputs.artifact-minecraft-mod-luckperms;
+    "https://cdn.modrinth.com/data/Vebnzrzj/versions/OrIs0S6b/LuckPerms-Bukkit-5.5.17.jar" =
+      artifactInputs.artifact-minecraft-plugin-luckperms-bukkit;
     "https://cdn.modrinth.com/data/4WWQxlQP/versions/P8k080Af/servercore-fabric-1.5.16%2B26.1.jar" =
       artifactInputs.artifact-minecraft-mod-servercore;
     "https://cdn.modrinth.com/data/9eGKb6K1/versions/gVPjsMto/voicechat-fabric-2.6.17%2B26.1.2.jar" =

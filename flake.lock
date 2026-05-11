@@ -300,6 +300,18 @@
         "url": "https://cdn.modrinth.com/data/wnEe9KBa/versions/9f7J0dAp/vmp-fabric-mc26.1.2-0.2.0%2Bbeta.7.234-all.jar"
       }
     },
+    "artifact-minecraft-plugin-luckperms-bukkit": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-F9DOPZXt9kIDHumCrfOiRN7R58pgHkj5mYvXiI6N7n4=",
+        "type": "file",
+        "url": "https://cdn.modrinth.com/data/Vebnzrzj/versions/OrIs0S6b/LuckPerms-Bukkit-5.5.17.jar"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://cdn.modrinth.com/data/Vebnzrzj/versions/OrIs0S6b/LuckPerms-Bukkit-5.5.17.jar"
+      }
+    },
     "artifact-minecraft-plugin-plugmanx": {
       "flake": false,
       "locked": {
@@ -598,6 +610,7 @@
         "artifact-minecraft-mod-terrain-diffusion": "artifact-minecraft-mod-terrain-diffusion",
         "artifact-minecraft-mod-terralith": "artifact-minecraft-mod-terralith",
         "artifact-minecraft-mod-vmp-fabric": "artifact-minecraft-mod-vmp-fabric",
+        "artifact-minecraft-plugin-luckperms-bukkit": "artifact-minecraft-plugin-luckperms-bukkit",
         "artifact-minecraft-plugin-plugmanx": "artifact-minecraft-plugin-plugmanx",
         "artifact-minecraft-server-1-21-11-fabric": "artifact-minecraft-server-1-21-11-fabric",
         "artifact-minecraft-server-1-21-11-paper": "artifact-minecraft-server-1-21-11-paper",

@@ -16,7 +16,7 @@ Building on macOS still needs a Linux builder configured for the resulting `x86_
 
 Fleets are VM-level NixOS systems, not primarily OCI rollouts. Missing VMs are created from a shared ix NixOS bootstrap image, then `switch` activates the desired system closure in place. Node-specific OCI archives are only for intentional VM replacement.
 
-See [examples/minecraft-fleet/README.md](examples/minecraft-fleet/README.md) for a multi-file hypothetical Minecraft network using Velocity, Geyser, Floodgate, and replicated Folia shards.
+See [examples/minecraft-fleet/README.md](examples/minecraft-fleet/README.md) for a single-node Paper fleet with managed plugin hot reload.
 
 Outputs `packages.<node>` (replacement OCI archives), `packages.<node>-system` (NixOS systems), `plan` (JSON), `command`, and `switch`.
 
