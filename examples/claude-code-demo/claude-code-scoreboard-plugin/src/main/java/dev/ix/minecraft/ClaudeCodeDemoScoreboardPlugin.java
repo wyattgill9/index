@@ -49,10 +49,9 @@ public final class ClaudeCodeDemoScoreboardPlugin extends JavaPlugin {
 
             Scoreboard board = manager.getNewScoreboard();
             Objective objective = board.registerNewObjective(
-                "claude_demo",
-                "dummy",
-                ChatColor.GOLD + "Claude Code Demo"
-            );
+                    "claude_demo",
+                    "dummy",
+                    ChatColor.GOLD + "Claude Code Demo");
             objective.setDisplaySlot(DisplaySlot.SIDEBAR);
             objective.getScore(ChatColor.YELLOW + "Clock: " + formatClock(worldTime)).setScore(3);
             objective.getScore(ChatColor.AQUA + "Day: " + (gameTime / 24000L)).setScore(2);
