@@ -300,6 +300,18 @@
         "url": "https://cdn.modrinth.com/data/wnEe9KBa/versions/9f7J0dAp/vmp-fabric-mc26.1.2-0.2.0%2Bbeta.7.234-all.jar"
       }
     },
+    "artifact-minecraft-plugin-luckperms-bukkit": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-F9DOPZXt9kIDHumCrfOiRN7R58pgHkj5mYvXiI6N7n4=",
+        "type": "file",
+        "url": "https://cdn.modrinth.com/data/Vebnzrzj/versions/OrIs0S6b/LuckPerms-Bukkit-5.5.17.jar"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://cdn.modrinth.com/data/Vebnzrzj/versions/OrIs0S6b/LuckPerms-Bukkit-5.5.17.jar"
+      }
+    },
     "artifact-minecraft-plugin-plugmanx": {
       "flake": false,
       "locked": {
@@ -375,12 +387,12 @@
     "blueprint": {
       "inputs": {
         "nixpkgs": [
-          "ix-images",
+          "index",
           "llm-agents",
           "nixpkgs"
         ],
         "systems": [
-          "ix-images",
+          "index",
           "llm-agents",
           "systems"
         ]
@@ -402,22 +414,22 @@
     "bun2nix": {
       "inputs": {
         "flake-parts": [
-          "ix-images",
+          "index",
           "llm-agents",
           "flake-parts"
         ],
         "nixpkgs": [
-          "ix-images",
+          "index",
           "llm-agents",
           "nixpkgs"
         ],
         "systems": [
-          "ix-images",
+          "index",
           "llm-agents",
           "systems"
         ],
         "treefmt-nix": [
-          "ix-images",
+          "index",
           "llm-agents",
           "treefmt-nix"
         ]
@@ -441,7 +453,7 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "nixpkgs": [
-          "ix-images",
+          "index",
           "nixpkgs"
         ]
       },
@@ -463,7 +475,7 @@
       "inputs": {
         "flake-utils": "flake-utils_2",
         "nixpkgs": [
-          "ix-images",
+          "index",
           "nixpkgs"
         ]
       },
@@ -484,7 +496,7 @@
     "flake-parts": {
       "inputs": {
         "nixpkgs-lib": [
-          "ix-images",
+          "index",
           "llm-agents",
           "nixpkgs"
         ]
@@ -539,7 +551,7 @@
         "type": "github"
       }
     },
-    "ix-images": {
+    "index": {
       "inputs": {
         "artifact-minecraft-mod-almanac": "artifact-minecraft-mod-almanac",
         "artifact-minecraft-mod-bluemap": "artifact-minecraft-mod-bluemap",
@@ -566,6 +578,7 @@
         "artifact-minecraft-mod-terrain-diffusion": "artifact-minecraft-mod-terrain-diffusion",
         "artifact-minecraft-mod-terralith": "artifact-minecraft-mod-terralith",
         "artifact-minecraft-mod-vmp-fabric": "artifact-minecraft-mod-vmp-fabric",
+        "artifact-minecraft-plugin-luckperms-bukkit": "artifact-minecraft-plugin-luckperms-bukkit",
         "artifact-minecraft-plugin-plugmanx": "artifact-minecraft-plugin-plugmanx",
         "artifact-minecraft-server-1-21-11-fabric": "artifact-minecraft-server-1-21-11-fabric",
         "artifact-minecraft-server-1-21-11-paper": "artifact-minecraft-server-1-21-11-paper",
@@ -578,16 +591,16 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1778460561,
-        "narHash": "sha256-sBPfeD88cUDLvcpbo0hrz6Q3Z7oZFwhqp4iYmrZQ9wk=",
+        "lastModified": 1778527243,
+        "narHash": "sha256-e0yr2ej5zwvZGEhmorTphKrgtYTNK94Q8lSBiazDaW0=",
         "owner": "indexable-inc",
-        "repo": "images",
-        "rev": "a8efdfb31f052d96ec329180f22e7cf1d1a764e9",
+        "repo": "index",
+        "rev": "932746e26f1c00a4626e875e6e935abbf4a8f6b9",
         "type": "github"
       },
       "original": {
         "owner": "indexable-inc",
-        "repo": "images",
+        "repo": "index",
         "type": "github"
       }
     },
@@ -597,7 +610,7 @@
         "bun2nix": "bun2nix",
         "flake-parts": "flake-parts",
         "nixpkgs": [
-          "ix-images",
+          "index",
           "nixpkgs"
         ],
         "systems": "systems_3",
@@ -635,7 +648,7 @@
     },
     "root": {
       "inputs": {
-        "ix-images": "ix-images"
+        "index": "index"
       }
     },
     "systems": {
@@ -686,7 +699,7 @@
     "treefmt-nix": {
       "inputs": {
         "nixpkgs": [
-          "ix-images",
+          "index",
           "llm-agents",
           "nixpkgs"
         ]
