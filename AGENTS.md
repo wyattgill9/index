@@ -139,12 +139,12 @@ Config files are symlinked to the Nix store (read-only). Some mods write to thei
 Helpers shared across modules go in `lib/` and are exposed to every module through `specialArgs.ix`. Modules consume them as ordinary module args:
 
 ```nix
-# modules/services/minecraft/fabric.nix
-{ ix, config, lib, pkgs, ... }:
+# modules/services/minecraft/paper.nix
+{ ix, config, lib, ... }:
 ix.mkMinecraftLoader {
-  inherit config lib pkgs;
-  name = "fabric";
-  urlFor = cfg: "https://meta.fabricmc.net/v2/...";
+  inherit config lib;
+  name = "paper";
+  dropDir = "plugins";
   extraOptions = { /* loader-specific options */ };
 }
 ```
@@ -157,15 +157,32 @@ This is the only way modules in this repo reach helpers in `lib/`. **Never** use
 - Top-level options live under `services.<name>` for services, `ix.profiles.<name>` for profiles. Never reach into another module's namespace.
 - Everything in `config` is wrapped in `mkIf cfg.enable`. The base profile is the only exception: it ships an enable flag so users can opt out.
 - Module options take strings, paths, or packages — not factory arguments. Versioning belongs in `versions.nix`, not in a function wrapping the module.
+- Public option names should describe the user's domain, not the storage mechanism. Prefer `services.minecraft.plugins` for Bukkit-family plugins and `services.minecraft.mods` for Fabric/NeoForge/Sponge mods; avoid vague plumbing names such as `extraJars` or `dropins` unless the storage mechanism is itself the concept.
 - Cross-module helpers come from `specialArgs.ix`. No `..` paths.
+
+## Plugin conventions
+
+Bukkit-family loaders (Paper, Folia, Purpur, Spigot) use `services.minecraft.plugins`. Empty `{}` resolves a pinned plugin by slug from `pluginCatalog`; an attrset with `src` installs a local or private plugin jar. Loader modules can contribute a catalog of common upstream plugins, so examples should not inline shared plugin URLs.
+
+Fabric/NeoForge/Sponge-style artifacts stay in `services.minecraft.mods`. Keep mod and plugin catalogs near the image/module artifact plumbing, not in example fleets. Example fleets should read like intent: choose a server, select catalog plugins/mods by slug, and show local/private artifacts only when that is the point of the example.
 
 ## Image conventions
 
 - Images set `ix.image.name`. They may set `ix.image.tag` (defaults to `latest`, or comes from `versions.nix`).
 - Images compose by enabling services and adding packages. They do not declare options. They do not `imports` anything.
 - Images stay version-agnostic when they have a `versions.nix`. The base file is what every variant shares; per-version data lives in the overlay.
-- Use a single `services.<name>` block per service. Nest sub-options (loaders, mods) inside it instead of writing separate `services.<name>.<sub> = ...;` assignments.
+- Use a single `services.<name>` block per service. Nest sub-options inside attrsets instead of writing scattered dotted assignments. Prefer `services.minecraft = { plugins = { luckperms = { }; claude-code-scoreboard = { ... }; }; };` over separate `services.minecraft.plugins.luckperms = { };` lines in examples.
 - Options that are redundant with their namespace should be shortened. `services.minecraft.folia.version`, not `services.minecraft.folia.minecraftVersion`.
+
+## Example conventions
+
+Examples are teaching material, not just tests. Add short comments for ix-specific ideas that a first-time reader will not infer from Nix alone: `deployment.switch.overrideInputs`, remote switch builds, fleet defaults, hot-reload behavior, and why an image name or tag is set.
+
+For standalone example flakes, keep `flake.nix` as the executable wrapper that declares inputs and exposes `apps`/`packages`. Put the actual fleet or image value in `default.nix` when tests or other outputs need to import it. If there is no reuse, a tiny example may keep everything in `flake.nix`, but avoid duplicating the same fleet definition in both files.
+
+In fleet examples, `ix.image.name` usually defaults to the node name. Set it only when the replacement image should be named differently. Set `ix.image.tag` when the default `latest` would make plans or registry destinations ambiguous.
+
+Comments should explain why a line exists, not restate Nix syntax. Prefer comments that answer "why is this needed in an ix fleet?" over comments that paraphrase the option name.
 
 ## Artifact inputs
 

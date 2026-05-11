@@ -4,18 +4,34 @@
   ix,
   config,
   lib,
-  pkgs,
   ...
 }:
-ix.mkMinecraftLoader {
-  inherit config lib pkgs;
-  name = "paper";
-  dropDir = "plugins";
-  urlFor =
-    cfg:
-    "https://api.papermc.io/v2/projects/paper/versions/${cfg.version}/builds/${toString cfg.build}/downloads/paper-${cfg.version}-${toString cfg.build}.jar";
-  extraOptions = {
-    version = lib.mkOption { type = lib.types.str; };
-    build = lib.mkOption { type = lib.types.int; };
+let
+  loaderModule = ix.mkMinecraftLoader {
+    inherit config lib;
+    name = "paper";
+    dropDir = "plugins";
+    srcDefault =
+      cfg:
+      let
+        server = ix.artifacts.minecraft.paperServers.${cfg.version};
+      in
+      assert lib.assertMsg (cfg.build == server.build)
+        "services.minecraft.paper.build = ${toString cfg.build}, but the pinned Paper ${cfg.version} artifact is build ${toString server.build}";
+      server.src;
+    extraOptions = {
+      version = lib.mkOption { type = lib.types.str; };
+      build = lib.mkOption { type = lib.types.int; };
+    };
   };
+in
+{
+  options = loaderModule.options;
+
+  config = lib.mkMerge [
+    loaderModule.config
+    (lib.mkIf config.services.minecraft.paper.enable {
+      services.minecraft.pluginCatalog = ix.artifacts.minecraft.paperPluginCatalog;
+    })
+  ];
 }

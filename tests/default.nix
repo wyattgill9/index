@@ -100,7 +100,7 @@ let
   };
 
   fleetPlan = fleet.planValue.nodes;
-  minecraftFleet = import ../examples/minecraft-fleet/default.nix {
+  claudeCodeDemo = import ../examples/claude-code-demo/default.nix {
     ix = ix // {
       lib = ix;
     };
@@ -416,19 +416,21 @@ let
       message = "fleet replica dependencies should point at expanded node identities";
     }
     {
-      assertion = minecraftFleet.planValue.order == [ "minecraft" ];
-      message = "minecraft fleet example should evaluate to one Minecraft node";
+      assertion = claudeCodeDemo.planValue.order == [ "minecraft" ];
+      message = "Claude Code demo should evaluate to one Minecraft node";
     }
     {
-      assertion = minecraftFleet.nodes.minecraft.services.minecraft.paper.enable;
-      message = "minecraft fleet example should use Paper";
+      assertion = claudeCodeDemo.nodes.minecraft.services.minecraft.paper.enable;
+      message = "Claude Code demo should use Paper";
     }
     {
       assertion =
-        minecraftFleet.nodes.minecraft.services.minecraft.autoReload.driver == "plugman"
-        && minecraftFleet.nodes.minecraft.services.minecraft.mods ? luckperms
-        && minecraftFleet.nodes.minecraft.services.minecraft.autoReload.plugman.pluginNames.luckperms == "LuckPerms";
-      message = "minecraft fleet example should configure PlugManX reload for a managed plugin";
+        claudeCodeDemo.nodes.minecraft.services.minecraft.autoReload.driver == "plugman"
+        && claudeCodeDemo.nodes.minecraft.services.minecraft.plugins ? luckperms
+        &&
+          claudeCodeDemo.nodes.minecraft.services.minecraft.plugins."claude-code-scoreboard".pluginName
+          == "ClaudeCodeDemoScoreboard";
+      message = "Claude Code demo should configure PlugManX reload for managed plugins";
     }
   ];
 

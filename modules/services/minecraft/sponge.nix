@@ -5,16 +5,12 @@
   ix,
   config,
   lib,
-  pkgs,
   ...
 }:
 ix.mkMinecraftLoader {
-  inherit config lib pkgs;
+  inherit config lib;
   name = "sponge";
   dropDir = "mods";
-  urlFor =
-    cfg:
-    "https://repo.spongepowered.org/repository/maven-releases/org/spongepowered/spongevanilla/${cfg.version}/spongevanilla-${cfg.version}-universal.jar";
   extraOptions = {
     version = lib.mkOption {
       type = lib.types.str;

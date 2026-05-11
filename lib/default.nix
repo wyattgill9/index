@@ -118,14 +118,26 @@ let
       }
     ) catalog;
 
+  paperPluginCatalog = attachArtifactSources {
+    luckperms = {
+      url = "https://cdn.modrinth.com/data/Vebnzrzj/versions/OrIs0S6b/LuckPerms-Bukkit-5.5.17.jar";
+      pluginName = "LuckPerms";
+    };
+  };
+
   artifacts = {
     inherit attachArtifactSources;
     minecraft = {
+      inherit paperPluginCatalog;
       servers = {
         "26w17a-fabric" = artifactInputs.artifact-minecraft-server-26w17a-fabric;
         "26.1.2-fabric" = artifactInputs.artifact-minecraft-server-26-1-2-fabric;
         "1.21.11-fabric" = artifactInputs.artifact-minecraft-server-1-21-11-fabric;
         "1.21.11-paper" = artifactInputs.artifact-minecraft-server-1-21-11-paper;
+      };
+      paperServers."1.21.11" = {
+        build = 69;
+        src = artifactInputs.artifact-minecraft-server-1-21-11-paper;
       };
       plugins = {
         plugmanx = artifactInputs.artifact-minecraft-plugin-plugmanx;

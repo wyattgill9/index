@@ -8,22 +8,20 @@
   pkgs,
   ...
 }:
+let
+  loaderModule = ix.mkMinecraftLoader {
+    inherit config lib;
+    name = "fabric";
+    dropDir = "mods";
+    extraOptions = {
+      version = lib.mkOption { type = lib.types.str; };
+      loaderVersion = lib.mkOption { type = lib.types.str; };
+      installerVersion = lib.mkOption { type = lib.types.str; };
+    };
+  };
+in
 {
-  imports = [
-    (ix.mkMinecraftLoader {
-      inherit config lib pkgs;
-      name = "fabric";
-      dropDir = "mods";
-      urlFor =
-        cfg:
-        "https://meta.fabricmc.net/v2/versions/loader/${cfg.version}/${cfg.loaderVersion}/${cfg.installerVersion}/server/jar";
-      extraOptions = {
-        version = lib.mkOption { type = lib.types.str; };
-        loaderVersion = lib.mkOption { type = lib.types.str; };
-        installerVersion = lib.mkOption { type = lib.types.str; };
-      };
-    })
-  ];
+  options = loaderModule.options;
 
   # Default the JVM to JetBrains Runtime (JBR) on Fabric. The shared
   # minecraft runtime enables its hot-reload Java agent and the JBR-only
@@ -38,7 +36,10 @@
   # Refs:
   #   https://docs.fabricmc.net/develop/getting-started/launching-the-game#hotswapping-classes
   #   https://github.com/JetBrains/JetBrainsRuntime/issues/205
-  config = lib.mkIf config.services.minecraft.fabric.enable {
-    services.minecraft.javaPackage = lib.mkDefault pkgs.jetbrains.jdk-no-jcef;
-  };
+  config = lib.mkMerge [
+    loaderModule.config
+    (lib.mkIf config.services.minecraft.fabric.enable {
+      services.minecraft.javaPackage = lib.mkDefault pkgs.jetbrains.jdk-no-jcef;
+    })
+  ];
 }

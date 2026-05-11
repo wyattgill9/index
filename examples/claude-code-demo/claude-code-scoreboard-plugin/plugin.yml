@@ -1,0 +1,4 @@
+name: ClaudeCodeDemoScoreboard
+version: 1.0.0
+main: dev.ix.minecraft.TimeScoreboardPlugin
+api-version: "1.21"
