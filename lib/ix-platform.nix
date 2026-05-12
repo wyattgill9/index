@@ -41,5 +41,16 @@
 
     boot.isContainer = true;
     system.stateVersion = "25.05";
+
+    # ix provisions the guest address, route, and DNS before systemd reaches
+    # normal service startup. Leaving NixOS DHCP enabled makes dhcpcd wait for a
+    # lease that will never arrive, which keeps network-online.target pending
+    # and blocks services such as minecraft.
+    networking.useDHCP = false;
+
+    # Port exposure is controlled by ix VM/L7 networking, not by an in-guest
+    # nftables firewall. The current guest kernel does not provide nft support,
+    # so the default NixOS firewall unit fails during boot.
+    networking.firewall.enable = false;
   };
 }
