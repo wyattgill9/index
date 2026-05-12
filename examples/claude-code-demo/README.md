@@ -22,7 +22,7 @@ btop
 cd /src/linux
 ```
 
-Open the `demo` web URL before starting the build. The page is hosted inside the VM and shows live CPU usage out of 64 cores, memory usage out of 256 GiB, disk usage out of 1 PiB, and current cost per second. Start with the VM doing almost nothing to show the very low cost per second, then build the Linux kernel and refresh the web view to show pricing rise as CPU and memory usage increase. The cost is dynamic: the VM is charged for the resources it is actually using, not a fixed machine size.
+Open the `demo` web URL before starting the build. The page is hosted inside the VM and shows live CPU usage out of 64 cores, memory usage out of 256 GiB, disk usage out of 1 PiB, and current cost per second. Start with the VM doing almost nothing to show the very low cost per second, then build the Linux kernel and watch the web view update as CPU and memory usage increase. The cost is dynamic: the VM is charged for the resources it is actually using, not a fixed machine size.
 
 ```bash
 make -j$(nproc) defconfig bzImage
