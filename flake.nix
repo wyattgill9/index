@@ -240,6 +240,7 @@
             {
               type = "app";
               program = lib.getExe updateMods;
+              meta.description = "Regenerate Minecraft mod catalogs";
             };
           value.ix-fleet =
             let
@@ -254,6 +255,7 @@
             {
               type = "app";
               program = lib.getExe ixFleet;
+              meta.description = "Render ix fleet plans and commands";
             };
         }) devSystems
       );

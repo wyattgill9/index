@@ -40,21 +40,25 @@
             switch = {
               type = "app";
               program = lib.getExe fleet.switch;
+              meta.description = "Switch the Claude Code demo fleet";
             };
 
             plan = {
               type = "app";
               program = lib.getExe fleet.planCommand;
+              meta.description = "Render the Claude Code demo fleet plan";
             };
 
             diff = {
               type = "app";
               program = lib.getExe fleet.diff;
+              meta.description = "Diff the Claude Code demo fleet against live VMs";
             };
 
             replace = {
               type = "app";
               program = lib.getExe fleet.replace;
+              meta.description = "Build replacement images for the Claude Code demo fleet";
             };
           };
         }
