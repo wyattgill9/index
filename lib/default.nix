@@ -27,6 +27,54 @@ let
   inherit (nixpkgs) lib;
 
   system = "x86_64-linux";
+  writePythonApplication =
+    pkgs:
+    {
+      name,
+      src,
+      args ? [ ],
+      runtimeInputs ? [ ],
+      python ? pkgs.python314,
+      check ? true,
+      typeCheckingMode ? "all",
+      pythonPlatform ? "Linux",
+      meta ? { },
+    }:
+    let
+      runtimePath = lib.makeBinPath ([ python ] ++ runtimeInputs);
+      argv = builtins.toJSON ([ (builtins.toString src) ] ++ args);
+      pyrightConfig = pkgs.writeText "basedpyright-${name}.json" (
+        builtins.toJSON {
+          include = [ (builtins.toString src) ];
+          inherit typeCheckingMode pythonPlatform;
+          pythonVersion = python.pythonVersion;
+        }
+      );
+    in
+    pkgs.writeTextFile {
+      inherit name;
+      executable = true;
+      destination = "/bin/${name}";
+      text = ''
+        #!${lib.getExe python}
+        import os
+        import runpy
+        import sys
+
+        runtime_path = ${builtins.toJSON runtimePath}
+        ambient_path = os.environ.get("PATH", "")
+        os.environ["PATH"] = runtime_path + ((":" + ambient_path) if ambient_path else "")
+        sys.argv = ${argv} + sys.argv[1:]
+        runpy.run_path(${builtins.toJSON (builtins.toString src)}, run_name="__main__")
+      '';
+      checkPhase = lib.optionalString check ''
+        ${lib.getExe pkgs.basedpyright} --project ${pyrightConfig} --level warning --warnings ${src}
+      '';
+      meta = meta // {
+        mainProgram = meta.mainProgram or name;
+      };
+    };
+
   writeNushellApplication =
     pkgs:
     {
@@ -72,7 +120,7 @@ let
 
     minecraft-hot-reload-agent = final.callPackage ../nix/packages/minecraft-hot-reload-agent.nix { };
     minecraft-rcon = final.callPackage ../nix/packages/minecraft-rcon.nix {
-      writeNushellApplication = writeNushellApplication final;
+      writePythonApplication = writePythonApplication final;
     };
     tonbo-artifacts = final.callPackage ../nix/packages/tonbo-artifacts.nix {
       src = artifactInputs.artifact-tonbo-artifacts;
@@ -88,6 +136,14 @@ let
   moduleList = lib.collect builtins.isPath (import ../modules);
 
   mkMinecraftLoader = import ./minecraft-loader.nix;
+  mkMinecraftSyncManaged =
+    args:
+    import ./minecraft-sync-managed.nix (
+      {
+        inherit writePythonApplication;
+      }
+      // args
+    );
 
   artifactByUrl = {
     "https://cdn.modrinth.com/data/Gi02250Z/versions/7IRzJzBP/almanac-1.26.x-fabric-1.6.2.1.jar" =
@@ -186,7 +242,13 @@ let
   # Helpers exposed to every module via specialArgs. Keep this surface small
   # and stable: anything here is part of the cross-module contract.
   ixSpecialArgs = {
-    inherit artifacts mkMinecraftLoader writeNushellApplication;
+    inherit
+      artifacts
+      mkMinecraftLoader
+      mkMinecraftSyncManaged
+      writeNushellApplication
+      writePythonApplication
+      ;
   };
 
   evalImageConfig =
@@ -281,6 +343,8 @@ in
     discoverImages
     artifacts
     mkMinecraftLoader
+    mkMinecraftSyncManaged
     writeNushellApplication
+    writePythonApplication
     ;
 }

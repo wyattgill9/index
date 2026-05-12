@@ -3,10 +3,21 @@ import argparse
 import socket
 import struct
 import sys
+from collections.abc import Sequence
+from dataclasses import dataclass
+from typing import cast
 
 
 AUTH = 3
 COMMAND = 2
+
+
+@dataclass(frozen=True)
+class Args:
+    host: str
+    port: int
+    password: str
+    command: list[str]
 
 
 def packet(request_id: int, kind: int, payload: str) -> bytes:
@@ -18,7 +29,7 @@ def read_packet(sock: socket.socket) -> tuple[int, int, str]:
     header = sock.recv(4)
     if len(header) != 4:
         raise RuntimeError("short RCON length header")
-    (length,) = struct.unpack("<i", header)
+    (length,) = cast(tuple[int], struct.unpack("<i", header))
     body = b""
     while len(body) < length:
         chunk = sock.recv(length - len(body))
@@ -27,23 +38,38 @@ def read_packet(sock: socket.socket) -> tuple[int, int, str]:
         body += chunk
     request_id, kind = struct.unpack("<ii", body[:8])
     payload = body[8:-2].decode("utf-8", errors="replace")
-    return request_id, kind, payload
+    return int(request_id), int(kind), payload
 
 
-def main() -> int:
+def parse_args(argv: Sequence[str] | None = None) -> Args:
     parser = argparse.ArgumentParser(description="Minimal Minecraft RCON client")
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, required=True)
+    _ = parser.add_argument("--host", default="127.0.0.1")
+    _ = parser.add_argument("--port", type=int, required=True)
     password = parser.add_mutually_exclusive_group(required=True)
-    password.add_argument("--password")
-    password.add_argument("--password-file")
-    parser.add_argument("command", nargs="+")
-    args = parser.parse_args()
+    _ = password.add_argument("--password")
+    _ = password.add_argument("--password-file")
+    _ = parser.add_argument("command", nargs="+")
+    args = parser.parse_args(argv)
 
-    if args.password_file:
-        with open(args.password_file, encoding="utf-8") as password_file:
-            args.password = password_file.readline().rstrip("\n")
+    password_value = cast(str | None, args.password)
+    password_file_path = cast(str | None, args.password_file)
+    if password_file_path is not None:
+        with open(password_file_path, encoding="utf-8") as password_file:
+            password_value = password_file.readline().rstrip("\n")
 
+    if password_value is None:
+        raise RuntimeError("missing RCON password")
+
+    return Args(
+        host=cast(str, args.host),
+        port=cast(int, args.port),
+        password=password_value,
+        command=cast(list[str], args.command),
+    )
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = parse_args(argv)
     command = " ".join(args.command)
     with socket.create_connection((args.host, args.port), timeout=10) as sock:
         sock.sendall(packet(1, AUTH, args.password))
