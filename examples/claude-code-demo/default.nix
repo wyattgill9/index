@@ -10,12 +10,12 @@ let
     root = ./site;
     fileset = fs.unions [
       ./site/index.html
-      ./site/jsconfig.json
+      ./site/eslint.config.js
       ./site/package-lock.json
       ./site/package.json
+      ./site/tsconfig.json
       ./site/src/App.svelte
-      ./site/src/main.js
-      ./site/src/style.css
+      ./site/src
       ./site/vite.config.js
     ];
   };
@@ -23,7 +23,7 @@ let
     pname = "claude-code-demo-site";
     version = "0.1.0";
     src = demoSiteSrc;
-    npmDepsHash = "sha256-A4BvJKJGxDpfn65Es0bYT2k3Ugu57jbtQNOau2f3QtQ=";
+    npmDepsHash = "sha256-mLn+1gDPmgi7Di5leHj9oYficS6yWex69iYnTMyBrO0=";
 
     installPhase = ''
       runHook preInstall
