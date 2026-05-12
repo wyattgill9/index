@@ -8,8 +8,8 @@ Two VMs:
 ## Run
 
 ```bash
-nix run .#plan
-nix run .#switch
+nix run .#claude-code-demo-plan
+nix run .#claude-code-demo-switch
 ```
 
 ## Demo Flow

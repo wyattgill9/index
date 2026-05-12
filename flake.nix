@@ -179,6 +179,14 @@
       imagePackages = (ix.discoverImages ./images) // {
         inherit (ix.pkgs) tonbo-artifacts;
       };
+      claudeCodeDemoFor =
+        hostSystem:
+        import ./examples/claude-code-demo/default.nix {
+          ix = ix // {
+            lib = ix;
+          };
+          inherit hostSystem;
+        };
     in
     {
       lib = ix;
@@ -188,7 +196,23 @@
       packages = builtins.listToAttrs (
         map (system: {
           name = system;
-          value = imagePackages;
+          value =
+            let
+              claudeCodeDemo = claudeCodeDemoFor system;
+              claudeCodeDemoImages = lib.mapAttrs' (
+                name: package: lib.nameValuePair "claude-code-demo-${name}-image" package
+              ) claudeCodeDemo.packages;
+            in
+            imagePackages
+            // claudeCodeDemo.systemPackages
+            // claudeCodeDemoImages
+            // {
+              claude-code-demo-command = claudeCodeDemo.command;
+              claude-code-demo-diff = claudeCodeDemo.diff;
+              claude-code-demo-plan = claudeCodeDemo.planCommand;
+              claude-code-demo-replace = claudeCodeDemo.replace;
+              claude-code-demo-switch = claudeCodeDemo.switch;
+            };
         }) devSystems
       );
       checks.${ix.system}.eval = import ./tests { inherit nixpkgs ix; };
@@ -228,7 +252,7 @@
       apps = builtins.listToAttrs (
         map (system: {
           name = system;
-          value.update-mods =
+          value =
             let
               pkgs = nixpkgs.legacyPackages.${system};
               updateMods = pkgs.writeShellApplication {
@@ -236,26 +260,50 @@
                 runtimeInputs = [ pkgs.python3 ];
                 text = ''exec python3 ${./tools/update-mods.py} "$@"'';
               };
-            in
-            {
-              type = "app";
-              program = lib.getExe updateMods;
-              meta.description = "Regenerate Minecraft mod catalogs";
-            };
-          value.ix-fleet =
-            let
-              pkgs = nixpkgs.legacyPackages.${system};
               python = pkgs.python3.withPackages (ps: [ ps.pydantic ]);
               ixFleet = pkgs.writeShellApplication {
                 name = "ix-fleet";
                 runtimeInputs = [ python ];
                 text = ''exec python3 ${./tools/ix-fleet.py} "$@"'';
               };
+              claudeCodeDemo = claudeCodeDemoFor system;
             in
             {
-              type = "app";
-              program = lib.getExe ixFleet;
-              meta.description = "Render ix fleet plans and commands";
+              update-mods = {
+                type = "app";
+                program = lib.getExe updateMods;
+                meta.description = "Regenerate Minecraft mod catalogs";
+              };
+
+              ix-fleet = {
+                type = "app";
+                program = lib.getExe ixFleet;
+                meta.description = "Render ix fleet plans and commands";
+              };
+
+              claude-code-demo-diff = {
+                type = "app";
+                program = lib.getExe claudeCodeDemo.diff;
+                meta.description = "Diff the Claude Code demo fleet against live VMs";
+              };
+
+              claude-code-demo-plan = {
+                type = "app";
+                program = lib.getExe claudeCodeDemo.planCommand;
+                meta.description = "Render the Claude Code demo fleet plan";
+              };
+
+              claude-code-demo-replace = {
+                type = "app";
+                program = lib.getExe claudeCodeDemo.replace;
+                meta.description = "Build replacement images for the Claude Code demo fleet";
+              };
+
+              claude-code-demo-switch = {
+                type = "app";
+                program = lib.getExe claudeCodeDemo.switch;
+                meta.description = "Switch the Claude Code demo fleet";
+              };
             };
         }) devSystems
       );

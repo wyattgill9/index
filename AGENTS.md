@@ -180,7 +180,9 @@ Fabric/NeoForge/Sponge-style artifacts stay in `services.minecraft.mods`. Keep m
 
 Examples are teaching material, not just tests. Add short comments for ix-specific ideas that a first-time reader will not infer from Nix alone: `deployment.switch.overrideInputs`, remote switch builds, fleet defaults, hot-reload behavior, and why an image name or tag is set.
 
-For standalone example flakes, keep `flake.nix` as the executable wrapper that declares inputs and exposes `apps`/`packages`. Put the actual fleet or image value in `default.nix` when tests or other outputs need to import it. If there is no reuse, a tiny example may keep everything in `flake.nix`, but avoid duplicating the same fleet definition in both files.
+In-repo examples that exercise this repo's library, modules, fleets, or pinned artifacts should be exposed from the root `flake.nix` as `apps`/`packages` and share the root `flake.lock`. Keep the actual fleet or image value in the example's `default.nix` so tests and root outputs can import it. Do not add a nested example `flake.lock` that pins this same repo; it will drift from the API under test.
+
+Use a standalone example flake only when the example is intentionally a downstream consumer or template. In that case its inputs should look like a real external user's inputs (`github:indexable-inc/index`, registry refs, etc.), not `path:../..` or `git+file:../..` backedges into the parent checkout. Do not add example-local artifact inputs when the root flake already exposes the locked artifact through `ix.lib.artifacts`.
 
 In fleet examples, `ix.image.name` usually defaults to the node name. Set it only when the replacement image should be named differently. Set `ix.image.tag` when the default `latest` would make plans or registry destinations ambiguous.
 

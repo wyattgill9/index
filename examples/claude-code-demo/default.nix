@@ -1,7 +1,6 @@
 {
   ix,
   hostSystem ? ix.lib.system,
-  minecraftServer ? ix.lib.artifacts.minecraft.servers."26.2-snapshot-6-fabric",
 }:
 let
   pkgs = ix.lib.pkgs;
@@ -174,9 +173,8 @@ in
     # evaluates the plan and sends the derivation path to the switch command.
     buildOn = "remote";
 
-    # This example flake depends on `github:indexable-inc/index`. During local
-    # development, point that input back at the checkout running the command so
-    # `nix run .#switch` uses your edited modules instead of the published repo.
+    # Keep remote switch evaluation on the same source tree that produced the
+    # local plan instead of whatever the example lock file last recorded.
     overrideInputs.index = ".";
   };
 
@@ -248,7 +246,7 @@ in
                 version = minecraftVersion;
                 loaderVersion = minecraftLoaderVersion;
                 installerVersion = minecraftInstallerVersion;
-                src = minecraftServer;
+                src = ix.lib.artifacts.minecraft.servers."26.2-snapshot-6-fabric";
               };
 
               serverFiles."server.properties" = {
