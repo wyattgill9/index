@@ -52,7 +52,7 @@ let
       }
 
       def main [] {
-        let out_dir = /run/claude-code-demo
+        let out_dir = "/run/claude-code-demo"
         mkdir $out_dir
 
         let cpu_a = (read-cpu)

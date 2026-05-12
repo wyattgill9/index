@@ -2,7 +2,7 @@
 #
 # The closure is split into ~67 OCI layers (`streamLayeredImage`) so the
 # registry deduplicates shared store paths across images. A `systemRoot`
-# layer adds FHS symlinks (/bin, /etc, /usr, ...) pointing into the toplevel.
+# layer adds FHS entries (/bin, /etc, /usr, ...) needed at boot.
 #
 # nixpkgs only ships a docker-archive streamer, so we transcode to OCI on
 # the fly via `docker-to-oci.py`.
@@ -36,18 +36,17 @@
       let
         inherit (config.system.build) toplevel;
 
-        # FHS layout pointing into the NixOS toplevel. dockerTools doesn't
-        # ship `/init` or the standard /bin, /etc, /usr paths, so we stage
-        # symlinks as a separate input and let dockerTools layer them in.
+        # FHS layout pointing into the NixOS toplevel. Keep activation-owned
+        # paths writable: NixOS first boot populates /etc and creates /bin/sh
+        # and /usr/bin/env, so those cannot be symlinks into the immutable store.
         systemRoot = pkgs.runCommand "system-root" { } ''
           mkdir -p $out
           ln -s ${toplevel}/init $out/init
-          ln -s ${toplevel}/etc $out/etc
-          ln -s ${toplevel}/sw/bin $out/bin
+          mkdir -p $out/etc
+          mkdir -p $out/bin
           ln -s ${toplevel}/sw/sbin $out/sbin
           ln -s ${toplevel}/sw/lib $out/lib
-          mkdir -p $out/usr
-          ln -s ${toplevel}/sw/bin $out/usr/bin
+          mkdir -p $out/usr/bin
           ln -s ${toplevel}/sw/lib $out/usr/lib
           ln -s ${toplevel}/sw/sbin $out/usr/sbin
           mkdir -p $out/tmp $out/var $out/run $out/proc $out/sys $out/dev $out/root
@@ -60,7 +59,6 @@
           # plus a few user layers.
           maxLayers = 67;
           contents = [
-            toplevel
             systemRoot
           ];
           config.Entrypoint = [ "${toplevel}/init" ];
