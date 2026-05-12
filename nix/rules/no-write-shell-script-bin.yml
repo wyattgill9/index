@@ -1,13 +1,14 @@
 id: no-write-shell-script-bin
 language: nix
 severity: error
-message: "writeShellScriptBin is banned. Use writeShellApplication instead."
+message: "writeShellScriptBin is banned. Use ix.writeNushellApplication instead."
 note: |
   WHY: writeShellScriptBin produces a script without shellcheck validation, without
-  'set -euo pipefail', and without declared runtime dependencies. writeShellApplication
-  adds all three, catching bugs at build time instead of runtime.
+  declared runtime dependencies, and without the repo's Nushell syntax check.
+  ix.writeNushellApplication keeps runtime dependencies explicit and checks Nu
+  scripts during the build.
   NIXPKGS: Yes — nixpkgs#208242 tracks this. nixpkgs-hammering does not flag it yet
-  but the community consensus is clear. New code should use writeShellApplication.
+  but the community consensus is clear. This repo uses Nushell for user-facing commands.
   REPO: Banned in AGENTS.md.
 rule:
   pattern: writeShellScriptBin

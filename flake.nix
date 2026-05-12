@@ -256,16 +256,24 @@
             let
               pkgs = nixpkgs.legacyPackages.${system};
               benchFilesystem = import ./bench/filesystem { inherit ix pkgs; };
-              updateMods = pkgs.writeShellApplication {
+              updateMods = ix.writeNushellApplication pkgs {
                 name = "update-mods";
                 runtimeInputs = [ pkgs.python3 ];
-                text = ''exec python3 ${./tools/update-mods.py} "$@"'';
+                text = ''
+                  def main [...args] {
+                    exec python3 ${./tools/update-mods.py} ...$args
+                  }
+                '';
               };
               python = pkgs.python3.withPackages (ps: [ ps.pydantic ]);
-              ixFleet = pkgs.writeShellApplication {
+              ixFleet = ix.writeNushellApplication pkgs {
                 name = "ix-fleet";
                 runtimeInputs = [ python ];
-                text = ''exec python3 ${./tools/ix-fleet.py} "$@"'';
+                text = ''
+                  def main [...args] {
+                    exec python3 ${./tools/ix-fleet.py} ...$args
+                  }
+                '';
               };
               claudeCodeDemo = claudeCodeDemoFor system;
             in

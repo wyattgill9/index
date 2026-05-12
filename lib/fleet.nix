@@ -3,6 +3,7 @@
   lib,
   pkgs,
   evalImageConfig,
+  writeNushellApplication,
 }:
 {
   defaults ? [ ],
@@ -181,30 +182,50 @@ let
 
   plan = pkgs.writeText "ix-fleet-plan.json" (builtins.toJSON planValue);
   python = pkgs.python3.withPackages (ps: [ ps.pydantic ]);
-  command = pkgs.writeShellApplication {
+  command = writeNushellApplication pkgs {
     name = "ix-fleet";
     runtimeInputs = [ python ];
-    text = ''exec python3 ${../tools/ix-fleet.py} --plan ${plan} "$@"'';
+    text = ''
+      def main [...args] {
+        exec python3 ${../tools/ix-fleet.py} --plan ${plan} ...$args
+      }
+    '';
   };
-  planCommand = pkgs.writeShellApplication {
+  planCommand = writeNushellApplication pkgs {
     name = "ix-fleet-plan";
     runtimeInputs = [ python ];
-    text = ''exec python3 ${../tools/ix-fleet.py} --plan ${plan} plan "$@"'';
+    text = ''
+      def main [...args] {
+        exec python3 ${../tools/ix-fleet.py} --plan ${plan} plan ...$args
+      }
+    '';
   };
-  diff = pkgs.writeShellApplication {
+  diff = writeNushellApplication pkgs {
     name = "ix-fleet-diff";
     runtimeInputs = [ python ];
-    text = ''exec python3 ${../tools/ix-fleet.py} --plan ${plan} diff "$@"'';
+    text = ''
+      def main [...args] {
+        exec python3 ${../tools/ix-fleet.py} --plan ${plan} diff ...$args
+      }
+    '';
   };
-  switch = pkgs.writeShellApplication {
+  switch = writeNushellApplication pkgs {
     name = "ix-fleet-switch";
     runtimeInputs = [ python ];
-    text = ''exec python3 ${../tools/ix-fleet.py} --plan ${plan} switch "$@"'';
+    text = ''
+      def main [...args] {
+        exec python3 ${../tools/ix-fleet.py} --plan ${plan} switch ...$args
+      }
+    '';
   };
-  replace = pkgs.writeShellApplication {
+  replace = writeNushellApplication pkgs {
     name = "ix-fleet-replace";
     runtimeInputs = [ python ];
-    text = ''exec python3 ${../tools/ix-fleet.py} --plan ${plan} replace "$@"'';
+    text = ''
+      def main [...args] {
+        exec python3 ${../tools/ix-fleet.py} --plan ${plan} replace ...$args
+      }
+    '';
   };
 
 in

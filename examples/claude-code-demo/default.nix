@@ -33,114 +33,101 @@ let
     '';
   };
 
-  writeStats = pkgs.writeShellApplication {
+  writeStats = ix.lib.writeNushellApplication pkgs {
     name = "claude-code-demo-write-stats";
     runtimeInputs = [
       pkgs.coreutils
-      pkgs.gawk
-      pkgs.jq
     ];
     text = ''
-      set -euo pipefail
-
-      out_dir=/run/claude-code-demo
-      mkdir -p "$out_dir"
-
-      read_cpu() {
-        awk '/^cpu / {
-          total = $2 + $3 + $4 + $5 + $6 + $7 + $8 + $9 + $10
-          idle = $5 + $6
-          printf "%.0f %.0f\n", total, idle
-        }' /proc/stat
+      def read-cpu [] {
+        let values = (open --raw /proc/stat | lines | first | split row " " | where $it != "")
+        let nums = ($values | skip 1 | each { into int })
+        {
+          total: ($nums | math sum)
+          idle: (($nums | get 3) + ($nums | get 4))
+        }
       }
 
-      read -r total_a idle_a < <(read_cpu)
-      sleep 0.2
-      read -r total_b idle_b < <(read_cpu)
+      def round-to [places: int] {
+        let factor = (10 ** $places)
+        ($in * $factor | math round) / $factor
+      }
 
-      cpu_percent=$(
-        awk -v total_a="$total_a" -v idle_a="$idle_a" -v total_b="$total_b" -v idle_b="$idle_b" '
-          BEGIN {
-            total_delta = total_b - total_a
-            idle_delta = idle_b - idle_a
-            if (total_delta <= 0) {
-              printf "0.0000"
-            } else {
-              printf "%.4f", ((total_delta - idle_delta) / total_delta) * 100
-            }
+      def main [] {
+        let out_dir = /run/claude-code-demo
+        mkdir $out_dir
+
+        let cpu_a = (read-cpu)
+        sleep 200ms
+        let cpu_b = (read-cpu)
+        let total_delta = ($cpu_b.total - $cpu_a.total)
+        let idle_delta = ($cpu_b.idle - $cpu_a.idle)
+        let cpu_percent = if $total_delta <= 0 {
+          0.0
+        } else {
+          (($total_delta - $idle_delta) / $total_delta * 100)
+        }
+
+        let mem = (
+          open --raw /proc/meminfo
+          | lines
+          | parse "{key}: {value} kB"
+          | reduce -f {} {|row, acc| $acc | insert $row.key ($row.value | str trim | into int)}
+        )
+        let mem_used_bytes = (($mem.MemTotal - $mem.MemAvailable) * 1024)
+        let disk_used_bytes = (^df -B1 --output=used / | lines | get 1 | str trim | into int)
+
+        let cpu_total_cores = 64
+        let mem_total_bytes = (256 * 1024 * 1024 * 1024)
+        let disk_total_bytes = (1024 * 1024 * 1024 * 1024 * 1024)
+        let cpu_used_cores = ($cpu_total_cores * $cpu_percent / 100)
+        let memory_used_gib = ($mem_used_bytes / 1024 / 1024 / 1024)
+        let disk_used_tib = ($disk_used_bytes / 1024 / 1024 / 1024 / 1024)
+
+        let stats = {
+          generatedAt: (date now | date to-timezone UTC | format date "%Y-%m-%dT%H:%M:%SZ")
+          cpu: {
+            usedCores: ($cpu_used_cores | round-to 4)
+            totalCores: $cpu_total_cores
+            percent: ($cpu_percent | round-to 4)
           }
-        '
-      )
+          memory: {
+            usedBytes: $mem_used_bytes
+            totalBytes: $mem_total_bytes
+            percent: (($mem_used_bytes / $mem_total_bytes * 100) | round-to 4)
+          }
+          disk: {
+            usedBytes: $disk_used_bytes
+            totalBytes: $disk_total_bytes
+            percent: (($disk_used_bytes / $disk_total_bytes * 100) | round-to 6)
+          }
+          costPerSecondUsd: (
+            ($cpu_used_cores * (20 / (30 * 24 * 60 * 60)))
+            + ($memory_used_gib * ((0.005 / (60 * 60)) * 2))
+            + ($disk_used_tib * ((0.0031 / (60 * 60)) * 2))
+          )
+        }
 
-      mem_used_bytes=$(
-        awk '
-          /^MemTotal:/ { total = $2 }
-          /^MemAvailable:/ { available = $2 }
-          END { printf "%.0f", (total - available) * 1024 }
-        ' /proc/meminfo
-      )
-      disk_used_bytes=$(df -B1 --output=used / | awk 'NR == 2 { print $1 }')
-      now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-
-      cpu_total_cores=64
-      mem_total_bytes=$((256 * 1024 * 1024 * 1024))
-      disk_total_bytes=$((1024 * 1024 * 1024 * 1024 * 1024))
-
-      tmp=$(mktemp "$out_dir/stats.XXXXXX")
-      jq -n \
-        --arg generatedAt "$now" \
-        --argjson cpuPercent "$cpu_percent" \
-        --argjson cpuTotalCores "$cpu_total_cores" \
-        --argjson memoryUsedBytes "$mem_used_bytes" \
-        --argjson memoryTotalBytes "$mem_total_bytes" \
-        --argjson diskUsedBytes "$disk_used_bytes" \
-        --argjson diskTotalBytes "$disk_total_bytes" '
-          def round4: (. * 10000) | round / 10000;
-          def round6: (. * 1000000) | round / 1000000;
-
-          ($cpuTotalCores * $cpuPercent / 100) as $cpuUsedCores
-          | ($memoryUsedBytes / 1024 / 1024 / 1024) as $memoryUsedGiB
-          | ($diskUsedBytes / 1024 / 1024 / 1024 / 1024) as $diskUsedTiB
-          | {
-              generatedAt: $generatedAt,
-              cpu: {
-                usedCores: ($cpuUsedCores | round4),
-                totalCores: $cpuTotalCores,
-                percent: ($cpuPercent | round4)
-              },
-              memory: {
-                usedBytes: $memoryUsedBytes,
-                totalBytes: $memoryTotalBytes,
-                percent: (($memoryUsedBytes / $memoryTotalBytes * 100) | round4)
-              },
-              disk: {
-                usedBytes: $diskUsedBytes,
-                totalBytes: $diskTotalBytes,
-                percent: (($diskUsedBytes / $diskTotalBytes * 100) | round6)
-              },
-              costPerSecondUsd: (
-                ($cpuUsedCores * (20 / (30 * 24 * 60 * 60)))
-                + ($memoryUsedGiB * ((0.005 / (60 * 60)) * 2))
-                + ($diskUsedTiB * ((0.0031 / (60 * 60)) * 2))
-              )
-            }
-        ' > "$tmp"
-      mv "$tmp" "$out_dir/stats.json"
+        let tmp = (^mktemp $"($out_dir)/stats.XXXXXX" | str trim)
+        $stats | to json | save --force $tmp
+        mv --force $tmp $"($out_dir)/stats.json"
+      }
     '';
   };
 
-  statsLoop = pkgs.writeShellApplication {
+  statsLoop = ix.lib.writeNushellApplication pkgs {
     name = "claude-code-demo-stats-loop";
     runtimeInputs = [
       pkgs.coreutils
       writeStats
     ];
     text = ''
-      set -euo pipefail
-      while true; do
-        claude-code-demo-write-stats
-        sleep 1
-      done
+      def main [] {
+        loop {
+          claude-code-demo-write-stats
+          sleep 1sec
+        }
+      }
     '';
   };
 

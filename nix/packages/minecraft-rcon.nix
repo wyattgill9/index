@@ -1,10 +1,14 @@
 {
   python3,
-  writeShellApplication,
+  writeNushellApplication,
 }:
 
-writeShellApplication {
+writeNushellApplication {
   name = "minecraft-rcon";
   runtimeInputs = [ python3 ];
-  text = ''exec python3 ${./minecraft-rcon.py} "$@"'';
+  text = ''
+    def main [...args] {
+      exec python3 ${./minecraft-rcon.py} ...$args
+    }
+  '';
 }

@@ -27,31 +27,6 @@ let
   inherit (nixpkgs) lib;
 
   system = "x86_64-linux";
-  # Overlays: llm-agents base + claude/codex from dedicated flakes, plus
-  # repo-local packages used by images.
-  overlay = final: prev: {
-    llm-agents = prev.llm-agents // {
-      claude-code = claude-code-nix.packages.${final.stdenv.hostPlatform.system}.claude-code;
-      codex = codex-cli-nix.packages.${final.stdenv.hostPlatform.system}.codex;
-    };
-
-    minecraft-hot-reload-agent = final.callPackage ../nix/packages/minecraft-hot-reload-agent.nix { };
-    minecraft-rcon = final.callPackage ../nix/packages/minecraft-rcon.nix { };
-    tonbo-artifacts = final.callPackage ../nix/packages/tonbo-artifacts.nix {
-      src = artifactInputs.artifact-tonbo-artifacts;
-    };
-  };
-  overlays = [
-    llm-agents.overlays.default
-    overlay
-  ];
-  pkgs = import nixpkgs { inherit system overlays; };
-
-  # The module registry. collect picks all leaf paths from the nested attrset.
-  moduleList = lib.collect builtins.isPath (import ../modules);
-
-  mkMinecraftLoader = import ./minecraft-loader.nix;
-
   writeNushellApplication =
     pkgs:
     {
@@ -71,7 +46,9 @@ let
       destination = "/bin/${name}";
       text = ''
         #!${lib.getExe pkgs.nushell}
-        $env.PATH = "${runtimePath}"
+        let runtime_path = "${runtimePath}" | split row ":"
+        let ambient_path = $env.PATH? | default []
+        $env.PATH = $runtime_path ++ (if ($ambient_path | describe) == "string" { $ambient_path | split row ":" } else { $ambient_path })
 
       ''
       + scriptBody;
@@ -82,6 +59,33 @@ let
         mainProgram = meta.mainProgram or name;
       };
     };
+
+  # Overlays: llm-agents base + claude/codex from dedicated flakes, plus
+  # repo-local packages used by images.
+  overlay = final: prev: {
+    llm-agents = prev.llm-agents // {
+      claude-code = claude-code-nix.packages.${final.stdenv.hostPlatform.system}.claude-code;
+      codex = codex-cli-nix.packages.${final.stdenv.hostPlatform.system}.codex;
+    };
+
+    minecraft-hot-reload-agent = final.callPackage ../nix/packages/minecraft-hot-reload-agent.nix { };
+    minecraft-rcon = final.callPackage ../nix/packages/minecraft-rcon.nix {
+      writeNushellApplication = writeNushellApplication final;
+    };
+    tonbo-artifacts = final.callPackage ../nix/packages/tonbo-artifacts.nix {
+      src = artifactInputs.artifact-tonbo-artifacts;
+    };
+  };
+  overlays = [
+    llm-agents.overlays.default
+    overlay
+  ];
+  pkgs = import nixpkgs { inherit system overlays; };
+
+  # The module registry. collect picks all leaf paths from the nested attrset.
+  moduleList = lib.collect builtins.isPath (import ../modules);
+
+  mkMinecraftLoader = import ./minecraft-loader.nix;
 
   artifactByUrl = {
     "https://cdn.modrinth.com/data/Gi02250Z/versions/7IRzJzBP/almanac-1.26.x-fabric-1.6.2.1.jar" =
@@ -180,7 +184,7 @@ let
   # Helpers exposed to every module via specialArgs. Keep this surface small
   # and stable: anything here is part of the cross-module contract.
   ixSpecialArgs = {
-    inherit artifacts mkMinecraftLoader;
+    inherit artifacts mkMinecraftLoader writeNushellApplication;
   };
 
   evalImageConfig =
@@ -207,6 +211,7 @@ let
       inherit
         lib
         evalImageConfig
+        writeNushellApplication
         ;
       pkgs = nixpkgs.legacyPackages.${hostSystem};
     };

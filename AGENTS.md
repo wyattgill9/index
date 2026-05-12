@@ -230,7 +230,8 @@ These are current repo habits that should not become defaults. When touching nea
 - **Typed module interfaces.** Avoid `types.attrs`, `types.attrsOf types.attrs`, and `types.anything` for domain data. Use `types.submodule`, `attrsOf (submodule ...)`, `types.enum`, `types.oneOf`, `types.nullOr`, or a `pkgs.formats.*.type` that matches the file being generated. Keep broad attrs only at true foreign-format boundaries, and name that boundary in the option description.
 - **Filtered local sources.** Do not default to broad `src = ./project` or `src = ./site` inputs. Use `lib.fileset.toSource` with the smallest useful file set, usually `lib.fileset.intersection (lib.fileset.gitTracked ./.) (lib.fileset.unions [ ... ])`, or `lib.sources.cleanSourceWith` when a predicate is clearer. This avoids copying irrelevant files or secrets into the store and prevents rebuilds from unrelated local changes.
 - **Executable paths.** Prefer `lib.getExe pkg` when the package's `meta.mainProgram` is correct, and `lib.getExe' pkg "program"` when the executable name is intentionally explicit. Add `meta.mainProgram` to repo packages that install a primary binary. Avoid scattering `"${pkg}/bin/foo"` through systemd units, apps, tests, and scripts unless there is no package value to pass around.
-- **Shell applications.** Use `writeShellApplication` with `runtimeInputs` for generated commands that call other programs, so runtime dependencies are explicit and the script gets syntax and shellcheck validation. Reserve `writeShellScript` for tiny inline glue with no external command dependencies.
+- **Shell applications.** Use `ix.writeNushellApplication pkgs { ... }` for generated commands that call other programs, so runtime dependencies are explicit and Nu syntax is checked during the build. Do not use `writeShellApplication` or `writeShellScriptBin` in tracked Nix files. Tiny `writeShellScript` glue is acceptable only when the output is not a user-facing command.
+- **Nushell wrappers.** Keep wrappers real Nu, not Bash hidden inside a Nu string. Use `def main [...args]`, structured values, lists with `...$args`, and `builtins.toJSON` for Nix-to-Nu literals. The wrapper helper must prepend declared runtime inputs while preserving the ambient `PATH`; fleet/app wrappers may need commands supplied by the caller, such as a freshly patched `ix` binary.
 - **Scripts.** Prefer Nushell (`.nu`) over Bash for new non-trivial repo scripts, especially when the script parses JSON, builds structured output, or has enough branching that shell quoting becomes load-bearing. Package these scripts with `ix.writeNushellApplication pkgs { ... }` so runtime dependencies are explicit and Nu syntax is checked during the build. Bash is fine for tiny POSIX-style wrappers.
 
 ## Nix style (ast-grep enforced)
@@ -244,7 +245,7 @@ Run `nix run nixpkgs#ast-grep -- scan` before committing. Hard rules:
 - No `builtins.currentSystem`, `builtins.getEnv`, `<nixpkgs>`, or `path:` flake refs.
 - No `(import ./foo.nix)` inside `imports = [ ... ]`. NixOS auto-imports paths.
 - No `..` paths inside `modules/`. Cross-cutting helpers come through `specialArgs.ix`.
-- No `writeShellScriptBin`. Use `writeShellScript` (or `writeShellApplication` for orchestrators).
+- No `writeShellApplication` or `writeShellScriptBin`. Use `ix.writeNushellApplication pkgs { ... }` for user-facing commands and orchestrators.
 - No bare `assert cond;`. Use `assert lib.assertMsg cond "why";`.
 - `strictDeps = true` on every `mkDerivation`. `__structuredAttrs` is the nixpkgs default; do not set it explicitly.
 - No inline fetcher hashes for repo-managed artifacts. Prefer non-flake inputs in `flake.nix` so `flake.lock` owns artifact content hashes.

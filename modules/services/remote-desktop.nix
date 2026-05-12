@@ -1,6 +1,7 @@
 # Browser-accessible remote desktop backed by Xpra's built-in HTML5 client.
 {
   config,
+  ix,
   lib,
   pkgs,
   ...
@@ -15,46 +16,53 @@ let
     ;
   cfg = config.services.remote-desktop;
 
-  defaultSession = pkgs.writeShellApplication {
+  defaultSession = ix.writeNushellApplication pkgs {
     name = "ix-remote-desktop-session";
     runtimeInputs = [
       pkgs.icewm
       pkgs.xterm
     ];
     text = ''
-      xterm &
-      exec icewm-session
+      def main [] {
+        job spawn { ^xterm }
+        exec icewm-session
+      }
     '';
   };
 
-  launcher = pkgs.writeShellApplication {
+  launcher = ix.writeNushellApplication pkgs {
     name = "ix-remote-desktop";
-    runtimeInputs = [ cfg.package ];
+    runtimeInputs = [
+      cfg.package
+    ];
     text = ''
-      exec xpra ${
-        lib.escapeShellArgs (
-          [
-            "start-desktop"
-            cfg.display
-            "--start=${cfg.desktopCommand}"
-            "--bind-tcp=${cfg.bindAddress}:${toString cfg.port}"
-            "--auth=${cfg.auth}"
-            "--resize-display=${cfg.resolution}"
-            "--socket-dirs=/run/remote-desktop"
-            "--html=on"
-            "--ssl=off"
-            "--daemon=no"
-            "--mdns=no"
-            "--pulseaudio=no"
-            "--notifications=no"
-            "--webcam=no"
-            "--printing=no"
-            "--file-transfer=off"
-            "--open-files=off"
-            "--clipboard=on"
-          ]
-          ++ cfg.extraOptions
-        )
+      def main [] {
+        let args = ${
+          builtins.toJSON (
+            [
+              "start-desktop"
+              cfg.display
+              "--start=${cfg.desktopCommand}"
+              "--bind-tcp=${cfg.bindAddress}:${toString cfg.port}"
+              "--auth=${cfg.auth}"
+              "--resize-display=${cfg.resolution}"
+              "--socket-dirs=/run/remote-desktop"
+              "--html=on"
+              "--ssl=off"
+              "--daemon=no"
+              "--mdns=no"
+              "--pulseaudio=no"
+              "--notifications=no"
+              "--webcam=no"
+              "--printing=no"
+              "--file-transfer=off"
+              "--open-files=off"
+              "--clipboard=on"
+            ]
+            ++ cfg.extraOptions
+          )
+        }
+        exec xpra ...$args
       }
     '';
   };

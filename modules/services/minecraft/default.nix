@@ -217,272 +217,294 @@ let
     ${serverFileLinks}
   '';
 
-  syncManaged = pkgs.writeShellApplication {
+  syncManaged = ix.writeNushellApplication pkgs {
     name = "minecraft-sync-managed";
     runtimeInputs = [
       pkgs.coreutils
       pkgs.findutils
-      pkgs.gnugrep
-      pkgs.gnused
     ];
     text = ''
-      data_dir=${lib.escapeShellArg dataDir}
-      drop_dir=${lib.escapeShellArg cfg.dropDir}
-      plugman_reload=${if plugmanReloadEnabled then "1" else "0"}
-      plugman_ignored_plugins=${lib.escapeShellArg (lib.concatStringsSep " " cfg.autoReload.plugman.ignoredPlugins)}
-      rcon_port=${toString cfg.autoReload.rconPort}
-      rcon_password_file=${lib.escapeShellArg cfg.autoReload.rconPasswordFile}
+      const data_dir = ${builtins.toJSON dataDir}
+      const drop_dir = ${builtins.toJSON cfg.dropDir}
+      const managed_root = ${builtins.toJSON managedRoot}
+      const plugman_reload = ${if plugmanReloadEnabled then "true" else "false"}
+      const plugman_ignored_plugins = ${builtins.toJSON cfg.autoReload.plugman.ignoredPlugins}
+      const rcon_port = ${toString cfg.autoReload.rconPort}
+      const rcon_password_file = ${builtins.toJSON cfg.autoReload.rconPasswordFile}
 
-      sync_tree() {
-        source_dir="$1"
-        target_dir="$2"
-        manifest="$3"
+      def managed-files [source_dir: string] {
+        if not ($source_dir | path exists) {
+          return []
+        }
 
-        mkdir -p "$target_dir" "$(dirname "$manifest")"
-        if [ -f "$manifest" ]; then
-          while IFS= read -r line; do
-            rel="''${line%% *}"
-            if [ -n "$rel" ]; then
-              rm -f "$target_dir/$rel"
-            fi
-          done < "$manifest"
-        fi
-
-        tmp="$manifest.tmp"
-        : > "$tmp"
-        if [ -d "$source_dir" ]; then
-          (
-            cd "$source_dir"
-            find . \( -type f -o -type l \) -print
-          ) | while IFS= read -r rel; do
-            rel="''${rel#./}"
-            case "$rel" in
-              *.plugin-name) continue ;;
-            esac
-            source_path="$source_dir/$rel"
-            mkdir -p "$target_dir/$(dirname "$rel")"
-            ln -sfn "$source_path" "$target_dir/$rel"
-            printf '%s %s\n' "$rel" "$(readlink -f "$source_path")" >> "$tmp"
-          done
-        fi
-
-        mv "$tmp" "$manifest"
+        do {
+          cd $source_dir
+          ^find . "(" -type f -o -type l ")" -print
+          | lines
+          | each { str replace --regex '^\./' "" }
+          | where $it !~ '\.plugin-name$'
+        }
       }
 
-      managed_target_for() {
-        manifest="$1"
-        rel="$2"
-
-        if [ ! -f "$manifest" ]; then
-          return 1
-        fi
-
-        grep -F -- "$rel " "$manifest" | head -n1 | cut -d ' ' -f2-
+      def manifest-rel [line: string] {
+        $line | split row " " | get 0
       }
 
-      plugin_name_for() {
-        metadata="${managedRoot}/managed-dropins/$1.plugin-name"
-        if [ -f "$metadata" ]; then
-          head -n1 "$metadata"
-        else
-          basename "$1" .jar
-        fi
+      def sync-tree [source_dir: string, target_dir: string, manifest: string] {
+        mkdir $target_dir ($manifest | path dirname)
+
+        if ($manifest | path exists) {
+          open --raw $manifest
+          | lines
+          | each { manifest-rel $in }
+          | where $it != ""
+          | each { rm --force $"($target_dir)/($in)" }
+        }
+
+        let tmp = $"($manifest).tmp"
+        "" | save --force $tmp
+
+        for rel in (managed-files $source_dir) {
+          let source_path = $"($source_dir)/($rel)"
+          mkdir ($"($target_dir)/($rel)" | path dirname)
+          ln --symbolic --force --no-dereference $source_path $"($target_dir)/($rel)"
+          let target = (^readlink -f $source_path | str trim)
+          $"($rel) ($target)\n" | save --append $tmp
+        }
+
+        mv --force $tmp $manifest
       }
 
-      plugin_name_from_config_path() {
-        rel="$1"
-        case "$rel" in
-          plugins/*/*)
-            rel="''${rel#plugins/}"
-            printf '%s\n' "''${rel%%/*}"
-            ;;
-        esac
+      def managed-target-for [manifest: string, rel: string] {
+        if not ($manifest | path exists) {
+          return null
+        }
+
+        let row = (
+          open --raw $manifest
+          | lines
+          | where { |line| $line | str starts-with $"($rel) " }
+          | get 0?
+        )
+
+        if $row == null {
+          null
+        } else {
+          $row | split row " " | skip 1 | str join " "
+        }
       }
 
-      is_ignored_plugin() {
-        case " $plugman_ignored_plugins " in
-          *" $1 "*) return 0 ;;
-          *) return 1 ;;
-        esac
+      def plugin-name-for [rel: string] {
+        let metadata = $"($managed_root)/managed-dropins/($rel).plugin-name"
+        if ($metadata | path exists) {
+          open --raw $metadata | lines | first
+        } else {
+          $rel | path parse | get stem
+        }
       }
 
-      plan_plugman_reload() {
-        dropin_manifest="$data_dir/.ix-managed-$drop_dir"
-        server_manifest="$data_dir/.ix-managed-server-files"
-        plan="$data_dir/.ix-managed-$drop_dir.reload-plan"
-        : > "$plan"
-
-        if [ -f "$dropin_manifest" ] && [ -d ${managedRoot}/managed-dropins ]; then
-          (
-            cd ${managedRoot}/managed-dropins
-            find . -maxdepth 1 \( -type f -o -type l \) -name '*.jar' ! -name '*.plugin-name' -print
-          ) | while IFS= read -r rel; do
-            rel="''${rel#./}"
-            [ "$rel" = "PlugManX.jar" ] && continue
-            target="$(readlink -f "${managedRoot}/managed-dropins/$rel")"
-            old_target="$(managed_target_for "$dropin_manifest" "$rel" || true)"
-            plugin="$(plugin_name_for "$rel")"
-            is_ignored_plugin "$plugin" && continue
-
-            if [ -z "$old_target" ]; then
-              printf 'load %s\n' "$plugin" >> "$plan"
-            elif [ "$old_target" != "$target" ]; then
-              printf 'reload %s\n' "$plugin" >> "$plan"
-            fi
-          done
-
-          while IFS= read -r line; do
-            rel="''${line%% *}"
-            case "$rel" in
-              *.jar)
-                [ "$rel" = "PlugManX.jar" ] && continue
-                plugin="$(plugin_name_for "$rel")"
-                is_ignored_plugin "$plugin" && continue
-                if [ ! -e "${managedRoot}/managed-dropins/$rel" ]; then
-                  printf 'unload %s\n' "$plugin" >> "$plan"
-                fi
-                ;;
-              *.jar.plugin-name)
-                ;;
-            esac
-          done < "$dropin_manifest"
-        fi
-
-        if [ -f "$server_manifest" ] && [ -d ${managedRoot}/managed-server-files ]; then
-          (
-            cd ${managedRoot}/managed-server-files
-            find . \( -type f -o -type l \) -print
-          ) | while IFS= read -r rel; do
-            rel="''${rel#./}"
-            plugin="$(plugin_name_from_config_path "$rel" || true)"
-            [ -n "$plugin" ] || continue
-            is_ignored_plugin "$plugin" && continue
-            target="$(readlink -f "${managedRoot}/managed-server-files/$rel")"
-            old_target="$(managed_target_for "$server_manifest" "$rel" || true)"
-            if [ -z "$old_target" ] || [ "$old_target" != "$target" ]; then
-              printf 'reload %s\n' "$plugin" >> "$plan"
-            fi
-          done
-
-          while IFS= read -r line; do
-            rel="''${line%% *}"
-            plugin="$(plugin_name_from_config_path "$rel" || true)"
-            [ -n "$plugin" ] || continue
-            is_ignored_plugin "$plugin" && continue
-            if [ ! -e "${managedRoot}/managed-server-files/$rel" ]; then
-              printf 'reload %s\n' "$plugin" >> "$plan"
-            fi
-          done < "$server_manifest"
-        fi
-
-        sort -u "$plan" -o "$plan"
+      def plugin-name-from-config-path [rel: string] {
+        let parts = ($rel | split row "/")
+        if (($parts | length) >= 3) and (($parts | first) == "plugins") {
+          $parts | get 1
+        } else {
+          null
+        }
       }
 
-      ensure_rcon_password() {
-        mkdir -p "$(dirname "$rcon_password_file")"
-        if [ ! -s "$rcon_password_file" ]; then
-          od -An -N32 -tx1 /dev/urandom | tr -d ' \n' > "$rcon_password_file"
-          printf '\n' >> "$rcon_password_file"
-          chmod 0600 "$rcon_password_file"
-        fi
+      def is-ignored-plugin [plugin: string] {
+        $plugin in $plugman_ignored_plugins
       }
 
-      set_property() {
-        file="$1"
-        key="$2"
-        value="$3"
-        escaped_value="$(printf '%s\n' "$value" | sed 's/[\/&]/\\&/g')"
-
-        if grep -q "^$key=" "$file"; then
-          sed -i "s/^$key=.*/$key=$escaped_value/" "$file"
-        else
-          printf '%s=%s\n' "$key" "$value" >> "$file"
-        fi
+      def append-plan [plan: string, action: string, plugin: string] {
+        $"($action) ($plugin)\n" | save --append $plan
       }
 
-      configure_rcon() {
-        ensure_rcon_password
-        server_properties="$data_dir/server.properties"
+      def plan-plugman-reload [] {
+        let dropin_manifest = $"($data_dir)/.ix-managed-($drop_dir)"
+        let server_manifest = $"($data_dir)/.ix-managed-server-files"
+        let plan = $"($data_dir)/.ix-managed-($drop_dir).reload-plan"
+        "" | save --force $plan
 
-        if [ -L "$server_properties" ]; then
-          cp --remove-destination "$server_properties" "$server_properties.tmp"
-          mv "$server_properties.tmp" "$server_properties"
-        elif [ ! -e "$server_properties" ]; then
-          : > "$server_properties"
-        fi
+        let managed_dropins = $"($managed_root)/managed-dropins"
+        if ($dropin_manifest | path exists) and ($managed_dropins | path exists) {
+          let jars = (
+            do {
+              cd $managed_dropins
+              ^find . -maxdepth 1 "(" -type f -o -type l ")" -name "*.jar" "!" -name "*.plugin-name" -print
+              | lines
+              | each { str replace --regex '^\./' "" }
+            }
+          )
 
-        chmod 0600 "$server_properties"
-        password="$(head -n1 "$rcon_password_file")"
-        set_property "$server_properties" "enable-rcon" "true"
-        set_property "$server_properties" "rcon.port" "$rcon_port"
-        set_property "$server_properties" "rcon.password" "$password"
-        set_property "$server_properties" "broadcast-rcon-to-ops" "false"
+          for rel in $jars {
+            if $rel == "PlugManX.jar" {
+              continue
+            }
+
+            let target = (^readlink -f $"($managed_dropins)/($rel)" | str trim)
+            let old_target = (managed-target-for $dropin_manifest $rel)
+            let plugin = (plugin-name-for $rel)
+            if (is-ignored-plugin $plugin) {
+              continue
+            }
+
+            if $old_target == null {
+              append-plan $plan load $plugin
+            } else if $old_target != $target {
+              append-plan $plan reload $plugin
+            }
+          }
+
+          for line in (open --raw $dropin_manifest | lines) {
+            let rel = (manifest-rel $line)
+            if ($rel | str ends-with ".jar") and ($rel != "PlugManX.jar") {
+              let plugin = (plugin-name-for $rel)
+              if not (is-ignored-plugin $plugin) and not ($"($managed_dropins)/($rel)" | path exists) {
+                append-plan $plan unload $plugin
+              }
+            }
+          }
+        }
+
+        let managed_server_files = $"($managed_root)/managed-server-files"
+        if ($server_manifest | path exists) and ($managed_server_files | path exists) {
+          for rel in (managed-files $managed_server_files) {
+            let plugin = (plugin-name-from-config-path $rel)
+            if ($plugin == null) or (is-ignored-plugin $plugin) {
+              continue
+            }
+
+            let target = (^readlink -f $"($managed_server_files)/($rel)" | str trim)
+            let old_target = (managed-target-for $server_manifest $rel)
+            if ($old_target == null) or ($old_target != $target) {
+              append-plan $plan reload $plugin
+            }
+          }
+
+          for line in (open --raw $server_manifest | lines) {
+            let rel = (manifest-rel $line)
+            let plugin = (plugin-name-from-config-path $rel)
+            if ($plugin == null) or (is-ignored-plugin $plugin) {
+              continue
+            }
+
+            if not ($"($managed_server_files)/($rel)" | path exists) {
+              append-plan $plan reload $plugin
+            }
+          }
+        }
+
+        open --raw $plan | lines | sort | uniq | str join "\n" | save --force $plan
       }
 
-      if [ "$plugman_reload" = "1" ]; then
-        plan_plugman_reload
-      fi
+      def ensure-rcon-password [] {
+        mkdir ($rcon_password_file | path dirname)
+        if not ($rcon_password_file | path exists) or ((open --raw $rcon_password_file | str trim | is-empty)) {
+          let password = (^od -An -N32 -tx1 /dev/urandom | str replace --all " " "" | str trim)
+          $"($password)\n" | save --force $rcon_password_file
+          chmod 0600 $rcon_password_file
+        }
+      }
 
-      sync_tree ${managedRoot}/managed-dropins "$data_dir/$drop_dir" "$data_dir/.ix-managed-$drop_dir"
-      sync_tree ${managedRoot}/managed-config "$data_dir/config" "$data_dir/.ix-managed-config"
-      sync_tree ${managedRoot}/managed-server-files "$data_dir" "$data_dir/.ix-managed-server-files"
+      def set-property [file: string, key: string, value: string] {
+        let lines = if ($file | path exists) { open --raw $file | lines } else { [] }
+        let replacement = $"($key)=($value)"
+        let found = ($lines | any { |line| $line | str starts-with $"($key)=" })
+        let next = (
+          if $found {
+            $lines | each { |line| if ($line | str starts-with $"($key)=") { $replacement } else { $line } }
+          } else {
+            $lines | append $replacement
+          }
+        )
 
-      if [ "$plugman_reload" = "1" ]; then
-        configure_rcon
-      fi
+        $next | str join "\n" | $"($in)\n" | save --force $file
+      }
+
+      def configure-rcon [] {
+        ensure-rcon-password
+        let server_properties = $"($data_dir)/server.properties"
+
+        if ($server_properties | path type) == "symlink" {
+          cp --force --dereference $server_properties $"($server_properties).tmp"
+          mv --force $"($server_properties).tmp" $server_properties
+        } else if not ($server_properties | path exists) {
+          "" | save --force $server_properties
+        }
+
+        chmod 0600 $server_properties
+        let password = (open --raw $rcon_password_file | lines | first)
+        set-property $server_properties enable-rcon true
+        set-property $server_properties rcon.port ($rcon_port | into string)
+        set-property $server_properties rcon.password $password
+        set-property $server_properties broadcast-rcon-to-ops false
+      }
+
+      def main [] {
+        if $plugman_reload {
+          plan-plugman-reload
+        }
+
+        sync-tree $"($managed_root)/managed-dropins" $"($data_dir)/($drop_dir)" $"($data_dir)/.ix-managed-($drop_dir)"
+        sync-tree $"($managed_root)/managed-config" $"($data_dir)/config" $"($data_dir)/.ix-managed-config"
+        sync-tree $"($managed_root)/managed-server-files" $data_dir $"($data_dir)/.ix-managed-server-files"
+
+        if $plugman_reload {
+          configure-rcon
+        }
+      }
     '';
   };
 
-  reloadCommand = pkgs.writeShellApplication {
+  reloadCommand = ix.writeNushellApplication pkgs {
     name = "minecraft-reload";
     runtimeInputs = [
       pkgs.minecraft-rcon
       syncManaged
     ];
     text = ''
-      minecraft-sync-managed
-      driver=${lib.escapeShellArg autoReloadDriver}
+      const driver = ${builtins.toJSON autoReloadDriver}
+      const socket = ${builtins.toJSON cfg.autoReload.socketPath}
+      const plan = ${builtins.toJSON "${dataDir}/.ix-managed-${cfg.dropDir}.reload-plan"}
 
-      case "$driver" in
-        jvm)
-          socket=${lib.escapeShellArg cfg.autoReload.socketPath}
-          if [ ! -S "$socket" ]; then
-            echo "minecraft hot reload socket is not ready at $socket; synced managed files only" >&2
-            exit 0
-          fi
-          exec ${java} \
-            -cp ${pkgs.minecraft-hot-reload-agent}/share/minecraft-hot-reload-agent/minecraft-hot-reload-agent.jar \
-            dev.ix.minecraft.hotreload.HotReloadAgent \
-            "$socket" \
-            redefine-dir \
-            ${managedRoot}/managed-dropins
-          ;;
-        plugman)
-          plan=${lib.escapeShellArg "${dataDir}/.ix-managed-${cfg.dropDir}.reload-plan"}
-          if [ ! -s "$plan" ]; then
-            exit 0
-          fi
+      def main [] {
+        minecraft-sync-managed
 
-          failed=0
-          while read -r action plugin; do
-            [ -n "$action" ] || continue
-            minecraft-rcon \
-              --host 127.0.0.1 \
-              --port ${toString cfg.autoReload.rconPort} \
-              --password-file ${lib.escapeShellArg cfg.autoReload.rconPasswordFile} \
-              plugman "$action" "$plugin" || failed=1
-          done < "$plan"
+        match $driver {
+          "jvm" => {
+            if not (($socket | path type) == "socket") {
+              print --stderr $"minecraft hot reload socket is not ready at ($socket); synced managed files only"
+              return
+            }
 
-          exit "$failed"
-          ;;
-        none)
-          exit 0
-          ;;
-        *)
-          echo "unsupported minecraft auto reload driver: ${autoReloadDriver}" >&2
-          exit 1
-          ;;
-      esac
+            exec ${java} -cp ${pkgs.minecraft-hot-reload-agent}/share/minecraft-hot-reload-agent/minecraft-hot-reload-agent.jar dev.ix.minecraft.hotreload.HotReloadAgent $socket redefine-dir ${managedRoot}/managed-dropins
+          }
+          "plugman" => {
+            if not ($plan | path exists) or ((open --raw $plan | str trim | is-empty)) {
+              return
+            }
+
+            mut failed = false
+            for row in (open --raw $plan | lines | parse "{action} {plugin}") {
+              if (do --ignore-errors {
+                minecraft-rcon --host 127.0.0.1 --port ${toString cfg.autoReload.rconPort} --password-file ${builtins.toJSON cfg.autoReload.rconPasswordFile} plugman $row.action $row.plugin
+              }) == null {
+                $failed = true
+              }
+            }
+
+            if $failed {
+              exit 1
+            }
+          }
+          "none" => {}
+          _ => {
+            print --stderr $"unsupported minecraft auto reload driver: ($driver)"
+            exit 1
+          }
+        }
+      }
     '';
   };
 
