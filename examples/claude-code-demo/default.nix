@@ -177,6 +177,7 @@ let
 
             services.git-clone = {
               enable = true;
+              activation = "timer";
               url = "https://github.com/torvalds/linux.git";
               dest = "/src/linux";
             };

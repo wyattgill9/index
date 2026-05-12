@@ -65,6 +65,8 @@ let
   remoteDesktopServiceConfig = remoteDesktopService.serviceConfig;
 
   kernelDevConfig = evalConfig [ ../images/dev/kernel-dev ];
+  kernelDevGitCloneService = kernelDevConfig.systemd.services.git-clone;
+  kernelDevGitCloneTimer = kernelDevConfig.systemd.timers.git-clone;
 
   fleet = ix.mkFleet {
     deployment.region = "hil-1";
@@ -121,6 +123,18 @@ let
     {
       assertion = kernelDevConfig.services.git-clone.dest == "/src/linux";
       message = "kernel-dev image should clone Linux into /src/linux";
+    }
+    {
+      assertion = kernelDevConfig.services.git-clone.activation == "timer";
+      message = "kernel-dev image should clone Linux after boot readiness";
+    }
+    {
+      assertion = kernelDevGitCloneService.wantedBy == [ ];
+      message = "timer-activated git clone should not be wanted by multi-user.target";
+    }
+    {
+      assertion = kernelDevGitCloneTimer.wantedBy == [ "timers.target" ];
+      message = "timer-activated git clone should be started by timers.target";
     }
     {
       assertion = minecraftConfig.ix.image.tag == defaultMinecraftVersion;
