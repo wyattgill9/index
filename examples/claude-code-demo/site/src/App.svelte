@@ -1,12 +1,17 @@
 <script>
   import { onDestroy, onMount } from 'svelte';
 
-  const BAR_WIDTH = 20;
+  const LIMITS = {
+    cpuCores: 64,
+    memoryBytes: 256 * 1024 ** 3,
+    diskBytes: 1024 * 1024 ** 4
+  };
+
   const FALLBACK_STATS = {
     generatedAt: null,
-    cpu: { usedCores: 0, totalCores: 64, percent: 0 },
-    memory: { usedBytes: 0, totalBytes: 256 * 1024 ** 3, percent: 0 },
-    disk: { usedBytes: 0, totalBytes: 1024 * 1024 ** 4, percent: 0 },
+    cpu: { usedCores: 0, totalCores: LIMITS.cpuCores, percent: 0 },
+    memory: { usedBytes: 0, totalBytes: LIMITS.memoryBytes, percent: 0 },
+    disk: { usedBytes: 0, totalBytes: LIMITS.diskBytes, percent: 0 },
     costPerSecondUsd: 0
   };
 
@@ -18,26 +23,20 @@
     {
       key: 'cpu',
       label: 'CPU',
-      value: stats.cpu.usedCores,
-      total: stats.cpu.totalCores,
       percent: stats.cpu.percent,
-      display: `${fmtNumber(stats.cpu.usedCores, 2)} / ${stats.cpu.totalCores} cores`
+      display: `${fmtNumber(stats.cpu.usedCores, 2)} / ${fmtNumber(stats.cpu.totalCores, 0)} cores`
     },
     {
       key: 'memory',
       label: 'MEM',
-      value: stats.memory.usedBytes,
-      total: stats.memory.totalBytes,
       percent: stats.memory.percent,
-      display: `${fmtBytes(stats.memory.usedBytes)} / 256 GiB`
+      display: `${fmtBytes(stats.memory.usedBytes)} / ${fmtBytes(stats.memory.totalBytes)}`
     },
     {
       key: 'disk',
       label: 'DISK',
-      value: stats.disk.usedBytes,
-      total: stats.disk.totalBytes,
       percent: stats.disk.percent,
-      display: `${fmtBytes(stats.disk.usedBytes)} / 1 PiB`
+      display: `${fmtBytes(stats.disk.usedBytes)} / ${fmtBytes(stats.disk.totalBytes)}`
     }
   ]);
 
@@ -56,9 +55,8 @@
     return `${fmtNumber(tib / 1024, 2)} PiB`;
   }
 
-  function bar(percent) {
-    const filled = Math.max(0, Math.min(BAR_WIDTH, Math.round((percent / 100) * BAR_WIDTH)));
-    return '█'.repeat(filled) + '░'.repeat(BAR_WIDTH - filled);
+  function clampPercent(percent) {
+    return Math.max(0, Math.min(100, percent));
   }
 
   async function refresh() {
@@ -94,7 +92,17 @@
     <div class="grid">
       {#each rows as row (row.key)}
         <span class="k">{row.label}</span>
-        <span class="bar">{bar(row.percent)}</span>
+        <span
+          class="meter"
+          role="meter"
+          aria-label={`${row.label} usage`}
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow={Math.round(clampPercent(row.percent))}
+          aria-valuetext={row.display}
+        >
+          <span style={`width: ${clampPercent(row.percent)}%`}></span>
+        </span>
         <span class="v">{row.display}</span>
       {/each}
     </div>

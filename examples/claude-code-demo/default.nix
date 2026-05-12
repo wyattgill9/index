@@ -24,6 +24,7 @@ let
     runtimeInputs = [
       pkgs.coreutils
       pkgs.gawk
+      pkgs.jq
     ];
     text = ''
       set -euo pipefail
@@ -67,32 +68,48 @@ let
       disk_used_bytes=$(df -B1 --output=used / | awk 'NR == 2 { print $1 }')
       now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-      tmp=$(mktemp "$out_dir/stats.XXXXXX")
-      awk \
-        -v now="$now" \
-        -v cpu_percent="$cpu_percent" \
-        -v mem_used_bytes="$mem_used_bytes" \
-        -v disk_used_bytes="$disk_used_bytes" '
-          BEGIN {
-            cpu_total = 64
-            mem_total_bytes = 256 * 1024 * 1024 * 1024
-            disk_total_bytes = 1024 * 1024 * 1024 * 1024 * 1024
-            cpu_used = cpu_total * cpu_percent / 100
-            mem_used_gib = mem_used_bytes / 1024 / 1024 / 1024
-            disk_used_tib = disk_used_bytes / 1024 / 1024 / 1024 / 1024
-            cpu_per_second = 20 / (30 * 24 * 60 * 60)
-            mem_per_second = (0.005 / (60 * 60)) * 2
-            disk_per_second = (0.0031 / (60 * 60)) * 2
-            cost_per_second = cpu_used * cpu_per_second + mem_used_gib * mem_per_second + disk_used_tib * disk_per_second
+      cpu_total_cores=64
+      mem_total_bytes=$((256 * 1024 * 1024 * 1024))
+      disk_total_bytes=$((1024 * 1024 * 1024 * 1024 * 1024))
 
-            printf "{\n"
-            printf "  \"generatedAt\": \"%s\",\n", now
-            printf "  \"cpu\": { \"usedCores\": %.4f, \"totalCores\": %.0f, \"percent\": %.4f },\n", cpu_used, cpu_total, cpu_percent
-            printf "  \"memory\": { \"usedBytes\": %.0f, \"totalBytes\": %.0f, \"percent\": %.4f },\n", mem_used_bytes, mem_total_bytes, mem_used_bytes / mem_total_bytes * 100
-            printf "  \"disk\": { \"usedBytes\": %.0f, \"totalBytes\": %.0f, \"percent\": %.6f },\n", disk_used_bytes, disk_total_bytes, disk_used_bytes / disk_total_bytes * 100
-            printf "  \"costPerSecondUsd\": %.9f\n", cost_per_second
-            printf "}\n"
-          }
+      tmp=$(mktemp "$out_dir/stats.XXXXXX")
+      jq -n \
+        --arg generatedAt "$now" \
+        --argjson cpuPercent "$cpu_percent" \
+        --argjson cpuTotalCores "$cpu_total_cores" \
+        --argjson memoryUsedBytes "$mem_used_bytes" \
+        --argjson memoryTotalBytes "$mem_total_bytes" \
+        --argjson diskUsedBytes "$disk_used_bytes" \
+        --argjson diskTotalBytes "$disk_total_bytes" '
+          def round4: (. * 10000) | round / 10000;
+          def round6: (. * 1000000) | round / 1000000;
+
+          ($cpuTotalCores * $cpuPercent / 100) as $cpuUsedCores
+          | ($memoryUsedBytes / 1024 / 1024 / 1024) as $memoryUsedGiB
+          | ($diskUsedBytes / 1024 / 1024 / 1024 / 1024) as $diskUsedTiB
+          | {
+              generatedAt: $generatedAt,
+              cpu: {
+                usedCores: ($cpuUsedCores | round4),
+                totalCores: $cpuTotalCores,
+                percent: ($cpuPercent | round4)
+              },
+              memory: {
+                usedBytes: $memoryUsedBytes,
+                totalBytes: $memoryTotalBytes,
+                percent: (($memoryUsedBytes / $memoryTotalBytes * 100) | round4)
+              },
+              disk: {
+                usedBytes: $diskUsedBytes,
+                totalBytes: $diskTotalBytes,
+                percent: (($diskUsedBytes / $diskTotalBytes * 100) | round6)
+              },
+              costPerSecondUsd: (
+                ($cpuUsedCores * (20 / (30 * 24 * 60 * 60)))
+                + ($memoryUsedGiB * ((0.005 / (60 * 60)) * 2))
+                + ($diskUsedTiB * ((0.0031 / (60 * 60)) * 2))
+              )
+            }
         ' > "$tmp"
       mv "$tmp" "$out_dir/stats.json"
     '';
@@ -111,6 +128,7 @@ let
     pkgs.ncurses
     pkgs.openssl
     pkgs.pahole
+    pkgs.perl
     pkgs.pkg-config
     pkgs.python3
     pkgs.rsync

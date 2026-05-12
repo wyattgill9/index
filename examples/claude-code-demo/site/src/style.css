@@ -5,6 +5,7 @@
   --ix-ink-faint: #a1a1aa;
   --ix-ink-strong: #09090b;
   --ix-border: #e4e4e7;
+  --ix-surface: #ffffff;
   color-scheme: light dark;
   background: var(--ix-bg);
   color: var(--ix-ink);
@@ -23,6 +24,7 @@
     --ix-ink-faint: #636370;
     --ix-ink-strong: #fafafa;
     --ix-border: #27272a;
+    --ix-surface: #0c0c0c;
   }
 }
 
@@ -60,6 +62,7 @@ select {
   position: relative;
   border: 1px solid var(--ix-border);
   border-radius: 4px;
+  background: var(--ix-surface);
   padding: 1lh 2ch;
   display: flex;
   flex-direction: column;
@@ -81,7 +84,7 @@ select {
 }
 
 .title span {
-  background: var(--ix-bg);
+  background: var(--ix-surface);
   padding: 0 1ch;
 }
 
@@ -106,14 +109,21 @@ select {
 .total span:first-child {
   color: var(--ix-ink-faint);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0;
 }
 
-.bar {
-  color: var(--ix-ink);
-  letter-spacing: -0.05em;
-  white-space: nowrap;
+.meter {
+  height: 0.7lh;
+  min-width: 10ch;
+  border: 1px solid var(--ix-border);
+  background: var(--ix-bg);
   overflow: hidden;
+}
+
+.meter span {
+  display: block;
+  height: 100%;
+  background: var(--ix-ink);
 }
 
 .v,
@@ -151,9 +161,9 @@ pre span {
     row-gap: 0.25lh;
   }
 
-  .bar {
+  .meter {
     grid-column: 1 / -1;
-    color: var(--ix-ink-muted);
+    min-width: 0;
   }
 
   .v,
