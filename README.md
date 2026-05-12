@@ -28,13 +28,11 @@ apps.switch.program = "${fleet.switch}/bin/ix-fleet-switch";
 
 ## Benchmarks
 
-`bench/filesystem` is a small VM-side file system benchmark for VCFS smoke checks and before/after comparisons:
+For VCFS and file-system smoke checks, see [bench/filesystem](bench/filesystem):
 
 ```sh
 nix run .#bench-filesystem -- --target /path/to/vcfs
 ```
-
-It measures sequential throughput, random 4 KiB I/O, and create/stat/delete metadata rates. See [bench/filesystem/README.md](bench/filesystem/README.md).
 
 ## Contributing
 
