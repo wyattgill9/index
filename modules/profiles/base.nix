@@ -1,26 +1,15 @@
 # Base runtime profile.
 #
-# Auto-enabled by `lib/ix-base.nix` so every image has the runtime tools needed
-# for source switches. Images that want a smaller closure can opt out with
-# `ix.profiles.base.enable = false;`.
+# Auto-enabled by `lib/ix-base.nix`, but intentionally empty while the image
+# flow publishes raw OCI archives. Runtime dependencies belong in the specific
+# image or service that needs them.
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 {
-  options.ix.profiles.base.enable = lib.mkEnableOption "base runtime tools for source switches";
+  options.ix.profiles.base.enable = lib.mkEnableOption "empty base runtime profile";
 
-  config = lib.mkIf config.ix.profiles.base.enable {
-    # TODO: re-enable these when source switch is back. For now we publish OCI
-    # images directly, so the auto-enabled base profile should add no packages.
-    # environment.systemPackages = builtins.attrValues {
-    #   inherit (pkgs)
-    #     gzip
-    #     gnutar
-    #     zstd
-    #     ;
-    # };
-  };
+  config = lib.mkIf config.ix.profiles.base.enable { };
 }

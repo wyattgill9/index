@@ -152,15 +152,14 @@ let
   minecraftLoaderVersion = "0.19.2";
   minecraftInstallerVersion = "1.1.1";
   fleet = (ix.lib.mkFleetFor hostSystem) {
-    deployment.switch = {
-      # Build the target NixOS system on ix infrastructure. The local machine only
-      # evaluates the plan and sends the derivation path to the switch command.
-      buildOn = "remote";
-
-      # Keep remote switch evaluation on the same source tree that produced the
-      # local plan instead of whatever the example lock file last recorded.
-      overrideInputs.index = ".";
-    };
+    # TODO: re-enable source switch settings when the demo uses switch again.
+    # For now it publishes raw replacement OCI images and replaces VMs from
+    # those images, so source-switch derivation inputs should stay out of the
+    # example wiring.
+    # deployment.switch = {
+    #   buildOn = "remote";
+    #   overrideInputs.index = ".";
+    # };
 
     nodes = {
       linux = {
