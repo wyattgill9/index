@@ -20,12 +20,13 @@
   --ix-ink-strong: #09090b;
   --ix-ink-soft: #52525b;
   --ix-border: #e4e4e7;
+  --font-mono:
+    'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', monospace;
   color-scheme: light dark;
   background: var(--ix-bg);
   color: var(--ix-ink);
-  font-family:
-    'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    'Liberation Mono', monospace;
+  font-family: var(--font-mono);
   font-feature-settings: 'calt' on, 'liga' on;
   font-size: 14px;
   line-height: 1.6;

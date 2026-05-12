@@ -1,15 +1,17 @@
-import type { UsageStats } from './stats';
+import { BILLING, type UsageStats } from './stats';
 
-// Billing rates mirror the formulas in default.nix's stats writer. Per-resource
-// rates let the breakdown row show `$rate × value = bill` instead of just the
-// server-computed total. The margin multiplier matches memory/storage pricing.
+// Per-resource rates let the breakdown row render `$rate × value = bill`
+// independently of the server's totalCost. The Nushell writer in default.nix
+// computes the same formulas against the same vm-config.json, so the rows sum
+// to the server-published total.
 const SECONDS_PER_HOUR = 60 * 60;
 const BILLING_MONTH_SECONDS = 30 * 24 * SECONDS_PER_HOUR;
-const MARGIN = 2;
 
-export const CPU_USD_PER_SECOND = 20 / BILLING_MONTH_SECONDS;
-export const MEM_USD_PER_GIB_SECOND = (0.005 / SECONDS_PER_HOUR) * MARGIN;
-export const DISK_USD_PER_TIB_SECOND = (0.0031 / SECONDS_PER_HOUR) * MARGIN;
+export const CPU_USD_PER_SECOND = BILLING.cpuUsdPerVcpuMonth / BILLING_MONTH_SECONDS;
+export const MEM_USD_PER_GIB_SECOND =
+  (BILLING.memoryUsdPerGibHour / SECONDS_PER_HOUR) * BILLING.marginMultiplier;
+export const DISK_USD_PER_TIB_SECOND =
+  (BILLING.storageUsdPerTibHour / SECONDS_PER_HOUR) * BILLING.marginMultiplier;
 
 export const BAR_WIDTH = 20;
 

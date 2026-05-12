@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
+  import { untrack, type Snippet } from 'svelte';
 
   type Props = {
     title?: string;
@@ -19,7 +19,9 @@
     children
   }: Props = $props();
 
-  let collapsed = $state(collapsible && initiallyCollapsed);
+  // untrack makes the "seed from props once at mount" intent explicit: after
+  // this point `collapsed` is owned by the toggle button, not the props.
+  let collapsed = $state(untrack(() => collapsible && initiallyCollapsed));
 
   function toggle() {
     if (!collapsible) return;

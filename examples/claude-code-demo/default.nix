@@ -19,6 +19,12 @@ let
       ./site/vite.config.js
     ];
   };
+  # site/src/lib/vm-config.json is the single source of truth for the demo's
+  # advertised hardware and billing rates. The Svelte UI imports it directly;
+  # the Nushell stats writer below interpolates the same values at build time.
+  vmConfig = builtins.fromJSON (builtins.readFile ./site/src/lib/vm-config.json);
+  vmServer = vmConfig.server;
+  vmBilling = vmConfig.billing;
   demoSiteDeps = pkgs.stdenvNoCC.mkDerivation {
     pname = "claude-code-demo-site-deps";
     version = "0.1.0";
@@ -123,9 +129,9 @@ let
         let mem_used_bytes = (($mem.MemTotal - $mem.MemAvailable) * 1024)
         let disk_used_bytes = (^df -B1 --output=used / | lines | get 1 | str trim | into int)
 
-        let cpu_total_cores = 64
-        let mem_total_bytes = (256 * 1024 * 1024 * 1024)
-        let disk_total_bytes = (1024 * 1024 * 1024 * 1024 * 1024)
+        let cpu_total_cores = ${toString vmServer.vcpu}
+        let mem_total_bytes = (${toString vmServer.memoryGiB} * 1024 * 1024 * 1024)
+        let disk_total_bytes = (${toString vmServer.storageTiB} * 1024 * 1024 * 1024 * 1024)
         let cpu_used_cores = ($cpu_total_cores * $cpu_percent / 100)
         let memory_used_gib = ($mem_used_bytes / 1024 / 1024 / 1024)
         let disk_used_tib = ($disk_used_bytes / 1024 / 1024 / 1024 / 1024)
@@ -148,9 +154,9 @@ let
             percent: (($disk_used_bytes / $disk_total_bytes * 100) | round-to 6)
           }
           costPerSecondUsd: (
-            ($cpu_used_cores * (20 / (30 * 24 * 60 * 60)))
-            + ($memory_used_gib * ((0.005 / (60 * 60)) * 2))
-            + ($disk_used_tib * ((0.0031 / (60 * 60)) * 2))
+            ($cpu_used_cores * (${toString vmBilling.cpuUsdPerVcpuMonth} / (30 * 24 * 60 * 60)))
+            + ($memory_used_gib * ((${toString vmBilling.memoryUsdPerGibHour} / (60 * 60)) * ${toString vmBilling.marginMultiplier}))
+            + ($disk_used_tib * ((${toString vmBilling.storageUsdPerTibHour} / (60 * 60)) * ${toString vmBilling.marginMultiplier}))
           )
         }
 

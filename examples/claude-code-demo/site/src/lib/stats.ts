@@ -1,3 +1,5 @@
+import vmConfig from './vm-config.json';
+
 export type Status = 'connecting' | 'live' | 'waiting';
 
 export type UsageStats = {
@@ -8,14 +10,10 @@ export type UsageStats = {
   costPerSecondUsd: number;
 };
 
-// Matches the VM hardware advertised by default.nix's stats writer.
-// Kept in sync with the server-side constants so the breakdown the UI shows
-// reconstructs the same total the server publishes.
-export const SERVER = {
-  vcpu: 64,
-  memoryGiB: 256,
-  storageTiB: 1024
-} as const;
+// vm-config.json is the single source of truth shared with default.nix's
+// Nushell stats writer. Edit values there; never inline a constant here.
+export const SERVER = vmConfig.server;
+export const BILLING = vmConfig.billing;
 
 export const FALLBACK_STATS: UsageStats = {
   generatedAt: null,

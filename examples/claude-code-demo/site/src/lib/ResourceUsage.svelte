@@ -23,7 +23,7 @@
 
 <Box title="agent-vm" collapsible={false}>
   {#snippet hintSnippet()}
-    <span class:live={status === 'live'}>{status}</span>
+    <span class="status" data-state={status}><span class="dot" aria-hidden="true">●</span> {status}</span>
   {/snippet}
 
   <div class="grid">
@@ -163,8 +163,20 @@
     text-align: right;
   }
 
-  .live {
+  .status .dot {
+    color: var(--ix-ink-faint);
+  }
+
+  .status[data-state='live'] {
     color: var(--ix-ink-strong);
+  }
+
+  .status[data-state='live'] .dot {
+    color: var(--ix-ink-strong);
+  }
+
+  .status[data-state='waiting'] .dot {
+    color: var(--ix-ink-muted);
   }
 
   @media (max-width: 520px) {
