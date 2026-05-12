@@ -52,6 +52,8 @@ let
 
       ''
       + scriptBody;
+      # `--ide-check` parses the generated script and reports diagnostics
+      # without running `main`, so command wrappers are checked at build time.
       checkPhase = lib.optionalString check ''
         ${lib.getExe pkgs.nushell} --no-config-file --no-std-lib --ide-check 100 "$target"
       '';
