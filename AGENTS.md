@@ -281,6 +281,8 @@ Run `nix run .#lint` before committing. It runs `nixfmt`, `statix`, `deadnix`, a
 
 Keep issue bodies short. State the problem, the context, and the desired outcome. Don't prescribe implementation steps or section headers unless explicitly asked. A few sentences is enough.
 
+When creating or editing GitHub issue bodies or comments, pass multiline text through a real multiline input path such as `--body-file -`, a temporary file, or an editor. Do not put escaped `\n` sequences inside a quoted `--body` string; they render literally on GitHub instead of becoming paragraph breaks.
+
 When you hit a real bug, broken assumption, or unidiomatic pattern while working in this repo, file a GitHub issue right then (`gh issue create -R indexable-inc/index ...`). Don't batch and don't wait to be asked. One concrete observation per issue.
 
 ## Searching
