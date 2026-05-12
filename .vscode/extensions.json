@@ -2,6 +2,7 @@
   "recommendations": [
     "vscjava.vscode-java-pack",
     "jnoortheen.nix-ide",
-    "mkhl.direnv"
+    "mkhl.direnv",
+    "svelte.svelte-vscode"
   ]
 }
