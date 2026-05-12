@@ -130,6 +130,72 @@ let
     '';
   };
 
+  linuxCompileLibraries = [
+    pkgs.elfutils
+    pkgs.ncurses
+    pkgs.openssl
+    pkgs.zlib
+  ];
+  linuxCompileIncludes = lib.concatMapStringsSep " " (path: "-I${path}") (
+    lib.splitString ":" (lib.makeSearchPathOutput "dev" "include" linuxCompileLibraries)
+  );
+  linuxCompileLibraryPath = lib.concatMapStringsSep " " (path: "-L${path}") (
+    lib.splitString ":" (lib.makeLibraryPath linuxCompileLibraries)
+  );
+
+  compileLinux = ix.lib.writeNushellApplication pkgs {
+    name = "compile";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.gnumake
+      pkgs.systemd
+    ];
+    text = ''
+      $env.PKG_CONFIG_PATH = "${lib.makeSearchPathOutput "dev" "lib/pkgconfig" linuxCompileLibraries}"
+      $env.NIX_CFLAGS_COMPILE = "${linuxCompileIncludes}"
+      $env.NIX_LDFLAGS = "${linuxCompileLibraryPath}"
+
+      def env-or [name: string, fallback: string] {
+        let value = ($env | get --optional $name)
+        if $value == null or ($value | is-empty) {
+          $fallback
+        } else {
+          $value
+        }
+      }
+
+      def run-throttled [cpu_quota: string, memory_max: string, command: list<string>] {
+        ^systemd-run --scope --quiet --wait --collect \
+          -p $"CPUQuota=($cpu_quota)" \
+          -p $"MemoryMax=($memory_max)" \
+          ...$command
+      }
+
+      def main [...targets: string] {
+        let source_dir = (env-or LINUX_SOURCE_DIR "/src/linux")
+        if not ($source_dir | path exists) {
+          error make {
+            msg: $"Linux source tree is missing at ($source_dir); wait for git-clone.service to finish."
+          }
+        }
+
+        cd $source_dir
+
+        let cpu_quota = (env-or LINUX_BUILD_CPU_QUOTA "1600%")
+        let memory_max = (env-or LINUX_BUILD_MEMORY_MAX "64G")
+        let nproc = (^nproc | str trim | into int)
+        let default_jobs = ([ $nproc 16 ] | math min | into string)
+        let jobs = (env-or LINUX_BUILD_JOBS $default_jobs)
+
+        if not (".config" | path exists) {
+          run-throttled $cpu_quota $memory_max ["${lib.getExe pkgs.gnumake}" "defconfig"]
+        }
+
+        run-throttled $cpu_quota $memory_max (["${lib.getExe pkgs.gnumake}" $"-j($jobs)"] ++ $targets)
+      }
+    '';
+  };
+
   linuxBuildPackages = [
     pkgs.bc
     pkgs.bison
@@ -147,6 +213,7 @@ let
     pkgs.pkg-config
     pkgs.python3
     pkgs.rsync
+    pkgs.zlib
   ];
 
   minecraftVersion = "26.2-snapshot-6";
@@ -172,6 +239,7 @@ let
 
             environment.systemPackages = linuxBuildPackages ++ [
               pkgs.btop
+              compileLinux
               pkgs.curl
             ];
 
@@ -181,6 +249,9 @@ let
               url = "https://github.com/torvalds/linux.git";
               dest = "/src/linux";
             };
+
+            systemd.services.git-clone.serviceConfig.ExecStartPost =
+              "${lib.getExe' pkgs.coreutils "ln"} -sfn ${lib.getExe compileLinux} /src/linux/compile";
 
             systemd.services.claude-code-demo-stats = {
               description = "Claude Code demo VM stats";
