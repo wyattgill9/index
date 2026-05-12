@@ -23,7 +23,7 @@ cd /src/linux
 make -j$(nproc) defconfig bzImage
 ```
 
-Open the `demo` web URL. The page is hosted inside the VM and shows live CPU usage out of 64 cores, memory usage out of 256 GiB, disk usage out of 1 PiB, and current cost per second.
+Open the `demo` web URL before starting the build. The page is hosted inside the VM and shows live CPU usage out of 64 cores, memory usage out of 256 GiB, disk usage out of 1 PiB, and current cost per second. Start with the page idle to show the very low cost per second, then run the kernel build and refresh the web view to show pricing rise as CPU and memory usage increase. The cost is dynamic: the VM is charged for the resources it is actually using, not a fixed machine size.
 
 Then use Minecraft:
 
@@ -38,7 +38,8 @@ Join the server, take a snapshot, blow up the flat creative world with TNT, then
 1. Plan: `nix run .#claude-code-demo-plan` evaluates the fleet and shows the two target VMs, their systems, and their exposed ports.
 2. Switch: `nix run .#claude-code-demo-switch` creates missing VMs, snapshots existing ones, then activates the NixOS systems in dependency order.
 3. Demo VM: `ix shell demo` opens the build box with Linux source already cloned, live stats served by nginx, and enough CPU/memory/disk to make the machine feel real.
-4. Web view: open the demo URL to show the VM reporting its own CPU, memory, disk, and cost numbers while the kernel build runs.
-5. Minecraft VM: `ix shell minecraft` shows the second VM is managed by the same fleet, but runs a different workload: a Fabric server with a pinned snapshot jar and declarative `server.properties`.
-6. Stateful moment: snapshot, break the world with TNT, then switch or restore. The point is that normal updates preserve VM state; replacement images are only for explicit recreation.
-7. Wrap: the same source tree defines both machines, their packages, service config, exposed ports, and rollout behavior.
+4. Web view: open the demo URL first and show the idle VM costing very little per second.
+5. Dynamic pricing: start the kernel build, then return to the web view to show CPU and memory usage rising and cost per second increasing with actual resource usage.
+6. Minecraft VM: `ix shell minecraft` shows the second VM is managed by the same fleet, but runs a different workload: a Fabric server with a pinned snapshot jar and declarative `server.properties`.
+7. Stateful moment: snapshot, break the world with TNT, then switch or restore. The point is that normal updates preserve VM state; replacement images are only for explicit recreation.
+8. Wrap: the same source tree defines both machines, their packages, service config, exposed ports, and rollout behavior.
