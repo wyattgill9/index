@@ -71,6 +71,14 @@ function fmtCores(value: number): string {
   });
 }
 
+function fmtPercent(value: number): string {
+  const decimals = value < 0.01 ? 4 : value < 1 ? 2 : 1;
+  return `${value.toLocaleString('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  })}%`;
+}
+
 function fmtBytesNum(bytes: number): { value: string; unit: string } {
   const gib = bytes / 1024 ** 3;
   if (gib < 1024) {
@@ -122,7 +130,7 @@ export function resourceRows(stats: UsageStats): ResourceRow[] {
       label: 'CPU',
       ariaLabel: 'CPU usage',
       fraction: cpuFrac,
-      display: `${fmtCores(stats.cpu.usedCores)} / ${String(stats.cpu.totalCores)} vCPU`,
+      display: `${fmtCores(stats.cpu.usedCores)} / ${String(stats.cpu.totalCores)} vCPU (${fmtPercent(stats.cpu.percent)})`,
       rateLabel: fmtUsdPerSecond(CPU_USD_PER_SECOND),
       breakdownValue: `${fmtCores(stats.cpu.usedCores)} vCPU`,
       bill: stats.cpu.usedCores * CPU_USD_PER_SECOND
@@ -132,7 +140,7 @@ export function resourceRows(stats: UsageStats): ResourceRow[] {
       label: 'MEM',
       ariaLabel: 'memory usage',
       fraction: memFrac,
-      display: `${memUsed.value} ${memUsed.unit} / ${fmtTotalBytes(stats.memory.totalBytes)}`,
+      display: `${memUsed.value} ${memUsed.unit} / ${fmtTotalBytes(stats.memory.totalBytes)} (${fmtPercent(stats.memory.percent)})`,
       rateLabel: fmtUsdPerSecond(MEM_USD_PER_GIB_SECOND),
       breakdownValue: `${memUsed.value} ${memUsed.unit}`,
       bill: memGiB * MEM_USD_PER_GIB_SECOND
@@ -142,7 +150,7 @@ export function resourceRows(stats: UsageStats): ResourceRow[] {
       label: 'DISK',
       ariaLabel: 'disk usage',
       fraction: diskFrac,
-      display: `${diskUsed.value} ${diskUsed.unit} / ${fmtTotalBytes(stats.disk.totalBytes)}`,
+      display: `${diskUsed.value} ${diskUsed.unit} / ${fmtTotalBytes(stats.disk.totalBytes)} (${fmtPercent(stats.disk.percent)})`,
       rateLabel: fmtUsdPerSecond(DISK_USD_PER_TIB_SECOND),
       breakdownValue: `${diskUsed.value} ${diskUsed.unit}`,
       bill: diskTiB * DISK_USD_PER_TIB_SECOND
