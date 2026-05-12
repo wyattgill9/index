@@ -26,6 +26,16 @@ apps.switch.program = "${fleet.switch}/bin/ix-fleet-switch";
 
 `nix run .#switch` snapshots and switches nodes in dependency order. Use `ix-fleet replace` only when VM recreation is intended.
 
+## Benchmarks
+
+`bench/filesystem` is a small VM-side file system benchmark for VCFS smoke checks and before/after comparisons:
+
+```sh
+nix run .#bench-filesystem -- --target /path/to/vcfs
+```
+
+It measures sequential throughput, random 4 KiB I/O, and create/stat/delete metadata rates. See [bench/filesystem/README.md](bench/filesystem/README.md).
+
 ## Contributing
 
 Drop `images/<category>/<name>/default.nix`. See [AGENTS.md](AGENTS.md). [MIT](LICENSE).

@@ -52,6 +52,37 @@ let
 
   mkMinecraftLoader = import ./minecraft-loader.nix;
 
+  writeNushellApplication =
+    pkgs:
+    {
+      name,
+      runtimeInputs ? [ ],
+      text,
+      check ? true,
+      meta ? { },
+    }:
+    let
+      scriptBody = lib.removePrefix "#!/usr/bin/env nu\n" text;
+      runtimePath = lib.makeBinPath ([ pkgs.nushell ] ++ runtimeInputs);
+    in
+    pkgs.writeTextFile {
+      inherit name;
+      executable = true;
+      destination = "/bin/${name}";
+      text = ''
+        #!${lib.getExe pkgs.nushell}
+        $env.PATH = "${runtimePath}"
+
+      ''
+      + scriptBody;
+      checkPhase = lib.optionalString check ''
+        ${lib.getExe pkgs.nushell} --no-config-file --no-std-lib --ide-check 100 "$target"
+      '';
+      meta = meta // {
+        mainProgram = meta.mainProgram or name;
+      };
+    };
+
   artifactByUrl = {
     "https://cdn.modrinth.com/data/Gi02250Z/versions/7IRzJzBP/almanac-1.26.x-fabric-1.6.2.1.jar" =
       artifactInputs.artifact-minecraft-mod-almanac;
@@ -243,5 +274,6 @@ in
     discoverImages
     artifacts
     mkMinecraftLoader
+    writeNushellApplication
     ;
 }

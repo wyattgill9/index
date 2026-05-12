@@ -255,6 +255,7 @@
           value =
             let
               pkgs = nixpkgs.legacyPackages.${system};
+              benchFilesystem = import ./bench/filesystem { inherit ix pkgs; };
               updateMods = pkgs.writeShellApplication {
                 name = "update-mods";
                 runtimeInputs = [ pkgs.python3 ];
@@ -269,6 +270,12 @@
               claudeCodeDemo = claudeCodeDemoFor system;
             in
             {
+              bench-filesystem = {
+                type = "app";
+                program = lib.getExe benchFilesystem;
+                meta.description = "Benchmark file-system behavior from inside an ix VM";
+              };
+
               update-mods = {
                 type = "app";
                 program = lib.getExe updateMods;
