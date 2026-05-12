@@ -4,8 +4,11 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
+import select
 import subprocess
 import sys
+import time
 import typing
 from pathlib import Path
 
@@ -136,6 +139,32 @@ def step(message: str) -> None:
     print(message, flush=True)
 
 
+class CliError(RuntimeError):
+    def __init__(self, command: list[str], returncode: int, stdout: str, stderr: str) -> None:
+        self.command = command
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+        self.output = stdout + stderr
+        detail = self.output.strip()
+        if len(detail) > 2000:
+            detail = detail[-2000:]
+        message = f"command failed with exit status {returncode}: {' '.join(command)}"
+        if detail:
+            message = f"{message}\n{detail}"
+        super().__init__(message)
+
+
+class CliTimeoutError(RuntimeError):
+    def __init__(self, command: list[str], timeout: int, stdout: str, stderr: str) -> None:
+        self.command = command
+        self.timeout = timeout
+        self.stdout = stdout
+        self.stderr = stderr
+        self.output = stdout + stderr
+        super().__init__(f"command timed out after {timeout}s: {' '.join(command)}")
+
+
 def run_cli(
     command: list[str],
     *,
@@ -145,21 +174,60 @@ def run_cli(
     step("+ " + " ".join(command))
     if dry_run:
         return ""
-    try:
-        result = subprocess.run(
-            command,
-            check=True,
-            text=True,
-            stdout=subprocess.PIPE,
-            timeout=timeout,
-        )
-    except subprocess.TimeoutExpired:
-        raise RuntimeError(
-            f"command timed out after {timeout}s: {' '.join(command)}"
-        )
-    if result.stdout:
-        print(result.stdout, end="")
-    return result.stdout
+
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    assert process.stdout is not None
+    assert process.stderr is not None
+    streams: dict[typing.BinaryIO, tuple[str, typing.TextIO]] = {
+        process.stdout: ("stdout", sys.stdout),
+        process.stderr: ("stderr", sys.stderr),
+    }
+    chunks = {
+        "stdout": [],
+        "stderr": [],
+    }
+    deadline = None if timeout is None else time.monotonic() + timeout
+
+    while streams:
+        wait = 0.2
+        if deadline is not None:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                process.kill()
+                process.wait()
+                raise CliTimeoutError(
+                    command,
+                    timeout,
+                    "".join(chunks["stdout"]),
+                    "".join(chunks["stderr"]),
+                )
+            wait = min(wait, remaining)
+
+        readable, _, _ = select.select(list(streams), [], [], wait)
+        if not readable and process.poll() is not None:
+            readable = list(streams)
+
+        for stream in readable:
+            data = os.read(stream.fileno(), 4096)
+            if data == b"":
+                streams.pop(stream, None)
+                continue
+            name, target = streams[stream]
+            text = data.decode(errors="replace")
+            chunks[name].append(text)
+            print(text, end="", file=target, flush=True)
+
+    returncode = process.wait()
+    stdout = "".join(chunks["stdout"])
+    stderr = "".join(chunks["stderr"])
+    if returncode != 0:
+        raise CliError(command, returncode, stdout, stderr)
+    return stdout
 
 
 async def wait_node_ready(node: FleetNode, *, dry_run: bool) -> None:
@@ -339,8 +407,8 @@ async def switch_node_from_source(
             step(f"switching {node.name} from source (attempt {attempt}/{MAX_SWITCH_RETRIES})")
             run_cli(command, dry_run=dry_run, timeout=3600)
             return
-        except (subprocess.CalledProcessError, RuntimeError) as e:
-            error_msg = str(e)
+        except (CliError, CliTimeoutError) as e:
+            error_msg = e.output or str(e)
             if "stream framing error" in error_msg and attempt < MAX_SWITCH_RETRIES:
                 step(f"transient error, retrying in {RETRY_DELAY_SECS}s: {error_msg[:100]}")
                 await asyncio.sleep(RETRY_DELAY_SECS)
