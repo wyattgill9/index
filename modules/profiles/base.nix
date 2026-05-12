@@ -13,14 +13,14 @@
   options.ix.profiles.base.enable = lib.mkEnableOption "base runtime tools for source switches";
 
   config = lib.mkIf config.ix.profiles.base.enable {
-    environment.systemPackages = builtins.attrValues {
-      # `ix switch --source` relies on these being present after the first
-      # switch. Developer tools belong in the specific image that needs them.
-      inherit (pkgs)
-        gzip
-        gnutar
-        zstd
-        ;
-    };
+    # TODO: re-enable these when source switch is back. For now we publish OCI
+    # images directly, so the auto-enabled base profile should add no packages.
+    # environment.systemPackages = builtins.attrValues {
+    #   inherit (pkgs)
+    #     gzip
+    #     gnutar
+    #     zstd
+    #     ;
+    # };
   };
 }
