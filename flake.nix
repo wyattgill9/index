@@ -150,6 +150,10 @@
       url = "github:sadjow/codex-cli-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    pre-commit-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -159,6 +163,7 @@
       llm-agents,
       claude-code-nix,
       codex-cli-nix,
+      pre-commit-hooks,
       ...
     }:
     let
@@ -192,6 +197,18 @@
           };
           inherit hostSystem;
         };
+      preCommitCheckFor =
+        system:
+        pre-commit-hooks.lib.${system}.run {
+          src = ./.;
+          hooks.ix-lint = {
+            enable = true;
+            name = "ix lint";
+            entry = self.apps.${system}.lint.program;
+            pass_filenames = false;
+            always_run = true;
+          };
+        };
     in
     {
       lib = ix;
@@ -220,20 +237,29 @@
             };
         }) devSystems
       );
-      checks.${ix.system} =
-        let
-          lint = self.apps.${ix.system}.lint.program;
-        in
-        {
-          eval = import ./tests { inherit nixpkgs ix; };
-          lint = ix.pkgs.runCommand "ix-images-lint" { nativeBuildInputs = [ ix.pkgs.coreutils ]; } ''
-            cp -R ${lintSource} source
-            chmod -R u+w source
-            cd source
-            ${lint}
-            mkdir -p "$out"
-          '';
-        };
+      checks = builtins.listToAttrs (
+        map (system: {
+          name = system;
+          value = {
+            pre-commit = preCommitCheckFor system;
+          }
+          // lib.optionalAttrs (system == ix.system) (
+            let
+              lint = self.apps.${ix.system}.lint.program;
+            in
+            {
+              eval = import ./tests { inherit nixpkgs ix; };
+              lint = ix.pkgs.runCommand "ix-images-lint" { nativeBuildInputs = [ ix.pkgs.coreutils ]; } ''
+                cp -R ${lintSource} source
+                chmod -R u+w source
+                cd source
+                ${lint}
+                mkdir -p "$out"
+              '';
+            }
+          );
+        }) devSystems
+      );
       formatter = builtins.listToAttrs (
         map (system: {
           name = system;
@@ -253,6 +279,7 @@
           value.default =
             let
               pkgs = nixpkgs.legacyPackages.${system};
+              preCommitCheck = self.checks.${system}.pre-commit;
             in
             pkgs.mkShell {
               packages = [
@@ -262,9 +289,11 @@
                 pkgs.maven
                 pkgs.nixfmt
                 pkgs.statix
-              ];
+              ]
+              ++ preCommitCheck.enabledPackages;
 
               JAVA_HOME = pkgs.jdk25.home;
+              inherit (preCommitCheck) shellHook;
             };
         }) devSystems
       );
