@@ -283,7 +283,6 @@ let
 
   autoReloadJvmFlags = lib.optionals jvmReloadEnabled [
     "-javaagent:${pkgs.minecraft-hot-reload-agent}/share/minecraft-hot-reload-agent/minecraft-hot-reload-agent.jar=socket=${cfg.autoReload.socketPath}"
-    "-XX:+AllowEnhancedClassRedefinition"
   ];
 
   javaArgs = [

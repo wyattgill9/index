@@ -10,6 +10,16 @@ For PR-sized changes, work in a dedicated git worktree instead of the shared che
 
 When a commit actually fixes a tracked GitHub issue, include an auto-closing keyword in the commit body, for example `Fixes #123`, `Closes #123`, or `Resolves #123`. Use `Refs #123` only for related work, policy docs, investigation, or partial cleanup that should not close the issue.
 
+## Debugging VMs
+
+Use the real ix CLI to inspect running VMs before inferring from source. Prefer machine-readable host commands when available, for example `ix ls --output json`.
+
+Run guest commands with `ix shell <vm> -- <cmd> ...`. If command lookup behaves differently from an interactive shell, use absolute paths from the guest, for example `ix shell minecraft -- /run/current-system/sw/bin/journalctl --no-pager -u minecraft.service -n 80` or `ix shell minecraft -- /bin/sh -lc 'ps -ef'`.
+
+When a debugging tool is not installed on the host or in the dev shell, run it through nixpkgs instead of hand-installing it, for example `nix run nixpkgs#jq -- --version` or `nix run nixpkgs#curl -- --version`. Put arguments after `--`.
+
+For service failures, check the rendered unit and the live journal inside the VM. Confirm whether the unit exists, whether PID 1 is systemd, and whether the process is failing after launch before changing image/module code.
+
 ## Overview
 
 Pre-built OCI images for ix VMs, plus composable NixOS modules. All images target AMD EPYC Gen 5 (Turin, Zen 5). The base layer sets `nixpkgs.hostPlatform.gcc.arch = "znver5"` so every package in the closure is compiled with `-march=znver5 -mtune=znver5`. No binary cache hits: everything builds from source.
