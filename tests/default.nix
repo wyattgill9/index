@@ -416,21 +416,32 @@ let
       message = "fleet replica dependencies should point at expanded node identities";
     }
     {
-      assertion = claudeCodeDemo.planValue.order == [ "minecraft" ];
-      message = "Claude Code demo should evaluate to one Minecraft node";
-    }
-    {
-      assertion = claudeCodeDemo.nodes.minecraft.services.minecraft.paper.enable;
-      message = "Claude Code demo should use Paper";
+      assertion =
+        claudeCodeDemo.planValue.order == [
+          "demo"
+          "minecraft"
+        ];
+      message = "Claude Code demo should evaluate to the demo and Minecraft nodes";
     }
     {
       assertion =
-        claudeCodeDemo.nodes.minecraft.services.minecraft.autoReload.driver == "plugman"
-        && claudeCodeDemo.nodes.minecraft.services.minecraft.plugins ? luckperms
+        claudeCodeDemo.planValue.nodes.demo.l7ProxyPorts == [ 80 ]
+        && claudeCodeDemo.nodes.demo.services.nginx.enable
+        && claudeCodeDemo.nodes.demo.services.git-clone.dest == "/src/linux";
+      message = "Claude Code demo should host the Svelte stats page and Linux source on the demo VM";
+    }
+    {
+      assertion =
+        claudeCodeDemo.nodes.minecraft.services.minecraft.fabric.enable
+        && claudeCodeDemo.nodes.minecraft.services.minecraft.fabric.version == "26.2-snapshot-6"
         &&
-          claudeCodeDemo.nodes.minecraft.services.minecraft.plugins."claude-code-scoreboard".pluginName
-          == "ClaudeCodeDemoScoreboard";
-      message = "Claude Code demo should configure PlugManX reload for managed plugins";
+          claudeCodeDemo.nodes.minecraft.services.minecraft.serverFiles."server.properties".gamemode
+          == "creative"
+        &&
+          claudeCodeDemo.nodes.minecraft.services.minecraft.serverFiles."server.properties".level-type
+          == "minecraft:flat"
+        && claudeCodeDemo.planValue.nodes.minecraft.ipv4;
+      message = "Claude Code demo should use the current pinned Fabric snapshot for the TNT world";
     }
   ];
 

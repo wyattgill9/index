@@ -1,0 +1,163 @@
+:root {
+  --ix-bg: #fafafa;
+  --ix-ink: #18181b;
+  --ix-ink-muted: #71717a;
+  --ix-ink-faint: #a1a1aa;
+  --ix-ink-strong: #09090b;
+  --ix-border: #e4e4e7;
+  color-scheme: light dark;
+  background: var(--ix-bg);
+  color: var(--ix-ink);
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    monospace;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ix-bg: #09090b;
+    --ix-ink: #e4e4e7;
+    --ix-ink-muted: #8b8b96;
+    --ix-ink-faint: #636370;
+    --ix-ink-strong: #fafafa;
+    --ix-border: #27272a;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--ix-bg);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.landing {
+  width: min(100%, 38rem);
+  margin: 0 auto;
+  padding: 4lh 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2lh;
+}
+
+.mark {
+  color: var(--ix-ink-strong);
+  font-weight: 700;
+}
+
+.box {
+  position: relative;
+  border: 1px solid var(--ix-border);
+  border-radius: 4px;
+  padding: 1lh 2ch;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6lh;
+  margin-top: 0.6lh;
+  min-width: 0;
+}
+
+.title {
+  position: absolute;
+  top: calc(-0.5lh);
+  left: 1.5ch;
+  right: 1.5ch;
+  display: flex;
+  justify-content: space-between;
+  gap: 2ch;
+  color: var(--ix-ink-muted);
+  line-height: 1lh;
+}
+
+.title span {
+  background: var(--ix-bg);
+  padding: 0 1ch;
+}
+
+.title span:last-child {
+  color: var(--ix-ink-faint);
+}
+
+.title span.live {
+  color: var(--ix-ink-strong);
+}
+
+.grid,
+.total {
+  display: grid;
+  grid-template-columns: 7ch auto 1fr;
+  column-gap: 2ch;
+  row-gap: 0.1lh;
+  align-items: baseline;
+}
+
+.k,
+.total span:first-child {
+  color: var(--ix-ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bar {
+  color: var(--ix-ink);
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.v,
+.total strong {
+  color: var(--ix-ink-strong);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rule {
+  border-top: 1px dashed var(--ix-border);
+}
+
+pre {
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--ix-ink);
+}
+
+pre span {
+  color: var(--ix-ink-faint);
+}
+
+@media (max-width: 520px) {
+  .landing {
+    padding: 2lh 1.5rem;
+  }
+
+  .grid,
+  .total {
+    grid-template-columns: 5ch 1fr;
+    column-gap: 1ch;
+    row-gap: 0.25lh;
+  }
+
+  .bar {
+    grid-column: 1 / -1;
+    color: var(--ix-ink-muted);
+  }
+
+  .v,
+  .total strong {
+    text-align: left;
+  }
+}

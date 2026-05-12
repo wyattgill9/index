@@ -11,6 +11,10 @@
       url = "https://meta.fabricmc.net/v2/versions/loader/26.2-snapshot-5/0.19.2/1.1.1/server/jar";
       flake = false;
     };
+    artifact-minecraft-server-26-2-snapshot-6-fabric = {
+      url = "https://meta.fabricmc.net/v2/versions/loader/26.2-snapshot-6/0.19.2/1.1.1/server/jar";
+      flake = false;
+    };
     artifact-minecraft-server-26-1-2-fabric = {
       url = "https://meta.fabricmc.net/v2/versions/loader/26.1.2/0.19.2/1.1.1/server/jar";
       flake = false;

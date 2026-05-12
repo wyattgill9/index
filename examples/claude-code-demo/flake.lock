@@ -360,6 +360,18 @@
         "url": "https://meta.fabricmc.net/v2/versions/loader/26.1.2/0.19.2/1.1.1/server/jar"
       }
     },
+    "artifact-minecraft-server-26-2-snapshot-6-fabric": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-sWN5yCGf21gE9LsP3AkSd6t4B1BVi62rvN8eodGTVWE=",
+        "type": "file",
+        "url": "https://meta.fabricmc.net/v2/versions/loader/26.2-snapshot-6/0.19.2/1.1.1/server/jar"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://meta.fabricmc.net/v2/versions/loader/26.2-snapshot-6/0.19.2/1.1.1/server/jar"
+      }
+    },
     "artifact-minecraft-server-26w17a-fabric": {
       "flake": false,
       "locked": {
@@ -648,6 +660,7 @@
     },
     "root": {
       "inputs": {
+        "artifact-minecraft-server-26-2-snapshot-6-fabric": "artifact-minecraft-server-26-2-snapshot-6-fabric",
         "index": "index"
       }
     },

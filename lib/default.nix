@@ -131,6 +131,7 @@ let
       inherit paperPluginCatalog;
       servers = {
         "26w17a-fabric" = artifactInputs.artifact-minecraft-server-26w17a-fabric;
+        "26.2-snapshot-6-fabric" = artifactInputs.artifact-minecraft-server-26-2-snapshot-6-fabric;
         "26.1.2-fabric" = artifactInputs.artifact-minecraft-server-26-1-2-fabric;
         "1.21.11-fabric" = artifactInputs.artifact-minecraft-server-1-21-11-fabric;
         "1.21.11-paper" = artifactInputs.artifact-minecraft-server-1-21-11-paper;

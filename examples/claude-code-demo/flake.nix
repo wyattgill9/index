@@ -1,8 +1,18 @@
 {
-  inputs.index.url = "github:indexable-inc/index";
+  inputs = {
+    artifact-minecraft-server-26-2-snapshot-6-fabric = {
+      url = "https://meta.fabricmc.net/v2/versions/loader/26.2-snapshot-6/0.19.2/1.1.1/server/jar";
+      flake = false;
+    };
+    index.url = "github:indexable-inc/index";
+  };
 
   outputs =
-    { index, ... }:
+    {
+      artifact-minecraft-server-26-2-snapshot-6-fabric,
+      index,
+      ...
+    }:
     let
       ix = index;
       systems = [
@@ -10,7 +20,12 @@
         "aarch64-darwin"
       ];
       forSystems = f: builtins.listToAttrs (map f systems);
-      fleetFor = hostSystem: import ./default.nix { inherit ix hostSystem; };
+      fleetFor =
+        hostSystem:
+        import ./default.nix {
+          inherit ix hostSystem;
+          minecraftServer = artifact-minecraft-server-26-2-snapshot-6-fabric;
+        };
     in
     {
       apps = forSystems (
@@ -51,15 +66,18 @@
         in
         {
           name = system;
-          value = fleet.packages // fleet.systemPackages // {
-            inherit (fleet)
-              command
-              diff
-              planCommand
-              replace
-              switch
-              ;
-          };
+          value =
+            fleet.packages
+            // fleet.systemPackages
+            // {
+              inherit (fleet)
+                command
+                diff
+                planCommand
+                replace
+                switch
+                ;
+            };
         }
       );
     };
