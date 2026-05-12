@@ -135,6 +135,8 @@ let
   # The module registry. collect picks all leaf paths from the nested attrset.
   moduleList = lib.collect builtins.isPath (import ../modules);
 
+  buildNpmSite = import ./build-npm-site.nix;
+
   mkMinecraftLoader = import ./minecraft-loader.nix;
   mkMinecraftSyncManaged =
     args:
@@ -244,6 +246,7 @@ let
   ixSpecialArgs = {
     inherit
       artifacts
+      buildNpmSite
       mkMinecraftLoader
       mkMinecraftSyncManaged
       writeNushellApplication
@@ -342,6 +345,7 @@ in
     mkFleetFor
     discoverImages
     artifacts
+    buildNpmSite
     mkMinecraftLoader
     mkMinecraftSyncManaged
     writeNushellApplication

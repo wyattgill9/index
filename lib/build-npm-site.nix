@@ -1,10 +1,7 @@
-# Build a static frontend site from an npm project, with no manually managed
-# dependency hash. `pkgs.importNpmLock` reads per-package integrity hashes
-# straight from `package-lock.json`, so updating dependencies is just
-# `npm install` plus a commit. The build runs `npm run <buildScript>`
-# (default `build`) which should invoke svelte-check / eslint / vite or
-# whatever the project's checks are, so the same checks gate local dev and
-# Nix builds.
+# Build a static frontend site from an npm project. Dependency hashes come from
+# package-lock.json, so updating dependencies is just `npm install` plus a
+# commit. Dependencies are built separately and linked into the site build, so
+# source-only changes do not rerun `npm install`.
 pkgs:
 {
   pname,
@@ -16,24 +13,29 @@ pkgs:
   extraNativeBuildInputs ? [ ],
   meta ? { },
 }:
+let
+  npmDeps = pkgs.importNpmLock.buildNodeModules {
+    npmRoot = src;
+    inherit (pkgs) nodejs;
+    derivationArgs = {
+      strictDeps = true;
+    };
+  };
+in
 pkgs.stdenvNoCC.mkDerivation {
   inherit
     pname
     version
     src
+    npmDeps
     meta
     ;
 
   strictDeps = true;
 
-  npmDeps = pkgs.importNpmLock.buildNodeModules {
-    npmRoot = src;
-    inherit (pkgs) nodejs;
-  };
-
   nativeBuildInputs = [
     pkgs.nodejs
-    pkgs.importNpmLock.npmConfigHook
+    pkgs.importNpmLock.linkNodeModulesHook
   ]
   ++ extraNativeBuildInputs;
 

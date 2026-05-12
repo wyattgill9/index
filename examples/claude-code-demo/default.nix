@@ -10,9 +10,9 @@ let
     root = ./site;
     fileset = fs.unions [
       ./site/index.html
-      ./site/bun.lock
-      ./site/eslint.config.js
       ./site/package.json
+      ./site/package-lock.json
+      ./site/eslint.config.js
       ./site/tsconfig.json
       ./site/src/App.svelte
       ./site/src
@@ -25,64 +25,10 @@ let
   vmConfig = builtins.fromJSON (builtins.readFile ./site/src/lib/vm-config.json);
   vmServer = vmConfig.server;
   vmBilling = vmConfig.billing;
-  demoSiteDeps = pkgs.stdenvNoCC.mkDerivation {
-    pname = "claude-code-demo-site-deps";
-    version = "0.1.0";
-    src = demoSiteSrc;
-    nativeBuildInputs = [
-      pkgs.bun
-      pkgs.nodejs
-    ];
-    # Fixed-output derivations cannot reference other store paths. The default
-    # fixup phase rewrites shebangs inside node_modules to store-path Bash.
-    dontFixup = true;
-
-    buildPhase = ''
-      runHook preBuild
-      export HOME="$TMPDIR/home"
-      export BUN_INSTALL_CACHE_DIR="$TMPDIR/bun-cache"
-      mkdir -p "$HOME" "$BUN_INSTALL_CACHE_DIR"
-      bun install --frozen-lockfile --backend copyfile
-      runHook postBuild
-    '';
-
-    installPhase = ''
-      runHook preInstall
-      mkdir -p "$out"
-      cp -R node_modules "$out/node_modules"
-      runHook postInstall
-    '';
-
-    outputHashAlgo = "sha256";
-    outputHashMode = "recursive";
-    outputHash = "sha256-PUayCvEbubpA3DTYBw5vjXVtD6fmvWKrDF/P5WIvdVc=";
-  };
-  demoSite = pkgs.stdenvNoCC.mkDerivation {
+  demoSite = ix.lib.buildNpmSite pkgs {
     pname = "claude-code-demo-site";
     version = "0.1.0";
     src = demoSiteSrc;
-    nativeBuildInputs = [ pkgs.bun ];
-
-    buildPhase = ''
-      runHook preBuild
-      export HOME="$TMPDIR/home"
-      export BUN_INSTALL_CACHE_DIR="$TMPDIR/bun-cache"
-      mkdir -p "$HOME" "$BUN_INSTALL_CACHE_DIR"
-      cp -R ${demoSiteDeps}/node_modules ./node_modules
-      chmod -R u+w node_modules
-      bun install --frozen-lockfile --offline --backend copyfile
-      ${lib.getExe pkgs.nodejs} node_modules/svelte-check/bin/svelte-check --tsconfig ./tsconfig.json
-      ${lib.getExe pkgs.nodejs} node_modules/eslint/bin/eslint.js .
-      ${lib.getExe pkgs.nodejs} node_modules/vite/bin/vite.js build
-      runHook postBuild
-    '';
-
-    installPhase = ''
-      runHook preInstall
-      mkdir -p "$out/share/claude-code-demo-site"
-      cp -R dist/. "$out/share/claude-code-demo-site/"
-      runHook postInstall
-    '';
   };
 
   writeStats = ix.lib.writeNushellApplication pkgs {
