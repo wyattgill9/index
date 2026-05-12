@@ -229,17 +229,17 @@ let
               };
 
               serverFiles."server.properties" = {
-                motd = "Claude Code Demo TNT Lab";
+                motd = "Claude Code Demo";
                 max-players = 20;
                 online-mode = true;
                 gamemode = "creative";
                 force-gamemode = true;
-                level-type = "minecraft:flat";
+                level-seed = "1143653337750952406";
                 spawn-protection = 0;
                 allow-flight = true;
                 difficulty = "peaceful";
-                view-distance = 10;
-                simulation-distance = 8;
+                view-distance = 12;
+                simulation-distance = 10;
               };
             };
           })
