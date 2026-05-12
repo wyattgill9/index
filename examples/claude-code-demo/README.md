@@ -7,6 +7,32 @@ Two VMs:
 
 ## Run
 
+For the Linux/website demo only:
+
+```bash
+nix run .#claude-code-demo-plan -- --on linux
+nix run .#claude-code-demo-linux-up
+ix shell linux
+```
+
+`claude-code-demo-linux-up` builds the Linux VM OCI archive, pushes it to ix as
+`linux:claude-code-demo`, and creates or starts the `linux` VM with port 80
+behind the ix L7 proxy.
+
+The equivalent explicit commands are:
+
+```bash
+archive=$(nix build .#claude-code-demo-linux-image --print-out-paths --no-link)
+ix push "$archive" linux:claude-code-demo
+ix new linux:claude-code-demo --name linux --region hil-1 --no-shell --l7-proxy-port 80
+ix shell linux
+```
+
+If `linux` already exists, use the wrapper command instead of `ix new`; it will
+start an existing stopped VM and only recreates failed VMs.
+
+For the full Linux plus Minecraft demo:
+
 ```bash
 nix run .#claude-code-demo-plan
 nix run .#claude-code-demo-up
