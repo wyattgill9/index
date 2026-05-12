@@ -43,7 +43,8 @@ let
     }:
     let
       runtimePath = lib.makeBinPath ([ python ] ++ runtimeInputs);
-      argv = builtins.toJSON ([ (builtins.toString src) ] ++ args);
+      srcPath = src;
+      argv = builtins.toJSON ([ "${srcPath}" ] ++ args);
       pyrightConfig = pkgs.writeText "basedpyright-${name}.json" (
         builtins.toJSON {
           include = [ (builtins.toString src) ];
@@ -66,7 +67,7 @@ let
         ambient_path = os.environ.get("PATH", "")
         os.environ["PATH"] = runtime_path + ((":" + ambient_path) if ambient_path else "")
         sys.argv = ${argv} + sys.argv[1:]
-        runpy.run_path(${builtins.toJSON (builtins.toString src)}, run_name="__main__")
+        runpy.run_path("${srcPath}", run_name="__main__")
       '';
       checkPhase = lib.optionalString check ''
         ${lib.getExe pkgs.basedpyright} --project ${pyrightConfig} --level warning --warnings ${src}

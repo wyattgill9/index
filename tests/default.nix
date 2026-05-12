@@ -68,6 +68,14 @@ let
   kernelDevGitCloneService = kernelDevConfig.systemd.services.git-clone;
   kernelDevGitCloneTimer = kernelDevConfig.systemd.timers.git-clone;
 
+  pythonAppClosureProbe = ix.writePythonApplication pkgs {
+    name = "python-app-closure-probe";
+    src = pkgs.writeText "python-app-closure-probe.py" ''
+      print("python app source is in the runtime closure")
+    '';
+    check = false;
+  };
+
   fleet = ix.mkFleet {
     deployment.region = "hil-1";
     secrets.sessionKey.generate = true;
@@ -433,6 +441,9 @@ pkgs.runCommand "ix-images-eval-tests" { nativeBuildInputs = [ pkgs.gnugrep ]; }
   grep -q -- '--password-file "/var/lib/minecraft/.ix-rcon-password"' ${paperServiceConfig.ExecReload}
   grep -q 'plugman $row.action $row.plugin' ${paperServiceConfig.ExecReload}
   ! grep -q 'reload all' ${paperServiceConfig.ExecReload}
+
+  ${pythonAppClosureProbe}/bin/python-app-closure-probe > python-app-closure-probe.out
+  grep -q 'python app source is in the runtime closure' python-app-closure-probe.out
 
   mkdir -p "$out"
 ''
