@@ -1,11 +1,22 @@
-<script lang="ts"></script>
+<script lang="ts">
+  import Box from './Box.svelte';
+</script>
 
-<section class="box" aria-label="shell prompt">
-  <div class="title">
-    <span>shell</span>
-    <span>/src/linux</span>
-  </div>
-  <pre><span>$</span> btop
-<span>$</span> cd /src/linux
-<span>$</span> make -j$(nproc) defconfig bzImage</pre>
-</section>
+<Box title="shell" hint="/src/linux">
+  <pre><span class="p">$</span> btop
+<span class="p">$</span> cd /src/linux
+<span class="p">$</span> make -j$(nproc) defconfig bzImage</pre>
+</Box>
+
+<style>
+  pre {
+    margin: 0;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--ix-ink);
+  }
+
+  .p {
+    color: var(--ix-ink-faint);
+  }
+</style>

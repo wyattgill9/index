@@ -1,81 +1,29 @@
-export type ResourceKey = 'cpu' | 'memory' | 'disk';
-
-export type ResourceRow = {
-  key: ResourceKey;
-  label: string;
-  percent: number;
-  display: string;
-};
+export type Status = 'connecting' | 'live' | 'waiting';
 
 export type UsageStats = {
   generatedAt: string | null;
-  cpu: {
-    usedCores: number;
-    totalCores: number;
-    percent: number;
-  };
-  memory: {
-    usedBytes: number;
-    totalBytes: number;
-    percent: number;
-  };
-  disk: {
-    usedBytes: number;
-    totalBytes: number;
-    percent: number;
-  };
+  cpu: { usedCores: number; totalCores: number; percent: number };
+  memory: { usedBytes: number; totalBytes: number; percent: number };
+  disk: { usedBytes: number; totalBytes: number; percent: number };
   costPerSecondUsd: number;
 };
 
-export type Status = 'connecting' | 'live' | 'waiting';
-
-const LIMITS = {
-  cpuCores: 64,
-  memoryBytes: 256 * 1024 ** 3,
-  diskBytes: 1024 * 1024 ** 4
-};
+// Matches the VM hardware advertised by default.nix's stats writer.
+// Kept in sync with the server-side constants so the breakdown the UI shows
+// reconstructs the same total the server publishes.
+export const SERVER = {
+  vcpu: 64,
+  memoryGiB: 256,
+  storageTiB: 1024
+} as const;
 
 export const FALLBACK_STATS: UsageStats = {
   generatedAt: null,
-  cpu: { usedCores: 0, totalCores: LIMITS.cpuCores, percent: 0 },
-  memory: { usedBytes: 0, totalBytes: LIMITS.memoryBytes, percent: 0 },
-  disk: { usedBytes: 0, totalBytes: LIMITS.diskBytes, percent: 0 },
+  cpu: { usedCores: 0, totalCores: SERVER.vcpu, percent: 0 },
+  memory: { usedBytes: 0, totalBytes: SERVER.memoryGiB * 1024 ** 3, percent: 0 },
+  disk: { usedBytes: 0, totalBytes: SERVER.storageTiB * 1024 ** 4, percent: 0 },
   costPerSecondUsd: 0
 };
-
-export function resourceRows(stats: UsageStats): ResourceRow[] {
-  return [
-    {
-      key: 'cpu',
-      label: 'CPU',
-      percent: stats.cpu.percent,
-      display: `${fmtNumber(stats.cpu.usedCores, 2)} / ${fmtNumber(stats.cpu.totalCores, 0)} cores`
-    },
-    {
-      key: 'memory',
-      label: 'MEM',
-      percent: stats.memory.percent,
-      display: `${fmtBytes(stats.memory.usedBytes)} / ${fmtBytes(stats.memory.totalBytes)}`
-    },
-    {
-      key: 'disk',
-      label: 'DISK',
-      percent: stats.disk.percent,
-      display: `${fmtBytes(stats.disk.usedBytes)} / ${fmtBytes(stats.disk.totalBytes)}`
-    }
-  ];
-}
-
-export function fmtNumber(value: number, digits: number): string {
-  return value.toLocaleString('en-US', {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits
-  });
-}
-
-export function clampPercent(percent: number): number {
-  return Math.max(0, Math.min(100, percent));
-}
 
 export function parseUsageStats(value: unknown): UsageStats | null {
   if (!isRecord(value)) return null;
@@ -94,14 +42,6 @@ export function parseUsageStats(value: unknown): UsageStats | null {
     disk,
     costPerSecondUsd: value.costPerSecondUsd
   };
-}
-
-function fmtBytes(bytes: number): string {
-  const gib = bytes / 1024 ** 3;
-  if (gib < 1024) return `${fmtNumber(gib, gib < 10 ? 2 : 1)} GiB`;
-  const tib = gib / 1024;
-  if (tib < 1024) return `${fmtNumber(tib, tib < 10 ? 2 : 1)} TiB`;
-  return `${fmtNumber(tib / 1024, 2)} PiB`;
 }
 
 function parseCpuStats(value: unknown): UsageStats['cpu'] | null {
