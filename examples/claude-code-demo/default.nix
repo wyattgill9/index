@@ -237,6 +237,7 @@ let
                 level-type = "minecraft:flat";
                 spawn-protection = 0;
                 allow-flight = true;
+                difficulty = "peaceful";
                 view-distance = 10;
                 simulation-distance = 8;
               };
