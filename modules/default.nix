@@ -1,11 +1,11 @@
 # Module registry. Single source of truth for both:
 #   - `nixosSystem { modules = ... }` (leaf paths collected by lib/)
-#   - the `modules` flake output (consumed by external users who want one
-#     module without depending on ix-base)
+#   - the `nixosModules` flake output (consumed by external users who want one
+#     module without depending on the rest of the ix base layer)
 #
 # Every module is gated on its own `enable` flag. Listing it here only makes
 # the options visible; it does not turn anything on. The one exception is
-# `profiles/base.nix`, which `ix-base.nix` enables by default.
+# `profiles/base.nix`, which `lib/ix-oci-layer.nix` enables by default.
 {
   base = ./profiles/base.nix;
   floodgate = ./services/floodgate.nix;

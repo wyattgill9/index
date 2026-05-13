@@ -2,11 +2,11 @@
 #
 # `mkImage` builds one self-contained OCI archive from a list of NixOS
 # modules. Each image is independent: ix does not stack images at runtime, it
-# runs one. `./ix-base.nix` is the implicit base layer (container marker, OCI
-# packaging, base profile enabled by default). The module registry is
-# pulled in so option declarations are available to every image, but each
-# module is gated on its own `enable` flag and stays inert unless the image
-# turns it on.
+# runs one. `./ix-platform.nix` and `./ix-oci-layer.nix` form the implicit
+# base layer (container marker, target platform, OCI packaging, base profile
+# enabled by default). The module registry is pulled in so option declarations
+# are available to every image, but each module is gated on its own `enable`
+# flag and stays inert unless the image turns it on.
 #
 # `discoverImages` walks `images/<category>/<name>/` and turns each directory
 # into a flake package. If a directory has a `versions.nix` sibling, every
@@ -108,9 +108,9 @@ let
       };
     };
 
-  # Repo-local packages consumed by NixOS modules via `pkgs.<name>`. Packages
-  # that are only exposed as flake outputs (e.g. tonbo-artifacts) stay out of
-  # the overlay so they don't pollute the nixpkgs namespace inside images.
+  # Repo-local packages that NixOS modules reach for as `pkgs.<name>`.
+  # Flake-output-only packages live in `packageSetFor` instead so they don't
+  # leak into the nixpkgs namespace inside images.
   overlay = final: _prev: {
     minecraft-hot-reload-agent = final.callPackage paths.nixPackages.minecraftHotReloadAgent { };
     minecraft-rcon = final.callPackage paths.nixPackages.minecraftRcon {
