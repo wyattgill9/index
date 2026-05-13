@@ -80,7 +80,7 @@ let
   benchFilesystem = import paths.bench.filesystem { inherit ix pkgs; };
 
   claudeCodeDemo = import paths.examples.claudeCodeDemo {
-    ix = ix // {
+    ix = {
       lib = ix;
     };
     hostSystem = system;
