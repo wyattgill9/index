@@ -102,14 +102,14 @@ let
     }
   ) cfg.plugins;
 
-  loaderEnabled = {
-    fabric = config.services.minecraft.fabric.enable;
-    folia = config.services.minecraft.folia.enable;
-    paper = config.services.minecraft.paper.enable;
-    purpur = config.services.minecraft.purpur.enable;
-    spigot = config.services.minecraft.spigot.enable;
-    sponge = config.services.minecraft.sponge.enable;
-  };
+  loaderEnabled = lib.genAttrs [
+    "fabric"
+    "folia"
+    "paper"
+    "purpur"
+    "spigot"
+    "sponge"
+  ] (name: cfg.${name}.enable);
 
   bukkitLoaderEnabled = lib.any (name: loaderEnabled.${name}) [
     "folia"
@@ -189,37 +189,31 @@ let
     }
     .${ext} or (throw "configFiles: unsupported extension .${ext} on '${path}'");
 
-  configLinks = lib.concatStringsSep "\n" (
-    lib.mapAttrsToList (
-      path: value:
-      let
-        file = (formatFor path).generate (builtins.baseNameOf path) value;
-      in
-      "mkdir -p $out/${builtins.dirOf path}\nln -sf ${file} $out/${path}"
-    ) cfg.configFiles
-  );
-
   serverFiles = cfg.serverFiles // pluginConfigFiles;
 
-  serverFileLinks = lib.concatStringsSep "\n" (
-    lib.mapAttrsToList (
-      path: value:
-      let
-        file = (formatFor path).generate (builtins.baseNameOf path) value;
-      in
-      "mkdir -p $out/${builtins.dirOf path}\nln -sf ${file} $out/${path}"
-    ) serverFiles
-  );
+  mkManaged =
+    label: source:
+    pkgs.runCommand "minecraft-managed-${label}" { } ''
+      mkdir -p "$out"
+      ${lib.concatStringsSep "\n" (
+        lib.mapAttrsToList (
+          path: value:
+          let
+            file = (formatFor path).generate (builtins.baseNameOf path) value;
+          in
+          "mkdir -p $out/${builtins.dirOf path}\nln -sf ${file} $out/${path}"
+        ) source
+      )}
+    '';
 
-  managedConfig = pkgs.runCommand "minecraft-managed-config" { } ''
-    mkdir -p "$out"
-    ${configLinks}
-  '';
+  managedConfig = mkManaged "config" cfg.configFiles;
+  managedServerFiles = mkManaged "server-files" serverFiles;
 
-  managedServerFiles = pkgs.runCommand "minecraft-managed-server-files" { } ''
-    mkdir -p "$out"
-    ${serverFileLinks}
-  '';
+  managedRoots = [
+    managedDropins
+    managedConfig
+    managedServerFiles
+  ];
 
   syncManaged = ix.mkMinecraftSyncManaged {
     inherit
@@ -476,16 +470,8 @@ in
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
-      reloadTriggers = lib.optionals autoReloadEnabled [
-        managedDropins
-        managedConfig
-        managedServerFiles
-      ];
-      restartTriggers = lib.optionals (!autoReloadEnabled) [
-        managedDropins
-        managedConfig
-        managedServerFiles
-      ];
+      reloadTriggers = lib.optionals autoReloadEnabled managedRoots;
+      restartTriggers = lib.optionals (!autoReloadEnabled) managedRoots;
       serviceConfig = {
         Type = "simple";
         WorkingDirectory = dataDir;
