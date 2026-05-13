@@ -208,12 +208,10 @@ pkgs.stdenvNoCC.mkDerivation (
         installPhase;
 
     meta = meta // {
-      sourceProvenance =
-        (meta.sourceProvenance or [ ])
-        ++ (with lib.sourceTypes; [
-          fromSource
-          binaryBytecode
-        ]);
+      sourceProvenance = (meta.sourceProvenance or [ ]) ++ [
+        lib.sourceTypes.fromSource
+        lib.sourceTypes.binaryBytecode
+      ];
     };
   }
 )

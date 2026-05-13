@@ -418,7 +418,7 @@ pkgs.runCommand "ix-images-eval-tests" { nativeBuildInputs = [ pkgs.gnugrep ]; }
   grep -q 'plugman $row.action $row.plugin' ${paperServiceConfig.ExecReload}
   ! grep -q 'reload all' ${paperServiceConfig.ExecReload}
 
-  ${pythonAppClosureProbe}/bin/python-app-closure-probe > python-app-closure-probe.out
+  ${lib.getExe pythonAppClosureProbe} > python-app-closure-probe.out
   grep -q 'python app source is in the runtime closure' python-app-closure-probe.out
 
   mkdir -p "$out"
