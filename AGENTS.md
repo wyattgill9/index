@@ -34,6 +34,10 @@ Images are not stacked at runtime. ix runs one image. Layering is purely a build
 
 ix VMs implicitly have snapshots and effectively unbounded disk. Fleet and stateful-service designs should lean on those primitives: take snapshots before destructive or data-format-changing operations, prefer in-place NixOS/system switches for stateful nodes, and do not design around fixed-root-disk exhaustion as a primary constraint.
 
+## VM networking
+
+Networking policy lives in the image, not in ix. ix exposes two primitives: VM group membership (east-west, which VMs can reach each other) and internet ingress/egress on or off (north-south, per direction). Per-port filtering, L7 rules, WAF, rate limiting, and mTLS termination belong in the image's NixOS config (`networking.firewall.*`, services in front of the workload) or in a user-built gateway VM. Do not push port allowlists or L7 features into ix; the matching rule on the ix side is recorded in `ix/AGENTS.md` under "Architecture that must not drift". If a service needs only some ports exposed, declare it in the image with `networking.firewall.allowedTCPPorts` or front it with a gateway VM.
+
 ## Registry access
 
 Do not assume every `registry.ix.dev` image is public. The `ix` namespace is system-owned, so shared bootstrap refs such as `registry.ix.dev/ix/test-cluster-bootstrap:<tag>` are expected to be public. User images live under `registry.ix.dev/<username>/<image>:<tag>` and default to private; private images require the owner’s auth and should behave like not-found for other users. When debugging image pulls, distinguish a public system bootstrap image from a user-owned private image before treating access as a registry outage.

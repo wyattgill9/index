@@ -5,28 +5,16 @@
 # No binary cache hits: everything builds from source.
 { config, lib, ... }:
 {
-  options.ix.networking = {
-    eastWest = {
-      hostName = lib.mkOption {
-        type = lib.types.str;
-        default = config.networking.hostName;
-      };
-      firewall.allowedTCPPorts = lib.mkOption {
-        type = lib.types.listOf lib.types.port;
-        default = [ ];
-      };
-    };
-
-    northSouth.firewall = {
-      allowedTCPPorts = lib.mkOption {
-        type = lib.types.listOf lib.types.port;
-        default = [ ];
-      };
-      allowedUDPPorts = lib.mkOption {
-        type = lib.types.listOf lib.types.port;
-        default = [ ];
-      };
-    };
+  # Networking policy (per-port filtering, L7, WAF, rate limiting, gateway
+  # behavior) belongs to the image, not to ix. ix exposes two primitives:
+  # east-west group membership (which VMs can reach each other) and
+  # north-south on/off (whether the VM has internet ingress / egress).
+  # Anything finer lives in `networking.firewall.*` inside the image, in a
+  # sidecar, or behind a user-built gateway VM. `eastWest.hostName` stays
+  # here because it is a name, not a policy.
+  options.ix.networking.eastWest.hostName = lib.mkOption {
+    type = lib.types.str;
+    default = config.networking.hostName;
   };
 
   config = {
@@ -53,10 +41,12 @@
       # host's linux-ix kernel (CONFIG_NF_TABLES); nft rules run in this
       # container's own net namespace.
       #
-      # This is defense in depth, not the trust boundary. Per-VM
-      # north-south ingress filtering is being built on the ix host against
-      # the VM's public /128 and the `ix.networking.northSouth` options
-      # below; the image declares ports, ix enforces. See
+      # This is the primary mechanism for port-level policy. ix provides only
+      # the coarse primitives (east-west group membership, north-south
+      # on/off); per-port allowlists, L7, WAF, rate limiting, etc. live here
+      # in the image or in a user-built gateway VM. The "primitives only"
+      # rule is recorded in `ix/AGENTS.md` under "Architecture that must not
+      # drift". Tracking the ix-side north-south primitive in
       # https://github.com/indexable-inc/index/issues/41.
       firewall.enable = true;
     };
