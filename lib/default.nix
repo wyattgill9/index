@@ -18,7 +18,6 @@
 # instead of relative-path imports.
 {
   nixpkgs,
-  llm-agents,
   paths,
 }:
 let
@@ -109,20 +108,16 @@ let
       };
     };
 
-  # Overlays: llm-agents provides claude-code and codex; plus repo-local
-  # packages consumed by NixOS modules via `pkgs.<name>`. Packages that are
-  # only exposed as flake outputs (e.g. tonbo-artifacts) stay out of the
-  # overlay so they don't pollute the nixpkgs namespace inside images.
+  # Repo-local packages consumed by NixOS modules via `pkgs.<name>`. Packages
+  # that are only exposed as flake outputs (e.g. tonbo-artifacts) stay out of
+  # the overlay so they don't pollute the nixpkgs namespace inside images.
   overlay = final: _prev: {
     minecraft-hot-reload-agent = final.callPackage paths.nixPackages.minecraftHotReloadAgent { };
     minecraft-rcon = final.callPackage paths.nixPackages.minecraftRcon {
       writePythonApplication = writePythonApplication final;
     };
   };
-  overlays = [
-    llm-agents.overlays.default
-    overlay
-  ];
+  overlays = [ overlay ];
   pkgs = import nixpkgs { inherit system overlays; };
 
   # The module registry. collect picks all leaf paths from the nested attrset.
