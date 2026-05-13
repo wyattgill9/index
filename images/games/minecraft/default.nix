@@ -1,13 +1,13 @@
 # Minecraft server image.
 #
-# This file is the version-agnostic base. Per-version data (upstream version
-# strings, server JAR hash, mod selection) lives in `./versions.nix` as
-# overlay modules layered on top of this one by `lib.discoverImages`.
+# This file is the version-agnostic base. Per-version data lives in
+# `./versions.nix` as overlay modules layered on top of this one by
+# `lib.discoverImages`.
 #
-# Cross-version baseline mods come from the shared `common` catalog under
-# `ix.artifacts.minecraft.modCatalogs`. Every variant gets these for free;
-# per-version mods are added by the version overlay. Catalog data is owned
-# by the library (see `lib/default.nix`); update it through `nix run .#update-mods`.
+# Every variant auto-enables the cross-version `common` mods so an image
+# always ships the baseline performance/QoL set. The version overlay sets
+# `services.minecraft.version`, which drives the server jar (via the
+# loader's `src` default) and the per-version slice of `modCatalog`.
 { ix, lib, ... }:
 let
   commonCatalog = ix.artifacts.minecraft.modCatalogs.common;
@@ -22,6 +22,5 @@ in
       max-players = 20;
     };
     mods = lib.mapAttrs (_: _: { }) commonCatalog;
-    modCatalog = commonCatalog;
   };
 }

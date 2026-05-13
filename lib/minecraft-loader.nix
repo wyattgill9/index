@@ -1,37 +1,44 @@
 # Helper for declaring a minecraft loader module (Fabric, Paper, Vanilla, ...).
 #
-# Each loader is structurally identical: declare options under
-# `services.minecraft.<name>` and assign a locked server jar to
-# `services.minecraft.serverJar`. The jar comes from a flake artifact input,
-# either supplied explicitly as `src` or by a loader-specific default.
+# Each loader is structurally identical: declare `services.minecraft.<name>`
+# with an enable flag and a server-jar slot, and assign that jar to
+# `services.minecraft.serverJar`. The `src` slot defaults to
+# `ix.artifacts.minecraft.servers."${cfg.version}-${name}"`, so a caller that
+# sets `services.minecraft.version` rarely has to override anything per loader.
 #
 # Reached from modules via `specialArgs.ix.mkMinecraftLoader`. Loader files
 # call it and return the resulting module attrset directly. Loaders that need
 # to contribute more to `config` pass an `extraConfig cfg` hook; it merges into
 # the gated config so the loader file stays a single expression.
 {
+  ix,
   config,
   lib,
   name,
   dropDir ? "mods",
   extraOptions ? { },
-  srcDefault ? null,
   extraConfig ? _: { },
 }:
 let
   cfg = config.services.minecraft.${name};
-  srcOption = {
-    type = lib.types.path;
-    description = "Locked server jar artifact.";
-  }
-  // lib.optionalAttrs (srcDefault != null) {
-    default = srcDefault cfg;
-  };
+  mcCfg = config.services.minecraft;
+  inherit (ix.artifacts.minecraft) servers;
+  versionKey = if mcCfg.version == null then null else "${mcCfg.version}-${name}";
+  defaultSrc =
+    if versionKey != null && servers ? ${versionKey} then
+      servers.${versionKey}
+    else
+      throw "services.minecraft.${name}.src has no default: set `services.minecraft.version` to a value with a pinned `${name}` artifact in `ix.artifacts.minecraft.servers`, or set `services.minecraft.${name}.src` explicitly.";
 in
 {
   options.services.minecraft.${name} = {
     enable = lib.mkEnableOption "${name} server jar";
-    src = lib.mkOption srcOption;
+    src = lib.mkOption {
+      type = lib.types.path;
+      default = defaultSrc;
+      defaultText = lib.literalExpression ''ix.artifacts.minecraft.servers."''${services.minecraft.version}-${name}"'';
+      description = "Locked server jar artifact. Defaults to the pinned artifact for `services.minecraft.version`.";
+    };
   }
   // extraOptions;
 

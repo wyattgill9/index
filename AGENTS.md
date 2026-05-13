@@ -88,21 +88,24 @@ For a versioned image (multiple variants ship at once), add a `versions.nix` sib
 ```nix
 { lib, ... }:
 let
-  default = "26w17a-fabric";
+  default = "1.21.11-fabric";
   variants = {
-    "26w17a-fabric" = {
+    "1.21.11-fabric" = {
       loader = "fabric";
-      /* loader-specific args */
+      version = "1.21.11";
+      mods = [ "fabric-api" "spark" ];
     };
   };
 in
 {
   inherit default;
 }
-// lib.mapAttrs (tag: { loader, ... }@cfg: {
+// lib.mapAttrs (tag: { loader, version, mods }: {
   ix.image.tag = tag;
-  services.minecraft.${loader} = (builtins.removeAttrs cfg [ "loader" ]) // {
-    enable = true;
+  services.minecraft = {
+    inherit version;
+    mods = lib.genAttrs mods (_: { });
+    ${loader}.enable = true;
   };
 }) variants
 ```

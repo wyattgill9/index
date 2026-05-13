@@ -3,12 +3,12 @@
 # Discovery exposes `minecraft_<key>` for every version key and `minecraft` as
 # an alias for the version named in `default`.
 #
-# Each variant picks mods by Modrinth slug in `services.minecraft.mods`. The
-# per-version catalog comes from `ix.artifacts.minecraft.modCatalogs.<ver>`
-# (sourced from the generated JSON under images/games/minecraft/mods/, owned
-# by the library). Cross-version baseline mods come from the `common`
-# catalog via the image base (./default.nix).
-{ lib, artifacts, ... }:
+# Each variant just declares its loader, its Minecraft version, and the mod
+# slugs it wants enabled. The loader module derives the server jar from
+# `ix.artifacts.minecraft.servers."${version}-${loader}"`, and the runtime
+# module defaults `modCatalog` to the matching version catalog plus the
+# `common` cross-version mods.
+{ lib, ... }:
 let
   default = "26.1.2-fabric";
 
@@ -16,8 +16,6 @@ let
     "26w17a-fabric" = {
       loader = "fabric";
       version = "26.2-snapshot-5";
-      loaderVersion = "0.19.2";
-      installerVersion = "1.1.1";
       mods = [
         "fabric-api"
         "c2me-fabric"
@@ -27,8 +25,6 @@ let
     "26.1.2-fabric" = {
       loader = "fabric";
       version = "26.1.2";
-      loaderVersion = "0.19.2";
-      installerVersion = "1.1.1";
       mods = [
         "fabric-api"
         "lithium"
@@ -46,10 +42,9 @@ let
     "1.21.11-fabric" = {
       loader = "fabric";
       version = "1.21.11";
-      loaderVersion = "0.19.2";
-      installerVersion = "1.1.1";
       mods = [
         "fabric-api"
+        "spark"
         "terrain-diffusion"
       ];
     };
@@ -57,7 +52,6 @@ let
     "1.21.11-paper" = {
       loader = "paper";
       version = "1.21.11";
-      build = 69;
       mods = [ ];
     };
   };
@@ -66,25 +60,15 @@ let
     tag:
     {
       loader,
-      mods,
       version,
-      ...
-    }@cfg:
-    let
-      loaderCfg = builtins.removeAttrs cfg [
-        "loader"
-        "mods"
-      ];
-    in
+      mods,
+    }:
     {
       ix.image.tag = tag;
       services.minecraft = {
+        inherit version;
         mods = lib.genAttrs mods (_: { });
-        modCatalog = artifacts.minecraft.modCatalogs.${version};
-        ${loader} = loaderCfg // {
-          enable = true;
-          src = artifacts.minecraft.servers.${tag};
-        };
+        ${loader}.enable = true;
       };
     };
 in

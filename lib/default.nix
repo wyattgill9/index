@@ -194,7 +194,7 @@ let
       };
       servers =
         lib.mapAttrs (_: mkArtifact) {
-          "26w17a-fabric" = {
+          "26.2-snapshot-5-fabric" = {
             url = "https://meta.fabricmc.net/v2/versions/loader/26.2-snapshot-5/0.19.2/1.1.1/server/jar";
             hash = "sha256-IZctWQu9VH4Z5lU/VcEzvPGLfW8boOAXtCaQlKXyA5k=";
           };

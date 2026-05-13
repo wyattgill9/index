@@ -8,6 +8,6 @@
   ...
 }:
 ix.mkMinecraftLoader {
-  inherit config lib;
+  inherit ix config lib;
   name = "vanilla";
 }

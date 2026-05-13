@@ -321,23 +321,14 @@ let
 
             services.minecraft = {
               enable = true;
-
-              fabric = {
-                enable = true;
-                version = "1.21.11";
-                loaderVersion = "0.19.2";
-                installerVersion = "1.1.1";
-                src = ix.lib.artifacts.minecraft.servers."1.21.11-fabric";
-              };
+              version = "1.21.11";
+              fabric.enable = true;
 
               # spark is the in-server profiler. Run `/spark profiler` from the
-              # console (or as op) to capture CPU samples during the demo. The
-              # 1.21.11 catalog is owned by the library; bumps go through
-              # `nix run .#update-mods` rather than touching this file.
-              mods = {
-                spark = { };
-              };
-              modCatalog = ix.lib.artifacts.minecraft.modCatalogs."1.21.11";
+              # console (or as op) to capture CPU samples during the demo.
+              # The 1.21.11 catalog is owned by the library; bumps go through
+              # `nix run .#update-mods`.
+              mods.spark = { };
 
               serverFiles."server.properties" = {
                 motd = "Claude Code Demo";
