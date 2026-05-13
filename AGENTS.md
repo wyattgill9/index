@@ -207,7 +207,7 @@ Relative paths to children or siblings inside the same package/module directory 
 
 ## Plugin conventions
 
-Bukkit-family loaders (Paper, Folia, Purpur, Spigot) use `services.minecraft.plugins`. Empty `{}` resolves a pinned plugin by slug from `pluginCatalog`; an attrset with `src` installs a local or private plugin jar. Loader modules can contribute a catalog of common upstream plugins, so examples should not inline shared plugin URLs.
+Bukkit-family loaders (Paper, Folia, Purpur, Spigot) use `services.minecraft.plugins`. Empty `{}` resolves a pinned plugin by slug from `pluginCatalog`; an attrset with `src` installs a local or private plugin jar. The repo's plugin and mod catalogs (`ix.lib.artifacts.minecraft.*`, the per-version JSON catalogs under `images/games/minecraft/mods/`) are the shared surface that examples and images consume. Examples must not inline plugin or mod URLs and hashes; see the "Examples never own artifact data" rule under Example conventions.
 
 Fabric/NeoForge/Sponge-style artifacts stay in `services.minecraft.mods`. Keep mod and plugin catalogs near the image/module artifact plumbing, not in example fleets. Example fleets should read like intent: choose a server, select catalog plugins/mods by slug, and show local/private artifacts only when that is the point of the example.
 
@@ -223,6 +223,10 @@ Fabric/NeoForge/Sponge-style artifacts stay in `services.minecraft.mods`. Keep m
 ## Example conventions
 
 Examples are teaching material, not just tests. Add short comments for ix-specific ideas that a first-time reader will not infer from Nix alone: `deployment.switch.overrideInputs`, remote switch builds, fleet defaults, hot-reload behavior, and why an image name or tag is set.
+
+### Examples never own artifact data
+
+Examples must not inline URLs, hashes, or pinned version strings for fetched artifacts. Mod jars, plugin jars, server jars, datasets, JDKs, and source-fetched packages all live in the repo's library surface (`ix.lib.artifacts.*`, `ix.packages`, module options, generated catalogs under `images/`), and examples consume them by name. If an example needs an artifact the library does not expose yet, extend the library first: add the slug to the relevant catalog and regenerate it with `nix run .#update-mods`, add a new entry to `ix.lib.artifacts`, or grow the relevant module option. Then point the example at the named surface. Examples are consumer tests for whether the library is sufficiently specified. A missing entry is a gap in the repo; fix it in the library so every consumer benefits.
 
 In-repo examples that exercise this repo's library, modules, fleets, or pinned artifacts should be exposed from the root `flake.nix` as `apps`/`packages` and share the root `flake.lock`. Keep the actual fleet or image value in the example's `default.nix` so tests and root outputs can import it. Do not add a nested example `flake.lock` that pins this same repo; it will drift from the API under test.
 
