@@ -27,6 +27,32 @@ let
 
   dataDir = "/var/lib/minecraft";
   managedRoot = "/etc/minecraft";
+  fileExt = path: lib.last (lib.splitString "." path);
+
+  flattenProperties =
+    value:
+    let
+      pairsFor =
+        prefix: current:
+        if builtins.isAttrs current && !lib.isDerivation current then
+          lib.concatMap (name: pairsFor (prefix ++ [ name ]) current.${name}) (lib.attrNames current)
+        else
+          [
+            {
+              name = lib.concatStringsSep "." prefix;
+              value = current;
+            }
+          ];
+      pairs = pairsFor [ ] value;
+      names = map (pair: pair.name) pairs;
+      duplicateNames = lib.filter (
+        name: builtins.length (lib.filter (candidate: candidate == name) names) > 1
+      ) (lib.unique names);
+    in
+    assert lib.assertMsg (
+      duplicateNames == [ ]
+    ) "duplicate .properties keys after flattening: ${lib.concatStringsSep ", " duplicateNames}";
+    lib.listToAttrs pairs;
 
   modCatalogType = types.submodule {
     options = {
@@ -131,6 +157,11 @@ let
   autoReloadEnabled = cfg.autoReload.enable && autoReloadDriver != "none";
   jvmReloadEnabled = autoReloadEnabled && autoReloadDriver == "jvm";
   plugmanReloadEnabled = autoReloadEnabled && autoReloadDriver == "plugman";
+  rconEnabled = cfg.rcon.enable || plugmanReloadEnabled;
+  rconPort = if cfg.rcon.enable then cfg.rcon.port else cfg.autoReload.rconPort;
+  rconPasswordFile =
+    if cfg.rcon.enable then cfg.rcon.passwordFile else cfg.autoReload.rconPasswordFile;
+  rconBroadcastToOps = if cfg.rcon.enable then cfg.rcon.broadcastToOps else false;
   java = lib.getExe' cfg.javaPackage "java";
   pluginConfigFiles = lib.optionalAttrs plugmanReloadEnabled {
     "plugins/PlugManX/config.yml" = {
@@ -178,7 +209,7 @@ let
   formatFor =
     path:
     let
-      ext = lib.last (lib.splitString "." path);
+      ext = fileExt path;
     in
     {
       toml = pkgs.formats.toml { };
@@ -188,6 +219,8 @@ let
       properties = pkgs.formats.keyValue { };
     }
     .${ext} or (throw "configFiles: unsupported extension .${ext} on '${path}'");
+
+  normalizeFor = path: value: if fileExt path == "properties" then flattenProperties value else value;
 
   serverFiles = cfg.serverFiles // pluginConfigFiles;
 
@@ -199,9 +232,9 @@ let
         lib.mapAttrsToList (
           path: value:
           let
-            file = (formatFor path).generate (builtins.baseNameOf path) value;
+            file = (formatFor path).generate (baseNameOf path) (normalizeFor path value);
           in
-          "mkdir -p $out/${builtins.dirOf path}\nln -sf ${file} $out/${path}"
+          "mkdir -p $out/${dirOf path}\nln -sf ${file} $out/${path}"
         ) source
       )}
     '';
@@ -221,11 +254,13 @@ let
       dataDir
       managedRoot
       plugmanReloadEnabled
+      rconEnabled
+      rconPort
+      rconPasswordFile
+      rconBroadcastToOps
       ;
     inherit (cfg) dropDir;
     inherit (cfg.autoReload.plugman) ignoredPlugins;
-    inherit (cfg.autoReload) rconPort;
-    inherit (cfg.autoReload) rconPasswordFile;
   };
 
   reloadCommand = ix.writeNushellApplication pkgs {
@@ -259,7 +294,7 @@ let
             mut failed = false
             for row in (open --raw $plan | lines | parse "{action} {plugin}") {
               if (do --ignore-errors {
-                minecraft-rcon --host 127.0.0.1 --port ${toString cfg.autoReload.rconPort} --password-file ${builtins.toJSON cfg.autoReload.rconPasswordFile} plugman $row.action $row.plugin
+                minecraft-rcon --host 127.0.0.1 --port ${toString rconPort} --password-file ${builtins.toJSON rconPasswordFile} plugman $row.action $row.plugin
               }) == null {
                 $failed = true
               }
@@ -401,6 +436,34 @@ in
       description = "JVM flags used after heap sizing and before -jar.";
     };
 
+    rcon = {
+      enable = mkEnableOption "Minecraft RCON";
+
+      port = mkOption {
+        type = types.port;
+        default = 25575;
+        description = "TCP port for Minecraft RCON.";
+      };
+
+      passwordFile = mkOption {
+        type = types.str;
+        default = "${dataDir}/.ix-rcon-password";
+        description = "State-local RCON password file. Generated on first start when absent.";
+      };
+
+      openFirewall = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Whether to open the RCON port in the firewall.";
+      };
+
+      broadcastToOps = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Whether RCON commands should be broadcast to operators.";
+      };
+    };
+
     autoReload = {
       enable = mkOption {
         type = types.bool;
@@ -482,7 +545,10 @@ in
   config = mkIf cfg.enable {
     services.minecraft.serverFiles."server.properties".server-port = lib.mkDefault cfg.port;
 
-    networking.firewall.allowedTCPPorts = [ cfg.port ];
+    networking.firewall.allowedTCPPorts = [
+      cfg.port
+    ]
+    ++ lib.optionals cfg.rcon.openFirewall [ rconPort ];
     environment.etc = {
       "minecraft/managed-dropins".source = managedDropins;
       "minecraft/managed-config".source = managedConfig;

@@ -34,6 +34,43 @@ let
   paperService = paperConfig.systemd.services.minecraft;
   paperServiceConfig = paperService.serviceConfig;
 
+  rconConfig = evalConfig [
+    ../images/games/minecraft
+    defaultMinecraftModule
+    {
+      services.minecraft.rcon.enable = true;
+    }
+  ];
+  rconCfg = rconConfig.services.minecraft;
+
+  rconOpenFirewallConfig = evalConfig [
+    ../images/games/minecraft
+    defaultMinecraftModule
+    {
+      services.minecraft.rcon = {
+        enable = true;
+        port = 25576;
+        openFirewall = true;
+      };
+    }
+  ];
+  rconOpenFirewallCfg = rconOpenFirewallConfig.services.minecraft;
+
+  nestedPropertiesConfig = evalConfig [
+    ../images/games/minecraft
+    defaultMinecraftModule
+    {
+      services.minecraft.serverFiles."server.properties" = {
+        query = {
+          port = 25565;
+        };
+        rcon = {
+          port = 25575;
+        };
+      };
+    }
+  ];
+
   bedrockConfig = evalConfig [ ../images/games/minecraft-bedrock ];
   bedrockCfg = bedrockConfig.services.minecraft-bedrock;
   bedrockService = bedrockConfig.systemd.services.minecraft-bedrock;
@@ -205,6 +242,30 @@ let
     {
       assertion = paperConfig.networking.firewall.allowedTCPPorts == [ paperCfg.port ];
       message = "Paper minecraft should not expose the local RCON reload port through the firewall";
+    }
+    {
+      assertion = rconCfg.rcon.enable;
+      message = "minecraft RCON should be enabled through a typed option";
+    }
+    {
+      assertion = rconCfg.rcon.passwordFile == "/var/lib/minecraft/.ix-rcon-password";
+      message = "minecraft RCON should default to a state-local password file";
+    }
+    {
+      assertion = !(rconCfg.serverFiles."server.properties" ? "rcon.password");
+      message = "typed minecraft RCON should not put the password in Nix-managed server.properties";
+    }
+    {
+      assertion = rconConfig.networking.firewall.allowedTCPPorts == [ rconCfg.port ];
+      message = "typed minecraft RCON should keep the RCON port private by default";
+    }
+    {
+      assertion =
+        rconOpenFirewallConfig.networking.firewall.allowedTCPPorts == [
+          rconOpenFirewallCfg.port
+          rconOpenFirewallCfg.rcon.port
+        ];
+      message = "typed minecraft RCON should open the firewall only when requested";
     }
     {
       assertion = bedrockConfig.ix.image.name == "minecraft-bedrock";
@@ -407,6 +468,13 @@ pkgs.runCommand "ix-images-eval-tests" { nativeBuildInputs = [ pkgs.gnugrep ]; }
     paperConfig.environment.etc."minecraft/managed-server-files".source
   }/plugins/PlugManX/config.yml
   ! grep -R 'rcon.password' ${paperConfig.environment.etc."minecraft/managed-server-files".source}
+  ! grep -R 'rcon.password' ${rconConfig.environment.etc."minecraft/managed-server-files".source}
+  grep -q '^query.port=25565$' ${
+    nestedPropertiesConfig.environment.etc."minecraft/managed-server-files".source
+  }/server.properties
+  grep -q '^rcon.port=25575$' ${
+    nestedPropertiesConfig.environment.etc."minecraft/managed-server-files".source
+  }/server.properties
   grep -q '^almanac$' ${
     paperConfig.environment.etc."minecraft/managed-dropins".source
   }/almanac.jar.plugin-name

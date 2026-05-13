@@ -15,9 +15,11 @@ class Config:
     drop_dir: str
     managed_root: Path
     plugman_reload: bool
+    rcon_enable: bool
     plugman_ignored_plugins: frozenset[str]
     rcon_port: int
     rcon_password_file: Path
+    rcon_broadcast_to_ops: bool
 
 
 def managed_files(source_dir: Path) -> list[str]:
@@ -219,7 +221,7 @@ def configure_rcon(cfg: Config) -> None:
     set_property(server_properties, "enable-rcon", "true")
     set_property(server_properties, "rcon.port", str(cfg.rcon_port))
     set_property(server_properties, "rcon.password", password)
-    set_property(server_properties, "broadcast-rcon-to-ops", "false")
+    set_property(server_properties, "broadcast-rcon-to-ops", str(cfg.rcon_broadcast_to_ops).lower())
 
 
 def parse_args(argv: Sequence[str] | None = None) -> Config:
@@ -228,9 +230,11 @@ def parse_args(argv: Sequence[str] | None = None) -> Config:
     _ = parser.add_argument("--drop-dir", required=True)
     _ = parser.add_argument("--managed-root", required=True)
     _ = parser.add_argument("--plugman-reload", action="store_true")
+    _ = parser.add_argument("--rcon-enable", action="store_true")
     _ = parser.add_argument("--plugman-ignored-plugin", action="append", default=[])
     _ = parser.add_argument("--rcon-port", type=int, required=True)
     _ = parser.add_argument("--rcon-password-file", required=True)
+    _ = parser.add_argument("--rcon-broadcast-to-ops", choices=["true", "false"], required=True)
     args = parser.parse_args(argv)
 
     return Config(
@@ -238,9 +242,11 @@ def parse_args(argv: Sequence[str] | None = None) -> Config:
         drop_dir=cast(str, args.drop_dir),
         managed_root=Path(cast(str, args.managed_root)),
         plugman_reload=cast(bool, args.plugman_reload),
+        rcon_enable=cast(bool, args.rcon_enable),
         plugman_ignored_plugins=frozenset(cast(list[str], args.plugman_ignored_plugin)),
         rcon_port=cast(int, args.rcon_port),
         rcon_password_file=Path(cast(str, args.rcon_password_file)),
+        rcon_broadcast_to_ops=cast(str, args.rcon_broadcast_to_ops) == "true",
     )
 
 
@@ -254,7 +260,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     sync_tree(cfg.managed_root / "managed-config", cfg.data_dir / "config", cfg.data_dir / ".ix-managed-config")
     sync_tree(cfg.managed_root / "managed-server-files", cfg.data_dir, cfg.data_dir / ".ix-managed-server-files")
 
-    if cfg.plugman_reload:
+    if cfg.rcon_enable:
         configure_rcon(cfg)
 
     return 0

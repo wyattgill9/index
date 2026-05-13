@@ -6,9 +6,11 @@
   dropDir,
   managedRoot,
   plugmanReloadEnabled,
+  rconEnabled,
   ignoredPlugins,
   rconPort,
   rconPasswordFile,
+  rconBroadcastToOps,
 }:
 let
   inherit (pkgs) lib;
@@ -25,6 +27,7 @@ writePythonApplication pkgs {
     managedRoot
   ]
   ++ lib.optionals plugmanReloadEnabled [ "--plugman-reload" ]
+  ++ lib.optionals rconEnabled [ "--rcon-enable" ]
   ++ lib.concatMap (plugin: [
     "--plugman-ignored-plugin"
     plugin
@@ -34,5 +37,7 @@ writePythonApplication pkgs {
     (toString rconPort)
     "--rcon-password-file"
     rconPasswordFile
+    "--rcon-broadcast-to-ops"
+    (if rconBroadcastToOps then "true" else "false")
   ];
 }

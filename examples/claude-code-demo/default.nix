@@ -321,6 +321,7 @@ let
               enable = true;
               version = "1.21.11";
               fabric.enable = true;
+              rcon.enable = true;
 
               # spark is the in-server profiler. Run `/spark profiler` from the
               # console (or as op) to capture CPU samples during the demo.
