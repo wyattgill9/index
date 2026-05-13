@@ -223,6 +223,20 @@ Fabric/NeoForge/Sponge-style artifacts stay in `services.minecraft.mods`. Keep m
 - Options that are redundant with their namespace should be shortened. `services.minecraft.folia.version`, not `services.minecraft.folia.minecraftVersion`.
 - Images should consume repo-local packages through `ix.packages`, not by importing `../../..` paths into `packages/`. Keep source-path ownership in the package set, following nixpkgs' `callPackage`/package-set style: modules and images choose package values, while package definitions own their filesystem layout.
 
+## DRY user-facing options
+
+Every fact a user states in `config` should appear once. Apply this strictly when designing or extending a module, library, or helper: if a typical example sets `services.foo.version = "1.2.3"` and then also writes `services.foo.src = artifacts.foo."1.2.3"` and `services.foo.modCatalog = catalogs."1.2.3"`, the API is wrong. Restructure so the version drives the derived defaults and the example only mentions `1.2.3` once.
+
+Three failure modes that justify a restructure:
+
+- **Duplicated identifiers.** The same string appears in two or more option assignments in a typical config. Declare one canonical option (the version, hostname, slug, region) and have the rest default off it. Cross-option defaults (option B reads option A) are how you express derivation; use `defaultText` so the manual still shows the intent.
+- **Per-call-site defaults.** Every caller writes the same `src = artifacts.foo.X;` line. Move the default onto the option (`default = artifacts.foo.X;`) so callers only override the exception. The library is where reachable defaults live; the example chooses among them by name.
+- **Cargo-cult options.** A module declares `services.foo.bar.flavor` but no `config` block ever reads it. Delete the option. Forcing examples to set a value that nothing consumes is worse than not having the option, because it tricks readers into thinking the value matters.
+
+Examples are the API's specification. Write the example first; if a single intent ("use Fabric 1.21.11") takes more than one line, the option set is too wide. A verbose example is a bug in the module's API, not in the example. The "Examples never own artifact data" rule below is the library-side complement: keep artifact data in `ix.lib.*` so examples can stay this short.
+
+The repo has no external consumers, so renaming or collapsing options is free. Pay the migration cost (callers, tests, docs) in the same change.
+
 ## Example conventions
 
 Examples are teaching material, not just tests. Add short comments for ix-specific ideas that a first-time reader will not infer from Nix alone: `deployment.switch.overrideInputs`, remote switch builds, fleet defaults, hot-reload behavior, and why an image name or tag is set.
