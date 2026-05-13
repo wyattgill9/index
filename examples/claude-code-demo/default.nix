@@ -259,14 +259,18 @@ let
     #   overrideInputs.index = ".";
     # };
 
+    # Tag every node's replacement image with the demo name so registry
+    # destinations read e.g. `linux:claude-code-demo` instead of the
+    # less-informative `:latest`. Fleet defaults are prepended to each
+    # node's module list, so this applies to both VMs at once.
+    defaults = [ { ix.image.tag = "claude-code-demo"; } ];
+
     nodes = {
       linux = {
         tags = [ "web" ];
         deployment.l7ProxyPorts = [ 80 ];
         modules = [
           (_: {
-            ix.image.tag = "claude-code-demo";
-
             environment.systemPackages = linuxBuildPackages ++ [
               pkgs.btop
               compileLinux
@@ -313,12 +317,6 @@ let
         deployment.ipv4 = true;
         modules = [
           (_: {
-            # Fleets default ix.image.name to the node name (`minecraft` here).
-            # Set a tag anyway so replacement images are named
-            # `minecraft:claude-code-demo` instead of the less-informative
-            # `minecraft:latest`.
-            ix.image.tag = "claude-code-demo";
-
             services.minecraft = {
               enable = true;
               version = "1.21.11";
