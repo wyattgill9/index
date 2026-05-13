@@ -10,7 +10,9 @@
   rconPort,
   rconPasswordFile,
 }:
-
+let
+  inherit (pkgs) lib;
+in
 writePythonApplication pkgs {
   name = "minecraft-sync-managed";
   inherit src;
@@ -22,8 +24,8 @@ writePythonApplication pkgs {
     "--managed-root"
     managedRoot
   ]
-  ++ pkgs.lib.optionals plugmanReloadEnabled [ "--plugman-reload" ]
-  ++ pkgs.lib.concatMap (plugin: [
+  ++ lib.optionals plugmanReloadEnabled [ "--plugman-reload" ]
+  ++ lib.concatMap (plugin: [
     "--plugman-ignored-plugin"
     plugin
   ]) ignoredPlugins
