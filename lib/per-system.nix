@@ -124,7 +124,9 @@ in
       claude-code-demo-linux-up = claudeCodeDemoLinuxUp;
       claude-code-demo-minecraft-up = claudeCodeDemoMinecraftUp;
       minestom-hello-server-jar = repoPackages.minestom.helloServerJar;
-      inherit (ix) tonbo-artifacts;
+    }
+    // lib.optionalAttrs (system == ix.system) {
+      inherit (repoPackages) tonbo-artifacts;
     };
 
   apps = {

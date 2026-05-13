@@ -192,10 +192,6 @@ let
     };
   };
 
-  # x86_64-linux-only binary blob distributed by upstream Tonbo. Lives here
-  # rather than in `packageSetFor` because it has no useful cross-compile.
-  tonbo-artifacts = pkgs.callPackage paths.nixPackages.tonboArtifacts { };
-
   packageSetFor =
     pkgs:
     let
@@ -207,6 +203,7 @@ let
       minestom.helloServerJar = pkgs.callPackage paths.packages.minestom.servers.hello {
         ix = ixForPackages;
       };
+      tonbo-artifacts = pkgs.callPackage paths.nixPackages.tonboArtifacts { };
     };
 
   # Helpers exposed to every module via specialArgs. Keep this surface small
@@ -321,7 +318,6 @@ in
     mkMinecraftLoader
     mkMinecraftSyncManaged
     packageSetFor
-    tonbo-artifacts
     writeNushellApplication
     writePythonApplication
     ;
