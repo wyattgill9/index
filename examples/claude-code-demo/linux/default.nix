@@ -1,9 +1,7 @@
-{
-  ix,
-  pkgs,
-  lib,
-}:
+{ ix }:
 let
+  inherit (ix) pkgs;
+  inherit (pkgs) lib;
   fs = lib.fileset;
 
   demoSiteSrc = fs.toSource {
