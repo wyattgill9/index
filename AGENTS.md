@@ -197,6 +197,21 @@ ix.mkMinecraftLoader {
 
 This is the only way modules in this repo reach helpers in `lib/`. **Never** use `../` or `../../` paths to climb out of `modules/`. Relative-path imports between modules and lib break the abstraction (modules become coupled to lib's filesystem layout) and make module files harder to relocate. If a helper needs to be shared, expose it through `specialArgs.ix`. The helper bundle is also part of the public flake `lib` output, so external users get the same surface.
 
+## Doc-comments
+
+Public helpers exposed through the flake `lib` output and through `specialArgs.ix` use `/** ... */` doc-comments placed immediately before the binding (RFC 0145). CommonMark inside. Document the API: what the helper does, the shape of its arguments, and the shape of its return. Implementation-only `#` comments stay for the "why" notes the rest of this document covers; doc-comments are the API surface. When adding a new helper next to a file with a single top-of-file block comment, lift the relevant prose into per-binding doc-comments.
+
+```nix
+/**
+Build one self-contained OCI archive from a list of NixOS modules.
+
+Runs `nixpkgs.lib.nixosSystem` over the platform config, OCI packaging, the
+module registry, and any caller modules, then streams the toplevel into an
+OCI archive. Returns the archive derivation.
+*/
+mkImage = args: (evalImageConfig args).ix.build.ociImage;
+```
+
 ## Module conventions
 
 - Modules declare options and config. They never `imports` another module.
@@ -205,6 +220,7 @@ This is the only way modules in this repo reach helpers in `lib/`. **Never** use
 - Module options take strings, paths, or packages — not factory arguments. Versioning belongs in `versions.nix`, not in a function wrapping the module.
 - Public option names should describe the user's domain, not the storage mechanism. Prefer `services.minecraft.plugins` for Bukkit-family plugins and `services.minecraft.mods` for Fabric/NeoForge/Sponge mods; avoid vague plumbing names such as `extraJars` or `dropins` unless the storage mechanism is itself the concept.
 - Cross-module helpers come from `specialArgs.ix`. No `..` paths.
+- Modules that render a structured config file expose typed settings backed by `pkgs.formats.*` with a freeform submodule (RFC 0042). The repo's `services.minecraft.configFiles` slot is the canonical pattern: keys are relative file paths, values are plain attrsets, and the format is inferred from the extension. Do not introduce stringly `extraConfig` options on new modules; concatenating strings can't merge same-key assignments, defeats `mkDefault`/`mkForce`, and makes values uninspectable.
 
 ## Path boundaries
 
@@ -333,6 +349,7 @@ Run `nix run .#lint` before committing. It runs `nixfmt`, `statix`, `deadnix`, a
 - No fake hash helpers or placeholder hashes in tracked Nix files. Compute the real SRI hash first.
 - No flat top-level `modules` flake output. Use `nixosModules.<name>` (standard schema) for module exports.
 - Image target is x86_64-linux only. Host-visible flake package namespaces may include developer systems such as aarch64-darwin, but they should point at the same Linux image derivations rather than changing the image target.
+- No stringly `extraConfig` / `extraSettings` options on new modules (RFC 0042). Structured config goes through `pkgs.formats.*` with a freeform submodule; the repo's `configFiles` slot is the canonical path.
 
 ## Issues
 
@@ -341,6 +358,12 @@ Keep issue bodies short. State the problem, the context, and the desired outcome
 When creating or editing GitHub issue bodies or comments, pass multiline text through a real multiline input path such as `--body-file -`, a temporary file, or an editor. Do not put escaped `\n` sequences inside a quoted `--body` string; they render literally on GitHub instead of becoming paragraph breaks.
 
 When you hit a real bug, broken assumption, or unidiomatic pattern while working in this repo, file a GitHub issue right then (`gh issue create -R indexable-inc/index ...`). Don't batch and don't wait to be asked. One concrete observation per issue.
+
+## Tests
+
+Image and reusable package derivations expose their tests through `passthru.tests.<name>` (RFC 0119). A test that targets one image or one helper attaches to that derivation so `nix build .#<name>.passthru.tests.<test>` works and downstream tooling can iterate. Cross-image eval invariants stay in `tests/default.nix` and remain accessible through `checks.eval`. Tests do not run as part of the default image build.
+
+Use `passthru.tests` for the lengthier or downstream-dependent checks (integration runs, fleet renders, end-to-end image boots). Keep `checkPhase` / `installCheckPhase` for the cheap inline checks that should always run on build.
 
 ## Searching
 
