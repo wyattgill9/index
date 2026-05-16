@@ -14,6 +14,16 @@ When a commit actually fixes a tracked GitHub issue, include an auto-closing key
 
 Prefer local type annotations over turbofish when they make the data shape clearer. For example, use `let args: Vec<_> = env::args().collect();` instead of `let args = env::args().collect::<Vec<_>>();`. Keep turbofish for cases where an expression-local type is genuinely clearer, such as method chains where naming an intermediate value would add noise.
 
+Do not use Rust `#[path = ...]` to paper over module layout. Move files so the filesystem hierarchy matches normal `mod` declarations.
+
+Avoid anonymous tuple-shaped domain data. Prefer named structs or full paths when a value crosses a function boundary or represents a real concept. Small local tuples are fine when the scope is obvious.
+
+Use descriptive names as scope widens. Short loop names such as `i` or `_` are fine in a few-line scope, but use names like `path`, `bytes`, `config`, `request`, and `response` once the value survives long enough to need meaning.
+
+Use blank lines as paragraph breaks inside function bodies. Each paragraph should be one logical step: set up, act, then validate or return. Keep tightly coupled statements together.
+
+For snippets in docs, comments, examples, or task descriptions that readers may see without IDE inlay hints, include explicit types on important bindings and use real repo APIs rather than invented simplified ones. In source files, use inference where it reads cleanly.
+
 ## Debugging VMs
 
 Use the real ix CLI to inspect running VMs before inferring from source. Prefer machine-readable host commands when available, for example `ix ls --output json`.
