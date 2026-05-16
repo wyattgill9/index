@@ -21,73 +21,152 @@ let
   # so tests exercise the same evaluation path as production image builds.
   evalConfig = modules: ix.evalImageConfig { inherit modules; };
 
-  minecraftConfig = evalConfig [
-    ../images/games/minecraft
-    defaultMinecraftModule
-  ];
-
-  minecraftService = minecraftConfig.systemd.services.minecraft.serviceConfig;
-  minecraftUnit = minecraftConfig.systemd.services.minecraft;
-  minecraftExec = minecraftService.ExecStart;
-
-  paperConfig = evalConfig [
-    ../images/games/minecraft
-    versions."1.21.11-paper"
-  ];
-  paperCfg = paperConfig.services.minecraft;
-  paperService = paperConfig.systemd.services.minecraft;
-  paperServiceConfig = paperService.serviceConfig;
-
-  rconConfig = evalConfig [
-    ../images/games/minecraft
-    defaultMinecraftModule
+  minecraft =
+    let
+      config = evalConfig [
+        ../images/games/minecraft
+        defaultMinecraftModule
+      ];
+    in
     {
-      services.minecraft.rcon.enable = true;
-    }
-  ];
-  rconCfg = rconConfig.services.minecraft;
-
-  rconOpenFirewallConfig = evalConfig [
-    ../images/games/minecraft
-    defaultMinecraftModule
-    {
-      services.minecraft.rcon = {
-        enable = true;
-        port = 25576;
-        openFirewall = true;
-      };
-    }
-  ];
-  rconOpenFirewallCfg = rconOpenFirewallConfig.services.minecraft;
-
-  nestedPropertiesConfig = evalConfig [
-    ../images/games/minecraft
-    defaultMinecraftModule
-    {
-      services.minecraft.serverFiles."server.properties" = {
-        query = {
-          port = 25565;
+      inherit config;
+      cfg = config.services.minecraft;
+      service =
+        let
+          unit = config.systemd.services.minecraft;
+        in
+        {
+          inherit unit;
+          config = unit.serviceConfig;
         };
-        rcon = {
-          port = 25575;
+
+      paper =
+        let
+          config = evalConfig [
+            ../images/games/minecraft
+            versions."1.21.11-paper"
+          ];
+        in
+        {
+          inherit config;
+          cfg = config.services.minecraft;
+          service =
+            let
+              unit = config.systemd.services.minecraft;
+            in
+            {
+              inherit unit;
+              config = unit.serviceConfig;
+            };
+          managed = {
+            serverFiles = config.environment.etc."minecraft/managed-server-files".source;
+            dropins = config.environment.etc."minecraft/managed-dropins".source;
+          };
         };
+
+      rcon =
+        let
+          config = evalConfig [
+            ../images/games/minecraft
+            defaultMinecraftModule
+            {
+              services.minecraft.rcon.enable = true;
+            }
+          ];
+        in
+        {
+          inherit config;
+          cfg = config.services.minecraft;
+          managed.serverFiles = config.environment.etc."minecraft/managed-server-files".source;
+
+          openFirewall =
+            let
+              config = evalConfig [
+                ../images/games/minecraft
+                defaultMinecraftModule
+                {
+                  services.minecraft.rcon = {
+                    enable = true;
+                    port = 25576;
+                    openFirewall = true;
+                  };
+                }
+              ];
+            in
+            {
+              inherit config;
+              cfg = config.services.minecraft;
+            };
+        };
+
+      nestedProperties =
+        let
+          config = evalConfig [
+            ../images/games/minecraft
+            defaultMinecraftModule
+            {
+              services.minecraft.serverFiles."server.properties" = {
+                query = {
+                  port = 25565;
+                };
+                rcon = {
+                  port = 25575;
+                };
+              };
+            }
+          ];
+        in
+        {
+          inherit config;
+          managed.serverFiles = config.environment.etc."minecraft/managed-server-files".source;
+        };
+    };
+
+  bedrock =
+    let
+      config = evalConfig [ ../images/games/minecraft-bedrock ];
+    in
+    {
+      inherit config;
+      cfg = config.services.minecraft-bedrock;
+      service =
+        let
+          unit = config.systemd.services.minecraft-bedrock;
+        in
+        {
+          inherit unit;
+          config = unit.serviceConfig;
+        };
+    };
+
+  remoteDesktop =
+    let
+      config = evalConfig [ ../images/desktop/remote-desktop ];
+    in
+    {
+      inherit config;
+      cfg = config.services.remote-desktop;
+      service =
+        let
+          unit = config.systemd.services.remote-desktop;
+        in
+        {
+          inherit unit;
+          config = unit.serviceConfig;
+        };
+    };
+
+  kernelDev =
+    let
+      config = evalConfig [ ../images/dev/kernel-dev ];
+    in
+    {
+      inherit config;
+      git.clone = {
+        service = config.systemd.services.git-clone;
+        timer = config.systemd.timers.git-clone;
       };
-    }
-  ];
-
-  bedrockConfig = evalConfig [ ../images/games/minecraft-bedrock ];
-  bedrockCfg = bedrockConfig.services.minecraft-bedrock;
-  bedrockService = bedrockConfig.systemd.services.minecraft-bedrock;
-  bedrockServiceConfig = bedrockService.serviceConfig;
-
-  remoteDesktopConfig = evalConfig [ ../images/desktop/remote-desktop ];
-  remoteDesktopCfg = remoteDesktopConfig.services.remote-desktop;
-  remoteDesktopService = remoteDesktopConfig.systemd.services.remote-desktop;
-  remoteDesktopServiceConfig = remoteDesktopService.serviceConfig;
-
-  kernelDevConfig = evalConfig [ ../images/dev/kernel-dev ];
-  kernelDevGitCloneService = kernelDevConfig.systemd.services.git-clone;
-  kernelDevGitCloneTimer = kernelDevConfig.systemd.timers.git-clone;
+    };
 
   pythonAppClosureProbe = ix.writePythonApplication pkgs {
     name = "python-app-closure-probe";
@@ -142,38 +221,38 @@ let
   groups = {
     kernel-dev = [
       {
-        assertion = kernelDevConfig.ix.image.name == "linux-kernel-dev";
+        assertion = kernelDev.config.ix.image.name == "linux-kernel-dev";
         message = "kernel-dev image should set the expected OCI image name";
       }
       {
-        assertion = kernelDevConfig.services.git-clone.enable;
+        assertion = kernelDev.config.services.git-clone.enable;
         message = "kernel-dev image should enable first-boot git cloning";
       }
       {
-        assertion = kernelDevConfig.services.git-clone.url == "https://github.com/torvalds/linux.git";
+        assertion = kernelDev.config.services.git-clone.url == "https://github.com/torvalds/linux.git";
         message = "kernel-dev image should clone the Linux repository";
       }
       {
-        assertion = kernelDevConfig.services.git-clone.dest == "/src/linux";
+        assertion = kernelDev.config.services.git-clone.dest == "/src/linux";
         message = "kernel-dev image should clone Linux into /src/linux";
       }
       {
-        assertion = kernelDevConfig.services.git-clone.activation == "timer";
+        assertion = kernelDev.config.services.git-clone.activation == "timer";
         message = "kernel-dev image should clone Linux after boot readiness";
       }
       {
-        assertion = kernelDevGitCloneService.wantedBy == [ ];
+        assertion = kernelDev.git.clone.service.wantedBy == [ ];
         message = "timer-activated git clone should not be wanted by multi-user.target";
       }
       {
-        assertion = kernelDevGitCloneTimer.wantedBy == [ "timers.target" ];
+        assertion = kernelDev.git.clone.timer.wantedBy == [ "timers.target" ];
         message = "timer-activated git clone should be started by timers.target";
       }
     ];
 
     minecraft = [
       {
-        assertion = minecraftConfig.ix.image.tag == defaultMinecraftVersion;
+        assertion = minecraft.config.ix.image.tag == defaultMinecraftVersion;
         message = "default minecraft image tag should follow versions.nix default";
       }
       {
@@ -181,7 +260,7 @@ let
         message = "default minecraft image should use the stable 26.1.2 Fabric variant";
       }
       {
-        assertion = lib.all (slug: builtins.hasAttr slug minecraftConfig.services.minecraft.mods) [
+        assertion = lib.all (slug: builtins.hasAttr slug minecraft.config.services.minecraft.mods) [
           "fabric-api"
           "lithium"
           "c2me-fabric"
@@ -191,68 +270,71 @@ let
         message = "default minecraft image should include the 26.1.2 Fabric server mod set";
       }
       {
-        assertion = minecraftConfig.services.minecraft.javaPackage == pkgs.temurin-jre-bin-25;
+        assertion = minecraft.config.services.minecraft.javaPackage == pkgs.temurin-jre-bin-25;
         message = "default Fabric minecraft should use Temurin";
       }
       {
-        assertion = lib.hasInfix "/bin/java" minecraftExec;
+        assertion = lib.hasInfix "/bin/java" minecraft.service.config.ExecStart;
         message = "minecraft ExecStart should launch Java";
       }
       {
-        assertion = lib.hasInfix "-XX:MaxRAMPercentage=85" minecraftExec;
+        assertion = lib.hasInfix "-XX:MaxRAMPercentage=85" minecraft.service.config.ExecStart;
         message = "minecraft should use MaxRAMPercentage for auto-scaling heap";
       }
       {
-        assertion = lib.hasInfix "-XX:+UseG1GC" minecraftExec;
+        assertion = lib.hasInfix "-XX:+UseG1GC" minecraft.service.config.ExecStart;
         message = "minecraft should include the default modern server GC flags";
       }
       {
-        assertion = lib.hasInfix "-jar" minecraftExec && lib.hasInfix "nogui" minecraftExec;
+        assertion =
+          lib.hasInfix "-jar" minecraft.service.config.ExecStart
+          && lib.hasInfix "nogui" minecraft.service.config.ExecStart;
         message = "minecraft ExecStart should launch the configured server jar in nogui mode";
       }
       {
-        assertion = lib.hasInfix "minecraft-hot-reload-agent.jar=socket=/run/minecraft-hot-reload/socket" minecraftExec;
+        assertion = lib.hasInfix "minecraft-hot-reload-agent.jar=socket=/run/minecraft-hot-reload/socket" minecraft.service.config.ExecStart;
         message = "Fabric minecraft should start the hot reload Java agent";
       }
       {
-        assertion = minecraftService.RuntimeDirectory == "minecraft-hot-reload";
+        assertion = minecraft.service.config.RuntimeDirectory == "minecraft-hot-reload";
         message = "Fabric minecraft should create a runtime directory for the hot reload socket";
       }
       {
-        assertion = builtins.length minecraftUnit.reloadTriggers == 3;
+        assertion = builtins.length minecraft.service.unit.reloadTriggers == 3;
         message = "minecraft managed files should trigger systemd reloads rather than unit restarts";
       }
       {
-        assertion = lib.hasInfix "minecraft-sync-managed" minecraftUnit.preStart;
+        assertion = lib.hasInfix "minecraft-sync-managed" minecraft.service.unit.preStart;
         message = "minecraft preStart should sync managed files from /etc";
       }
       {
-        assertion = !(lib.hasInfix "fabric-api" minecraftUnit.preStart);
+        assertion = !(lib.hasInfix "fabric-api" minecraft.service.unit.preStart);
         message = "minecraft preStart should not embed managed mod store paths in the unit";
       }
       # rcon coverage stays on the minecraft default image because the option
       # surface lives in `services.minecraft`, not in a paper-specific module.
       {
-        assertion = rconCfg.rcon.enable;
+        assertion = minecraft.rcon.cfg.rcon.enable;
         message = "minecraft RCON should be enabled through a typed option";
       }
       {
-        assertion = rconCfg.rcon.passwordFile == "/var/lib/minecraft/.ix-rcon-password";
+        assertion = minecraft.rcon.cfg.rcon.passwordFile == "/var/lib/minecraft/.ix-rcon-password";
         message = "minecraft RCON should default to a state-local password file";
       }
       {
-        assertion = !(rconCfg.serverFiles."server.properties" ? "rcon.password");
+        assertion = !(minecraft.rcon.cfg.serverFiles."server.properties" ? "rcon.password");
         message = "typed minecraft RCON should not put the password in Nix-managed server.properties";
       }
       {
-        assertion = rconConfig.networking.firewall.allowedTCPPorts == [ rconCfg.port ];
+        assertion =
+          minecraft.rcon.config.networking.firewall.allowedTCPPorts == [ minecraft.rcon.cfg.port ];
         message = "typed minecraft RCON should keep the RCON port private by default";
       }
       {
         assertion =
-          rconOpenFirewallConfig.networking.firewall.allowedTCPPorts == [
-            rconOpenFirewallCfg.port
-            rconOpenFirewallCfg.rcon.port
+          minecraft.rcon.openFirewall.config.networking.firewall.allowedTCPPorts == [
+            minecraft.rcon.openFirewall.cfg.port
+            minecraft.rcon.openFirewall.cfg.rcon.port
           ];
         message = "typed minecraft RCON should open the firewall only when requested";
       }
@@ -260,143 +342,145 @@ let
 
     "minecraft_1.21.11-paper" = [
       {
-        assertion = paperCfg.dropDir == "plugins";
+        assertion = minecraft.paper.cfg.dropDir == "plugins";
         message = "Paper minecraft should use the plugins drop directory";
       }
       {
-        assertion = builtins.length paperService.reloadTriggers == 3;
+        assertion = builtins.length minecraft.paper.service.unit.reloadTriggers == 3;
         message = "Paper minecraft managed plugins should trigger systemd reloads";
       }
       {
-        assertion = !(paperServiceConfig ? RuntimeDirectory);
+        assertion = !(minecraft.paper.service.config ? RuntimeDirectory);
         message = "Paper minecraft should not start the JVM hot reload socket";
       }
       {
-        assertion = paperCfg.autoReload.rconPasswordFile == "/var/lib/minecraft/.ix-rcon-password";
+        assertion =
+          minecraft.paper.cfg.autoReload.rconPasswordFile == "/var/lib/minecraft/.ix-rcon-password";
         message = "Paper minecraft should use a state-local RCON password file";
       }
       {
-        assertion = !(paperCfg.serverFiles."server.properties" ? "rcon.password");
+        assertion = !(minecraft.paper.cfg.serverFiles."server.properties" ? "rcon.password");
         message = "Paper minecraft should not put the RCON password in Nix-managed server.properties";
       }
       {
-        assertion = paperConfig.networking.firewall.allowedTCPPorts == [ paperCfg.port ];
+        assertion =
+          minecraft.paper.config.networking.firewall.allowedTCPPorts == [ minecraft.paper.cfg.port ];
         message = "Paper minecraft should not expose the local RCON reload port through the firewall";
       }
     ];
 
     minecraft-bedrock = [
       {
-        assertion = bedrockConfig.ix.image.name == "minecraft-bedrock";
+        assertion = bedrock.config.ix.image.name == "minecraft-bedrock";
         message = "minecraft-bedrock image should set the expected OCI image name";
       }
       {
-        assertion = bedrockConfig.ix.image.tag == "1.26.14.1";
+        assertion = bedrock.config.ix.image.tag == "1.26.14.1";
         message = "minecraft-bedrock image tag should follow the pinned Bedrock server version";
       }
       {
-        assertion = bedrockCfg.enable;
+        assertion = bedrock.cfg.enable;
         message = "minecraft-bedrock image should enable services.minecraft-bedrock";
       }
       {
-        assertion = bedrockCfg.settings."server-name" == "ix-powered Bedrock";
+        assertion = bedrock.cfg.settings."server-name" == "ix-powered Bedrock";
         message = "minecraft-bedrock should set the expected default server name";
       }
       {
         assertion =
-          bedrockCfg.settings."server-port" == bedrockCfg.port
-          && bedrockCfg.settings."server-portv6" == bedrockCfg.portv6;
+          bedrock.cfg.settings."server-port" == bedrock.cfg.port
+          && bedrock.cfg.settings."server-portv6" == bedrock.cfg.portv6;
         message = "minecraft-bedrock server.properties should follow the configured UDP ports";
       }
       {
         assertion =
-          bedrockConfig.networking.firewall.allowedUDPPorts == [
-            bedrockCfg.port
-            bedrockCfg.portv6
+          bedrock.config.networking.firewall.allowedUDPPorts == [
+            bedrock.cfg.port
+            bedrock.cfg.portv6
           ];
         message = "minecraft-bedrock firewall should open only the configured UDP ports";
       }
       {
-        assertion = bedrockService.description == "Minecraft Bedrock server";
+        assertion = bedrock.service.unit.description == "Minecraft Bedrock server";
         message = "minecraft-bedrock should run a dedicated systemd service";
       }
       {
-        assertion = lib.hasInfix "/bin/bedrock_server" bedrockServiceConfig.ExecStart;
+        assertion = lib.hasInfix "/bin/bedrock_server" bedrock.service.config.ExecStart;
         message = "minecraft-bedrock ExecStart should launch bedrock_server";
       }
       {
-        assertion = bedrockServiceConfig.StateDirectory == "minecraft-bedrock";
+        assertion = bedrock.service.config.StateDirectory == "minecraft-bedrock";
         message = "minecraft-bedrock service should get a managed state directory";
       }
     ];
 
     remote-desktop = [
       {
-        assertion = remoteDesktopConfig.ix.image.name == "ix-remote-desktop";
+        assertion = remoteDesktop.config.ix.image.name == "ix-remote-desktop";
         message = "remote-desktop image should set the expected OCI image name";
       }
       {
-        assertion = remoteDesktopCfg.enable;
+        assertion = remoteDesktop.cfg.enable;
         message = "remote-desktop image should enable services.remote-desktop";
       }
       {
-        assertion = remoteDesktopCfg.package == pkgs.xpra;
+        assertion = remoteDesktop.cfg.package == pkgs.xpra;
         message = "remote-desktop should default to the nixpkgs Xpra package";
       }
       {
-        assertion = remoteDesktopCfg.port == 6080;
+        assertion = remoteDesktop.cfg.port == 6080;
         message = "remote-desktop should expose the Xpra HTML5 client on port 6080";
       }
       {
-        assertion = remoteDesktopCfg.bindAddress == "0.0.0.0";
+        assertion = remoteDesktop.cfg.bindAddress == "0.0.0.0";
         message = "remote-desktop should bind browser clients on all interfaces by default";
       }
       {
-        assertion = remoteDesktopCfg.display == ":100";
+        assertion = remoteDesktop.cfg.display == ":100";
         message = "remote-desktop should let Xpra own a deterministic virtual display";
       }
       {
-        assertion = remoteDesktopCfg.resolution == "1920x1080";
+        assertion = remoteDesktop.cfg.resolution == "1920x1080";
         message = "remote-desktop should default to a browser-friendly 1080p display";
       }
       {
-        assertion = remoteDesktopCfg.auth == "none";
+        assertion = remoteDesktop.cfg.auth == "none";
         message = "remote-desktop should keep the current unauthenticated ix image contract explicit";
       }
       {
-        assertion = remoteDesktopService.description == "Xpra remote desktop";
+        assertion = remoteDesktop.service.unit.description == "Xpra remote desktop";
         message = "remote-desktop should run a single Xpra service";
       }
       {
-        assertion = remoteDesktopServiceConfig.User == "remote-desktop";
+        assertion = remoteDesktop.service.config.User == "remote-desktop";
         message = "remote-desktop service should run as its dedicated system user";
       }
       {
-        assertion = remoteDesktopServiceConfig.StateDirectory == "remote-desktop";
+        assertion = remoteDesktop.service.config.StateDirectory == "remote-desktop";
         message = "remote-desktop service should get a managed state directory";
       }
       {
-        assertion = remoteDesktopServiceConfig.RuntimeDirectory == "remote-desktop";
+        assertion = remoteDesktop.service.config.RuntimeDirectory == "remote-desktop";
         message = "remote-desktop service should get a managed runtime directory";
       }
       {
-        assertion = remoteDesktopConfig.users.users.remote-desktop.isSystemUser;
+        assertion = remoteDesktop.config.users.users.remote-desktop.isSystemUser;
         message = "remote-desktop user should be a system user";
       }
       {
-        assertion = remoteDesktopConfig.networking.firewall.allowedTCPPorts == [ remoteDesktopCfg.port ];
+        assertion = remoteDesktop.config.networking.firewall.allowedTCPPorts == [ remoteDesktop.cfg.port ];
         message = "remote-desktop firewall should open only the configured browser port";
       }
       {
-        assertion = !(remoteDesktopConfig.systemd.services ? xvfb);
+        assertion = !(remoteDesktop.config.systemd.services ? xvfb);
         message = "remote-desktop should not use a standalone Xvfb service";
       }
       {
-        assertion = !(remoteDesktopConfig.systemd.services ? x11vnc);
+        assertion = !(remoteDesktop.config.systemd.services ? x11vnc);
         message = "remote-desktop should not use x11vnc";
       }
       {
-        assertion = !(remoteDesktopConfig.systemd.services ? novnc);
+        assertion = !(remoteDesktop.config.systemd.services ? novnc);
         message = "remote-desktop should not use a separate noVNC websockify service";
       }
     ];
@@ -485,27 +569,22 @@ let
 
   # --- Per-image build-time checks ------------------------------------------
 
-  paperManagedFiles = paperConfig.environment.etc."minecraft/managed-server-files".source;
-  paperManagedDropins = paperConfig.environment.etc."minecraft/managed-dropins".source;
-  rconManagedFiles = rconConfig.environment.etc."minecraft/managed-server-files".source;
-  nestedManagedFiles = nestedPropertiesConfig.environment.etc."minecraft/managed-server-files".source;
-
   buildScripts = {
     minecraft = ''
-      ! grep -R 'rcon.password' ${rconManagedFiles}
-      grep -q '^query.port=25565$' ${nestedManagedFiles}/server.properties
-      grep -q '^rcon.port=25575$' ${nestedManagedFiles}/server.properties
+      ! grep -R 'rcon.password' ${minecraft.rcon.managed.serverFiles}
+      grep -q '^query.port=25565$' ${minecraft.nestedProperties.managed.serverFiles}/server.properties
+      grep -q '^rcon.port=25575$' ${minecraft.nestedProperties.managed.serverFiles}/server.properties
     '';
 
     "minecraft_1.21.11-paper" = ''
-      grep -q 'ignored-plugins' ${paperManagedFiles}/plugins/PlugManX/config.yml
-      grep -q 'PlugManX' ${paperManagedFiles}/plugins/PlugManX/config.yml
-      ! grep -R 'rcon.password' ${paperManagedFiles}
-      grep -q '^almanac$' ${paperManagedDropins}/almanac.jar.plugin-name
-      grep -q '^PlugManX$' ${paperManagedDropins}/PlugManX.jar.plugin-name
-      grep -q -- '--password-file "/var/lib/minecraft/.ix-rcon-password"' ${paperServiceConfig.ExecReload}
-      grep -q 'plugman $row.action $row.plugin' ${paperServiceConfig.ExecReload}
-      ! grep -q 'reload all' ${paperServiceConfig.ExecReload}
+      grep -q 'ignored-plugins' ${minecraft.paper.managed.serverFiles}/plugins/PlugManX/config.yml
+      grep -q 'PlugManX' ${minecraft.paper.managed.serverFiles}/plugins/PlugManX/config.yml
+      ! grep -R 'rcon.password' ${minecraft.paper.managed.serverFiles}
+      grep -q '^almanac$' ${minecraft.paper.managed.dropins}/almanac.jar.plugin-name
+      grep -q '^PlugManX$' ${minecraft.paper.managed.dropins}/PlugManX.jar.plugin-name
+      grep -q -- '--password-file "/var/lib/minecraft/.ix-rcon-password"' ${minecraft.paper.service.config.ExecReload}
+      grep -q 'plugman $row.action $row.plugin' ${minecraft.paper.service.config.ExecReload}
+      ! grep -q 'reload all' ${minecraft.paper.service.config.ExecReload}
     '';
   };
 

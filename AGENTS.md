@@ -20,6 +20,14 @@ Avoid anonymous tuple-shaped domain data. Prefer named structs or full paths whe
 
 Use descriptive names as scope widens. Short loop names such as `i` or `_` are fine in a few-line scope, but use names like `path`, `bytes`, `config`, `request`, and `response` once the value survives long enough to need meaning.
 
+Avoid parallel alias sprawl: do not create several sibling locals that repeat or flatten the same subject with different suffixes (`paperConfig`, `paperCfg`, `paperService`, `paperServiceConfig`, `gitCloneService`, `rconOpenFirewallConfig`). That is a data-clump smell. Group the subject once and nest both the root value and derived handles under it so call sites read by path instead of by duplicated names.
+
+Be strict about preserving the conceptual path in local test fixtures and Nix `let` blocks. A binding may shorten a noisy source path only if the alias keeps the same shape: `minecraft.paper.config`, `minecraft.paper.service.unit`, `minecraft.paper.service.config`, `minecraft.rcon.openFirewall.config`, `kernelDev.git.clone.service`. Do not collapse path segments into camelCase or sibling suffixes: avoid `paperConfig`, `paperService`, `paperServiceConfig`, `rconOpenFirewallConfig`, `kernelDevGitCloneService`, and `gitCloneService`. Promote a binding to the surrounding scope only when it is genuinely independent of the owner object.
+
+Use names like `cfg` only for the conventional Nix module option subtree (`config.services.<name>`), not as a catch-all alias for any nested value. For systemd units, keep `unit` and `config` separate under `service` (`service.unit` and `service.config`), rather than introducing `serviceConfig`.
+
+Apply the same rule to generated files, managed paths, and fixtures. Prefer `minecraft.paper.managed.serverFiles` and `minecraft.paper.managed.dropins` over `paperManagedFiles` or `paperManagedDropins`. If the source path has meaningful segments, keep those segments visible in the alias path.
+
 Use blank lines as paragraph breaks inside function bodies. Each paragraph should be one logical step: set up, act, then validate or return. Keep tightly coupled statements together.
 
 For snippets in docs, comments, examples, or task descriptions that readers may see without IDE inlay hints, include explicit types on important bindings and use real repo APIs rather than invented simplified ones. In source files, use inference where it reads cleanly.
