@@ -181,9 +181,11 @@ The `modCatalog` option maps slugs to locked artifact sources. Set by the image 
 
 ### Mod catalog generation
 
-The canonical Minecraft mod catalog generator is `tools/update-mods.py`, exposed as `nix run .#update-mods`. Edit `images/games/minecraft/mods/manifest.json`, then run the app to regenerate `common.json` and the per-version catalogs in that same directory. For one game version, pass `--version <version>`.
+The canonical Minecraft mod catalog generator is `tools/update-mods.py`, exposed as `nix run .#update-mods`. Edit `images/games/minecraft/mods/manifest.json`, then run the app to regenerate `common.json`, the per-version lock catalogs, and the rich metadata catalog under `metadata/catalog.json`. For one game version, pass `--version <version>`.
 
 Modrinth-hosted entries should be listed by slug so the generator owns URL and hash selection. Non-Modrinth or hand-picked artifacts belong in the manifest as a small object with the slug and URL; the generated catalog is where `{ url, hash }` belongs. Do not hand-edit the generated JSON except to inspect a diff before committing.
+
+Use manifest `searches` for broad agent-queryable indexes such as popular Fabric mods or Paper-compatible server plugins. Search results enrich `metadata/catalog.json` with descriptions, project pages, icons, gallery images, links, selected version files, and dependency metadata without adding every discovered artifact to `services.minecraft.mods`. Keep the per-version lock catalogs curated; they are the install set that Nix consumes.
 
 ### Mod modules
 
