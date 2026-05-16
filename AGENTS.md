@@ -179,6 +179,12 @@ services.minecraft.mods = {
 
 The `modCatalog` option maps slugs to locked artifact sources. Set by the image base (from `common.json`) and version overlays (from `<version>.json`), then enriched through `ix.artifacts.attachArtifactSources`, which wraps each catalog entry's `{ url, hash }` in a `pkgs.fetchurl` derivation. The runtime resolves every key in `mods` to that derivation's store path.
 
+### Mod catalog generation
+
+The canonical Minecraft mod catalog generator is `tools/update-mods.py`, exposed as `nix run .#update-mods`. Edit `images/games/minecraft/mods/manifest.json`, then run the app to regenerate `common.json` and the per-version catalogs in that same directory. For one game version, pass `--version <version>`.
+
+Modrinth-hosted entries should be listed by slug so the generator owns URL and hash selection. Non-Modrinth or hand-picked artifacts belong in the manifest as a small object with the slug and URL; the generated catalog is where `{ url, hash }` belongs. Do not hand-edit the generated JSON except to inspect a diff before committing.
+
 ### Mod modules
 
 Mods with config files get a NixOS module at `modules/services/minecraft/mods/<name>.nix`. The module activates when `services.minecraft.mods.<slug>` is present, reads the user's attrset (with defaults), and generates `configFiles`.
@@ -268,6 +274,8 @@ Relative paths to children or siblings inside the same package/module directory 
 Bukkit-family loaders (Paper, Folia, Purpur, Spigot) use `services.minecraft.plugins`. Empty `{}` resolves a pinned plugin by slug from `pluginCatalog`; an attrset with `src` installs a local or private plugin jar. The repo's plugin and mod catalogs (`ix.lib.artifacts.minecraft.*`, the per-version JSON catalogs under `images/games/minecraft/mods/`) are the shared surface that presets and images consume. Presets must not inline plugin or mod URLs and hashes; see the "Presets never own artifact data" rule under Image preset conventions.
 
 Fabric/NeoForge/Sponge-style artifacts stay in `services.minecraft.mods`. Keep mod and plugin catalogs near the image/module artifact plumbing, not in preset fleets. Preset fleets should read like intent: choose a server, select catalog plugins/mods by slug, and show local/private artifacts only when that is the point of the preset.
+
+There is no separate plugin generator today. Extend the library-owned plugin catalog, such as `ix.artifacts.minecraft.paperPluginCatalog`, when adding shared pinned plugins; add generation only when the plugin catalog has enough repeated artifact data to justify it.
 
 ## Image conventions
 
