@@ -16,9 +16,11 @@ These rules apply to prose in docs, READMEs, comments, issues, and PR descriptio
 
 README files are written for human scanning. Machine-readable detail belongs in
 typed options, generated reference, or linked source files. Assume a reader with
-severe ADHD is trying to decide what this thing is and what to do next: put the
-TLDR first, keep paragraphs short, use direct headings, and remove completeness
-theater. The README should leave the reader oriented, not exhausted.
+severe ADHD is trying to decide what this thing is and what to do next. Start
+with a short plain-language summary directly under the title, then move into
+task-specific headings. Do not label the opening summary; the first paragraph
+should do that work. Keep paragraphs short and remove completeness theater. The
+README should leave the reader oriented, not exhausted.
 
 Do not use the "X, not Y" or "X, don't Y" rhetorical pattern. It is filler that reads as marketing. State what the thing is in a positive form, drop the contrast. Replace "ix VMs without the plumbing, not glue" with "ix VMs with services that compose." Replace "Compose, don't glue" with "Compose services."
 

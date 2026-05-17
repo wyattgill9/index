@@ -1,7 +1,5 @@
 # Filesystem Bench
 
-## TLDR
-
 Small benchmark for comparing the filesystem a VM sees.
 
 Run it inside the VM against the real target path. Compare that result with

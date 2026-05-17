@@ -1,7 +1,5 @@
 # Factions Server
 
-## TLDR
-
 Standalone consumer example for a Paper factions server on ix.
 
 It builds one VM image with Paper `26.1.2`, a curated plugin set, a `12000`

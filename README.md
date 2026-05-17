@@ -1,7 +1,5 @@
 # Index
 
-## TLDR
-
 `index` builds ready-to-run [ix](https://ix.dev/) VM images from NixOS modules.
 Every image targets AMD EPYC Gen 5 (`znver5`) and ships as an OCI archive.
 

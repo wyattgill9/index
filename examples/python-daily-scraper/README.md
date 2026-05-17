@@ -1,7 +1,5 @@
 # Daily Python Scraper
 
-## TLDR
-
 Standalone consumer example for a daily Python job on ix.
 
 It packages a uv project with
