@@ -1,8 +1,0 @@
-{
-  "issue": "Implement a typed Minecraft RCON option and nested .properties support.",
-  "hypotheses": [
-    "The Minecraft module can expose RCON as typed options while preserving serverFiles as the raw escape hatch.",
-    "The sync helper can configure RCON independently from PlugMan reload planning.",
-    "Nested attrsets can be flattened only for .properties generation without changing JSON, TOML, or YAML behavior."
-  ]
-}
