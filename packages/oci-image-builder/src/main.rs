@@ -14,7 +14,8 @@ use tempfile::tempdir;
 #[derive(Deserialize)]
 struct Config {
     architecture: String,
-    config: Value,
+    #[serde(rename = "config")]
+    settings: Value,
     from_image: Value,
     store_layers: Vec<Vec<String>>,
     customisation_layer: String,
@@ -180,7 +181,7 @@ fn write_metadata(
         "created": created,
         "architecture": conf.architecture,
         "os": "linux",
-        "config": conf.config,
+        "config": conf.settings,
         "rootfs": {
             "diff_ids": diff_ids,
             "type": "layers",
@@ -299,7 +300,7 @@ fn write_tar_layer(
     let mut layer = File::create(layer_path)?;
     let mut hasher = Sha256::new();
     let mut size = 0;
-    let mut buf = [0u8; 1024 * 1024];
+    let mut buf = vec![0; 1024 * 1024];
 
     loop {
         let read = stdout.read(&mut buf)?;

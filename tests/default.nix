@@ -1108,6 +1108,24 @@ let
         message = "cargo-unit workspaces should expose a clippy policy check by default";
       }
       {
+        assertion = cargoUnitWorkspace.policy.clippy.package.pname == "llm-clippy";
+        message = "cargo-unit clippy checks should use llm-clippy by default";
+      }
+      {
+        assertion =
+          let
+            denied = cargoUnitWorkspace.policy.clippy.deniedLints;
+          in
+          builtins.all (lint: builtins.elem lint denied) [
+            "warnings"
+            "clippy::all"
+            "clippy::pedantic"
+            "clippy::nursery"
+            "clippy::cargo"
+          ];
+        message = "cargo-unit clippy checks should deny the shared strict lint set by default";
+      }
+      {
         assertion = cargoUnitWorkspace.policyChecks ? cargoMachete;
         message = "cargo-unit workspaces should expose a cargo-machete policy check by default";
       }
@@ -1130,6 +1148,24 @@ let
       {
         assertion = repoPackages.minecraft-nbt.passthru.policyChecks ? cargoClippy;
         message = "repo Rust packages should expose clippy policy checks by default";
+      }
+      {
+        assertion = repoPackages.minecraft-nbt.passthru.policy.clippy.package.pname == "llm-clippy";
+        message = "repo Rust clippy checks should use llm-clippy by default";
+      }
+      {
+        assertion =
+          let
+            denied = repoPackages.minecraft-nbt.passthru.policy.clippy.deniedLints;
+          in
+          builtins.all (lint: builtins.elem lint denied) [
+            "warnings"
+            "clippy::all"
+            "clippy::pedantic"
+            "clippy::nursery"
+            "clippy::cargo"
+          ];
+        message = "repo Rust clippy checks should deny the shared strict lint set by default";
       }
       {
         assertion = repoPackages.minecraft-nbt.passthru.tests ? package;

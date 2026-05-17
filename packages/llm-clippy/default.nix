@@ -2,17 +2,22 @@
   lib,
   makeWrapper,
   pkgs,
+  rustToolchain ? null,
 }:
 
 let
   src = pkgs.fetchFromGitHub {
     owner = "indexable-inc";
     repo = "clippy";
-    rev = "90e243bec8e5e298d04a68cf10226d0b6568c91f";
-    hash = "sha256-KOaPrFbuDxCGdUMjWPHeqV9a53VZsRRI61YzIAGMZaw=";
+    rev = "c5f8f62dacfc666fa29615b13f777bb7404a1e60";
+    hash = "sha256-pFGUPLgM0lSDz8Iv3FLapQAJJV507B1DmJp4pKxp6JA=";
   };
 
-  toolchain = pkgs.rust-bin.fromRustupToolchainFile (src + "/rust-toolchain.toml");
+  toolchain =
+    if rustToolchain != null then
+      rustToolchain
+    else
+      pkgs.rust-bin.fromRustupToolchainFile (src + "/rust-toolchain.toml");
 
   rustPlatform = pkgs.makeRustPlatform {
     cargo = toolchain;
@@ -39,7 +44,7 @@ rustPlatform.buildRustPackage {
   ];
   doCheck = false;
 
-  # This Clippy fork links against rustc_private crates from the pinned nightly.
+  # This Clippy fork links against rustc_private crates from its Rust toolchain.
   RUSTC_BOOTSTRAP = "1";
 
   postInstall = ''
@@ -57,5 +62,9 @@ rustPlatform.buildRustPackage {
       mit
     ];
     mainProgram = "clippy-driver";
+  };
+
+  passthru = {
+    inherit toolchain;
   };
 }

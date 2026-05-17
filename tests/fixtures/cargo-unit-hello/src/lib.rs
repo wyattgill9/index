@@ -1,4 +1,5 @@
-pub fn greeting() -> &'static str {
+#[must_use]
+pub const fn greeting() -> &'static str {
     "hello from cargo-unit"
 }
 

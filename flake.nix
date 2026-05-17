@@ -61,7 +61,7 @@
       };
 
       ix = import ./lib {
-        inherit nixpkgs paths;
+        inherit nixpkgs paths rust-overlay;
         cliArtifacts = {
           aarch64-darwin = ixCliAarch64Darwin;
           x86_64-linux = ixCliX86_64Linux;

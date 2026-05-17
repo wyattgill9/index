@@ -50,9 +50,9 @@ enum NbtFlavor {
 impl From<NbtFlavor> for Flavor {
     fn from(value: NbtFlavor) -> Self {
         match value {
-            NbtFlavor::Uncompressed => Flavor::Uncompressed,
-            NbtFlavor::Gzip => Flavor::GzCompressed,
-            NbtFlavor::Zlib => Flavor::ZlibCompressed,
+            NbtFlavor::Uncompressed => Self::Uncompressed,
+            NbtFlavor::Gzip => Self::GzCompressed,
+            NbtFlavor::Zlib => Self::ZlibCompressed,
         }
     }
 }
@@ -129,16 +129,13 @@ fn write_snbt(path: &Path, document: &Document) -> Result<()> {
 
 fn decode_tag(path: &str, value: &Value) -> Result<NbtTag> {
     match value {
-        Value::Object(object) => {
-            if let Some(tag) = tag_name(object) {
-                decode_explicit_tag(path, tag, object)
-            } else {
-                decode_compound(path, object).map(NbtTag::Compound)
-            }
-        }
+        Value::Object(object) => tag_name(object).map_or_else(
+            || decode_compound(path, object).map(NbtTag::Compound),
+            |tag| decode_explicit_tag(path, tag, object),
+        ),
         Value::Array(values) => decode_list(path, values).map(NbtTag::List),
         Value::String(value) => Ok(NbtTag::String(value.to_owned())),
-        Value::Bool(value) => Ok(NbtTag::Byte(if *value { 1 } else { 0 })),
+        Value::Bool(value) => Ok(NbtTag::Byte(i8::from(*value))),
         Value::Number(value) => decode_implicit_number(path, value),
         Value::Null => bail!("{path}: NBT has no null tag"),
     }
@@ -154,7 +151,7 @@ fn decode_explicit_tag(path: &str, tag: &str, object: &Map<String, Value>) -> Re
 
     match tag {
         "byte" => integer_tag(path, tag, value, i8::MIN.into(), i8::MAX.into(), |value| {
-            NbtTag::Byte(value as i8)
+            Ok(NbtTag::Byte(i8::try_from(value)?))
         }),
         "short" => integer_tag(
             path,
@@ -162,7 +159,7 @@ fn decode_explicit_tag(path: &str, tag: &str, object: &Map<String, Value>) -> Re
             value,
             i16::MIN.into(),
             i16::MAX.into(),
-            |value| NbtTag::Short(value as i16),
+            |value| Ok(NbtTag::Short(i16::try_from(value)?)),
         ),
         "int" => integer_tag(
             path,
@@ -170,18 +167,22 @@ fn decode_explicit_tag(path: &str, tag: &str, object: &Map<String, Value>) -> Re
             value,
             i32::MIN.into(),
             i32::MAX.into(),
-            |value| NbtTag::Int(value as i32),
+            |value| Ok(NbtTag::Int(i32::try_from(value)?)),
         ),
-        "long" => integer_tag(path, tag, value, i64::MIN, i64::MAX, NbtTag::Long),
-        "float" => float_tag(path, tag, value, |value| NbtTag::Float(value as f32)),
-        "double" => float_tag(path, tag, value, NbtTag::Double),
+        "long" => integer_tag(path, tag, value, i64::MIN, i64::MAX, |value| {
+            Ok(NbtTag::Long(value))
+        }),
+        "float" => float_tag(path, tag, value, |value| nbt_float(path, tag, value)),
+        "double" => float_tag(path, tag, value, |value| Ok(NbtTag::Double(value))),
         "string" => value
             .as_str()
             .map(|value| NbtTag::String(value.to_owned()))
             .ok_or_else(|| anyhow!("{path}: string tag requires a string value")),
         "byteArray" => {
             integer_array_tag(path, tag, value, i8::MIN.into(), i8::MAX.into(), |values| {
-                NbtTag::ByteArray(values.into_iter().map(|value| value as i8).collect())
+                let values: Result<Vec<_>, _> = values.into_iter().map(i8::try_from).collect();
+
+                Ok(NbtTag::ByteArray(values?))
             })
         }
         "intArray" => integer_array_tag(
@@ -190,9 +191,15 @@ fn decode_explicit_tag(path: &str, tag: &str, object: &Map<String, Value>) -> Re
             value,
             i32::MIN.into(),
             i32::MAX.into(),
-            |values| NbtTag::IntArray(values.into_iter().map(|value| value as i32).collect()),
+            |values| {
+                let values: Result<Vec<_>, _> = values.into_iter().map(i32::try_from).collect();
+
+                Ok(NbtTag::IntArray(values?))
+            },
         ),
-        "longArray" => integer_array_tag(path, tag, value, i64::MIN, i64::MAX, NbtTag::LongArray),
+        "longArray" => integer_array_tag(path, tag, value, i64::MIN, i64::MAX, |values| {
+            Ok(NbtTag::LongArray(values))
+        }),
         "list" => value
             .as_array()
             .ok_or_else(|| anyhow!("{path}: list tag requires an array value"))
@@ -250,10 +257,7 @@ fn decode_implicit_number(path: &str, value: &Number) -> Result<NbtTag> {
     }
 
     let value = as_i64(path, "number", &Value::Number(value.clone()))?;
-    let tag = match i32::try_from(value) {
-        Ok(value) => NbtTag::Int(value),
-        Err(_) => NbtTag::Long(value),
-    };
+    let tag = i32::try_from(value).map_or_else(|_| NbtTag::Long(value), NbtTag::Int);
 
     Ok(tag)
 }
@@ -264,11 +268,11 @@ fn integer_tag(
     value: &Value,
     min: i64,
     max: i64,
-    build: impl FnOnce(i64) -> NbtTag,
+    build: impl FnOnce(i64) -> Result<NbtTag>,
 ) -> Result<NbtTag> {
     let value = ranged_i64(path, tag, value, min, max)?;
 
-    Ok(build(value))
+    build(value)
 }
 
 fn integer_array_tag(
@@ -277,7 +281,7 @@ fn integer_array_tag(
     value: &Value,
     min: i64,
     max: i64,
-    build: impl FnOnce(Vec<i64>) -> NbtTag,
+    build: impl FnOnce(Vec<i64>) -> Result<NbtTag>,
 ) -> Result<NbtTag> {
     let values = value
         .as_array()
@@ -294,21 +298,31 @@ fn integer_array_tag(
         )?);
     }
 
-    Ok(build(out))
+    build(out)
 }
 
 fn float_tag(
     path: &str,
     tag: &str,
     value: &Value,
-    build: impl FnOnce(f64) -> NbtTag,
+    build: impl FnOnce(f64) -> Result<NbtTag>,
 ) -> Result<NbtTag> {
     let value = value
         .as_f64()
         .filter(|value| value.is_finite())
         .ok_or_else(|| anyhow!("{path}: {tag} tag requires a finite numeric value"))?;
 
-    Ok(build(value))
+    build(value)
+}
+
+#[allow(clippy::cast_possible_truncation)]
+fn nbt_float(path: &str, tag: &str, value: f64) -> Result<NbtTag> {
+    ensure!(
+        (f64::from(f32::MIN)..=f64::from(f32::MAX)).contains(&value),
+        "{path}: {tag} value {value} is outside the finite 32-bit float range"
+    );
+
+    Ok(NbtTag::Float(value as f32))
 }
 
 fn ranged_i64(path: &str, tag: &str, value: &Value, min: i64, max: i64) -> Result<i64> {
@@ -348,7 +362,7 @@ fn tagged_value(object: &Map<String, Value>) -> Result<&Value> {
         .ok_or_else(|| anyhow!("missing {VALUE_KEY:?}"))
 }
 
-fn tag_kind(tag: &NbtTag) -> &'static str {
+const fn tag_kind(tag: &NbtTag) -> &'static str {
     match tag {
         NbtTag::Byte(_) => "byte",
         NbtTag::Short(_) => "short",

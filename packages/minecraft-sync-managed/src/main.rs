@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::Write as _;
 use std::fs;
 use std::io;
 use std::os::unix::fs::symlink;
@@ -150,11 +151,13 @@ fn sync_tree(
                 source_path.display()
             )
         })?;
-        manifest_lines.push_str(&format!(
-            "{} {}\n",
+        writeln!(
+            &mut manifest_lines,
+            "{} {}",
             rel,
             source_path.canonicalize()?.display()
-        ));
+        )
+        .expect("writing to String cannot fail");
     }
 
     fs::write(&tmp, manifest_lines).with_context(|| format!("writing {}", tmp.display()))?;
@@ -204,10 +207,16 @@ fn plugin_name_from_config_path(rel: &str) -> Option<&str> {
 fn write_plan(plan_path: &Path, plan: &BTreeSet<(String, String)>) -> Result<()> {
     let mut lines = String::new();
     for (action, plugin) in plan {
-        lines.push_str(&format!("{action} {plugin}\n"));
+        writeln!(&mut lines, "{action} {plugin}").expect("writing to String cannot fail");
     }
 
     fs::write(plan_path, lines).with_context(|| format!("writing {}", plan_path.display()))
+}
+
+fn is_jar_path(rel: &str) -> bool {
+    Path::new(rel)
+        .extension()
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("jar"))
 }
 
 fn plan_dropin_reloads(config: &Config, plan: &mut BTreeSet<(String, String)>) -> Result<()> {
@@ -221,7 +230,7 @@ fn plan_dropin_reloads(config: &Config, plan: &mut BTreeSet<(String, String)>) -
 
     let ignored: BTreeSet<_> = config.plugman_ignored_plugins.iter().cloned().collect();
     for rel in managed_files(&managed_dropins)? {
-        if rel == "PlugManX.jar" || !rel.ends_with(".jar") {
+        if rel == "PlugManX.jar" || !is_jar_path(&rel) {
             continue;
         }
 
@@ -249,7 +258,7 @@ fn plan_dropin_reloads(config: &Config, plan: &mut BTreeSet<(String, String)>) -
 
     for line in read_manifest_lines(&dropin_manifest)? {
         let rel = manifest_rel(&line);
-        if !rel.ends_with(".jar") || rel == "PlugManX.jar" {
+        if !is_jar_path(rel) || rel == "PlugManX.jar" {
             continue;
         }
 

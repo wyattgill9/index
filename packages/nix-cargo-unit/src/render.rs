@@ -568,23 +568,19 @@ fn append_build_script_flag_reader(script: &mut String, run_ref: &str) {
 
     script.push('\n');
     for (file, flag) in snippets {
+        let flag_arg = shell::quote(flag);
         let _ = writeln!(
             script,
-            "if [ -f {run_ref}/{file} ]; then\n  while IFS= read -r line; do\n    [ -n \"$line\" ] && build_script_flags+=( {flag_arg} \"$line\" )\n  done < {run_ref}/{file}\nfi",
-            run_ref = quoted_run_ref,
-            file = file,
-            flag_arg = shell::quote(flag),
+            "if [ -f {quoted_run_ref}/{file} ]; then\n  while IFS= read -r line; do\n    [ -n \"$line\" ] && build_script_flags+=( {flag_arg} \"$line\" )\n  done < {quoted_run_ref}/{file}\nfi",
         );
     }
     let _ = writeln!(
         script,
-        "if [ -f {run_ref}/rustc-cdylib-link-arg ]; then\n  while IFS= read -r line; do\n    [ -n \"$line\" ] && build_script_flags+=( -C \"link-arg=$line\" )\n  done < {run_ref}/rustc-cdylib-link-arg\nfi",
-        run_ref = quoted_run_ref,
+        "if [ -f {quoted_run_ref}/rustc-cdylib-link-arg ]; then\n  while IFS= read -r line; do\n    [ -n \"$line\" ] && build_script_flags+=( -C \"link-arg=$line\" )\n  done < {quoted_run_ref}/rustc-cdylib-link-arg\nfi",
     );
     let _ = writeln!(
         script,
-        "if [ -f {run_ref}/rustc-env ]; then\n  while IFS= read -r line; do\n    [ -n \"$line\" ] && export \"$line\"\n  done < {run_ref}/rustc-env\nfi",
-        run_ref = quoted_run_ref,
+        "if [ -f {quoted_run_ref}/rustc-env ]; then\n  while IFS= read -r line; do\n    [ -n \"$line\" ] && export \"$line\"\n  done < {quoted_run_ref}/rustc-env\nfi",
     );
     let _ = writeln!(script, "export OUT_DIR={quoted_run_ref}/out-dir\n");
 }
@@ -1034,7 +1030,7 @@ struct Attrs {
 }
 
 impl Attrs {
-    fn new() -> Self {
+    const fn new() -> Self {
         Self { values: Vec::new() }
     }
 

@@ -3,6 +3,7 @@
 {
   nixpkgs,
   paths,
+  rust-overlay,
   cliArtifacts ? { },
 }:
 let
@@ -188,10 +189,46 @@ let
     inherit uvLockFor;
   };
   buildGradleFatJar = import ./build-gradle-fat-jar.nix { inherit lib; };
+  rustNightlyChannel = "nightly-2026-05-17";
+  pkgsWithRustOverlayFor =
+    pkgs: if builtins.hasAttr "rust-bin" pkgs then pkgs else pkgs.extend rust-overlay.overlays.default;
+  rustNightlyToolchainFor =
+    pkgs:
+    (pkgsWithRustOverlayFor pkgs).rust-bin.fromRustupToolchain {
+      channel = rustNightlyChannel;
+      components = [
+        "cargo"
+        "rust-std"
+        "rustc"
+      ];
+      profile = "minimal";
+    };
+  rustNightlyClippyToolchainFor =
+    pkgs:
+    (pkgsWithRustOverlayFor pkgs).rust-bin.fromRustupToolchain {
+      channel = rustNightlyChannel;
+      components = [
+        "cargo"
+        "llvm-tools"
+        "rust-src"
+        "rust-std"
+        "rustc"
+        "rustc-dev"
+        "rustfmt"
+      ];
+      profile = "minimal";
+    };
+  llmClippyFor =
+    pkgs:
+    (pkgsWithRustOverlayFor pkgs).callPackage paths.packages.llmClippy {
+      rustToolchain = rustNightlyClippyToolchainFor pkgs;
+    };
   rustFor =
     pkgs:
     import ./rust.nix {
       inherit lib pkgs;
+      clippyPackage = llmClippyFor pkgs;
+      rustToolchain = rustNightlyToolchainFor pkgs;
     };
   cargoUnitFor =
     pkgs:
@@ -214,8 +251,8 @@ let
     Build a repo-owned Rust package with the shared Rust policy.
 
     Wraps `rustPlatform.buildRustPackage`, enables parallel test execution by
-    default, and attaches the repo's clippy and unused-dependency checks as
-    `passthru.tests` plus policy dependencies of the returned package.
+    default, and attaches the repo's `llm-clippy` and unused-dependency checks
+    as `passthru.tests` plus policy dependencies of the returned package.
   */
   buildRustPackage = pkgs: (rustFor pkgs).buildPackage;
 
@@ -469,7 +506,7 @@ let
           inherit pkgs;
           ix = ixForPackages;
         };
-        llm-clippy = pkgs.callPackage paths.packages.llmClippy { };
+        llm-clippy = llmClippyFor pkgs;
         minecraft-sync-managed = pkgs.callPackage paths.packages.minecraftSyncManaged {
           inherit pkgs;
           ix = ixForPackages;

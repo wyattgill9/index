@@ -44,6 +44,7 @@ pub struct Target {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct Profile {
     pub name: String,
     pub opt_level: String,
@@ -137,7 +138,6 @@ impl<'de> Deserialize<'de> for Lto {
         let value = serde_json::Value::deserialize(deserializer)?;
         Ok(match value {
             serde_json::Value::Bool(true) => Self::Fat,
-            serde_json::Value::Bool(false) => Self::Off,
             serde_json::Value::String(value) => match value.as_str() {
                 "true" | "fat" => Self::Fat,
                 "thin" => Self::Thin,
@@ -166,15 +166,12 @@ impl<'de> Deserialize<'de> for DebugInfo {
         let value = serde_json::Value::deserialize(deserializer)?;
         Ok(match value {
             serde_json::Value::Bool(true) => Self::Full,
-            serde_json::Value::Bool(false) => Self::None,
             serde_json::Value::Number(number) => match number.as_u64() {
                 Some(0) => Self::None,
                 Some(1) => Self::Limited,
-                Some(2) => Self::Full,
                 _ => Self::Full,
             },
             serde_json::Value::String(value) => match value.as_str() {
-                "0" | "none" | "false" => Self::None,
                 "line-directives-only" => Self::LineDirectivesOnly,
                 "line-tables-only" => Self::LineTablesOnly,
                 "1" | "limited" => Self::Limited,
@@ -210,7 +207,6 @@ impl<'de> Deserialize<'de> for Strip {
         let value = serde_json::Value::deserialize(deserializer)?;
         Ok(match value {
             serde_json::Value::Bool(true) => Self::Symbols,
-            serde_json::Value::Bool(false) => Self::None,
             serde_json::Value::String(value) => strip_from_str(&value),
             serde_json::Value::Object(mut value) => value
                 .remove("resolved")
@@ -235,7 +231,7 @@ fn strip_from_str(value: &str) -> Strip {
     }
 }
 
-fn default_true() -> bool {
+const fn default_true() -> bool {
     true
 }
 
@@ -341,15 +337,11 @@ impl Target {
 
 impl Unit {
     pub fn package_name(&self) -> &str {
-        parse_pkg_id(&self.pkg_id)
-            .map(|package| package.name)
-            .unwrap_or(&self.target.name)
+        parse_pkg_id(&self.pkg_id).map_or(&self.target.name, |package| package.name)
     }
 
     pub fn package_version(&self) -> &str {
-        parse_pkg_id(&self.pkg_id)
-            .map(|package| package.version)
-            .unwrap_or("0.0.0")
+        parse_pkg_id(&self.pkg_id).map_or("0.0.0", |package| package.version)
     }
 
     pub fn is_bin(&self) -> bool {
@@ -474,7 +466,7 @@ fn hash_bool(hasher: &mut sha2::Sha256, value: bool) {
 }
 
 impl Lto {
-    pub fn identity_byte(self) -> u8 {
+    pub const fn identity_byte(self) -> u8 {
         match self {
             Self::Off => b'0',
             Self::Thin => b'1',
@@ -484,7 +476,7 @@ impl Lto {
 }
 
 impl DebugInfo {
-    pub fn identity_byte(self) -> u8 {
+    pub const fn identity_byte(self) -> u8 {
         match self {
             Self::None => b'0',
             Self::LineDirectivesOnly => b'1',
@@ -494,7 +486,7 @@ impl DebugInfo {
         }
     }
 
-    pub fn rustc_value(self) -> &'static str {
+    pub const fn rustc_value(self) -> &'static str {
         match self {
             Self::None => "0",
             Self::LineDirectivesOnly => "line-directives-only",
@@ -504,20 +496,20 @@ impl DebugInfo {
         }
     }
 
-    pub fn is_enabled(self) -> bool {
+    pub const fn is_enabled(self) -> bool {
         !matches!(self, Self::None)
     }
 }
 
 impl Panic {
-    pub fn identity_byte(self) -> u8 {
+    pub const fn identity_byte(self) -> u8 {
         match self {
             Self::Unwind => b'0',
             Self::Abort => b'1',
         }
     }
 
-    pub fn rustc_value(self) -> &'static str {
+    pub const fn rustc_value(self) -> &'static str {
         match self {
             Self::Unwind => "unwind",
             Self::Abort => "abort",
@@ -526,7 +518,7 @@ impl Panic {
 }
 
 impl Strip {
-    pub fn identity_byte(self) -> u8 {
+    pub const fn identity_byte(self) -> u8 {
         match self {
             Self::None => b'0',
             Self::Debuginfo => b'1',
@@ -534,7 +526,7 @@ impl Strip {
         }
     }
 
-    pub fn rustc_value(self) -> Option<&'static str> {
+    pub const fn rustc_value(self) -> Option<&'static str> {
         match self {
             Self::None => None,
             Self::Debuginfo => Some("debuginfo"),
@@ -544,7 +536,7 @@ impl Strip {
 }
 
 impl Lto {
-    pub fn rustc_value(self) -> Option<&'static str> {
+    pub const fn rustc_value(self) -> Option<&'static str> {
         match self {
             Self::Off => None,
             Self::Thin => Some("thin"),

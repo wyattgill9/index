@@ -198,6 +198,7 @@ let
     units
     // {
       inherit unitGraphJson unitsNix vendorDir;
+      inherit (args) policy;
     };
 
   /**

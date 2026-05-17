@@ -1,15 +1,29 @@
 {
   lib,
   pkgs,
-}:
-let
-  defaultRustToolchain = pkgs.symlinkJoin {
+  clippyPackage ? pkgs.clippy,
+  rustToolchain ? pkgs.symlinkJoin {
     name = "ix-rust-toolchain";
     paths = [
       pkgs.cargo
       pkgs.rustc
     ];
-  };
+  },
+}:
+let
+  defaultClippyDeniedLints = [
+    "warnings"
+    "clippy::all"
+    "clippy::pedantic"
+    "clippy::nursery"
+    "clippy::cargo"
+  ];
+
+  defaultClippyAllowedLints = [
+    "clippy::multiple_crate_versions"
+  ];
+
+  defaultRustToolchain = rustToolchain;
 
   defaultRustsecAdvisoryDb = pkgs.fetchFromGitHub {
     owner = "rustsec";
@@ -32,8 +46,10 @@ let
     };
     clippy = {
       enable = true;
+      package = clippyPackage;
       cargoArgs = [ "--all-targets" ];
-      denyWarnings = true;
+      deniedLints = defaultClippyDeniedLints;
+      allowedLints = defaultClippyAllowedLints;
     };
     tests = {
       enable = true;
@@ -70,8 +86,17 @@ let
       };
       clippy = {
         enable = clippy.enable or defaultPolicy.clippy.enable;
+        package = clippy.package or defaultPolicy.clippy.package;
         cargoArgs = clippy.cargoArgs or defaultPolicy.clippy.cargoArgs;
-        denyWarnings = clippy.denyWarnings or defaultPolicy.clippy.denyWarnings;
+        deniedLints =
+          let
+            denied = clippy.deniedLints or defaultPolicy.clippy.deniedLints;
+          in
+          if (clippy ? denyWarnings) && !clippy.denyWarnings then
+            builtins.filter (lint: lint != "warnings") denied
+          else
+            denied;
+        allowedLints = clippy.allowedLints or defaultPolicy.clippy.allowedLints;
       };
       tests = {
         enable = tests.enable or defaultPolicy.tests.enable;
@@ -128,6 +153,17 @@ let
     else
       args.policy.clippy.cargoArgs;
 
+  clippyLintArgs =
+    policy:
+    lib.concatMap (lint: [
+      "-D"
+      lint
+    ]) policy.clippy.deniedLints
+    ++ lib.concatMap (lint: [
+      "-A"
+      lint
+    ]) policy.clippy.allowedLints;
+
   resolveVendorDir =
     {
       cargoLock,
@@ -173,19 +209,29 @@ let
       cat ${cargoExtraConfigFile} >> "$CARGO_HOME/config.toml"
     '';
 
-  commonArgs = args: {
-    inherit (args) src;
-    pname = args.pname or args.name or "rust-package";
-    cargoLock = args.cargoLock or (args.src + "/Cargo.lock");
-    cargoArgs = args.cargoArgs or [ "--workspace" ];
-    rustToolchain = args.rustToolchain or defaultRustToolchain;
-    nativeBuildInputs = args.nativeBuildInputs or [ ];
-    env = args.env or { };
-    cargoExtraConfig = args.cargoExtraConfig or "";
-    vendorDir = args.vendorDir or null;
-    outputHashes = args.outputHashes or { };
-    policy = resolvePolicy (args.policy or { });
-  };
+  commonArgs =
+    args:
+    let
+      rustToolchain = args.rustToolchain or defaultRustToolchain;
+    in
+    {
+      inherit (args) src;
+      inherit rustToolchain;
+      pname = args.pname or args.name or "rust-package";
+      cargoLock = args.cargoLock or (args.src + "/Cargo.lock");
+      cargoArgs = args.cargoArgs or [ "--workspace" ];
+      rustPlatform =
+        args.rustPlatform or (pkgs.makeRustPlatform {
+          cargo = rustToolchain;
+          rustc = rustToolchain;
+        });
+      nativeBuildInputs = args.nativeBuildInputs or [ ];
+      env = args.env or { };
+      cargoExtraConfig = args.cargoExtraConfig or "";
+      vendorDir = args.vendorDir or null;
+      outputHashes = args.outputHashes or { };
+      policy = resolvePolicy (args.policy or { });
+    };
 
   policyCheckArgs =
     rawArgs:
@@ -287,11 +333,10 @@ let
       ]
       ++ args.cargoArgs
       ++ clippyCargoArgs rawArgs args
-      ++ lib.optionals args.policy.clippy.denyWarnings [
+      ++ lib.optionals (args.policy.clippy.deniedLints != [ ] || args.policy.clippy.allowedLints != [ ]) [
         "--"
-        "-D"
-        "warnings"
-      ];
+      ]
+      ++ clippyLintArgs args.policy;
     in
     pkgs.runCommand "${args.pname}-cargo-clippy"
       (
@@ -299,7 +344,7 @@ let
           nativeBuildInputs = [
             args.rustToolchain
             pkgs.cacert
-            pkgs.clippy
+            args.policy.clippy.package
             pkgs.stdenv.cc
           ]
           ++ args.nativeBuildInputs
@@ -376,6 +421,7 @@ let
           "cargoTestFlags"
           "outputHashes"
           "policy"
+          "rustPlatform"
           "rustToolchain"
           "vendorDir"
         ]
@@ -398,7 +444,7 @@ let
         // lib.optionalAttrs (rustcArgs != [ ]) {
           RUSTFLAGS = (lib.toList (rawArgs.RUSTFLAGS or [ ])) ++ rustcArgs;
         };
-      uncheckedPackage = pkgs.rustPlatform.buildRustPackage buildArgs;
+      uncheckedPackage = args.rustPlatform.buildRustPackage buildArgs;
       policyChecks = policyChecksFor rawArgs;
     in
     withPolicyChecks {
@@ -419,6 +465,8 @@ in
     cargoClippyCheck
     cargoMacheteCheck
     cargoLockFile
+    defaultClippyAllowedLints
+    defaultClippyDeniedLints
     defaultPolicy
     defaultRustToolchain
     defaultRustsecAdvisoryDb
