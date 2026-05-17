@@ -9,9 +9,9 @@ let
   });
 
   units = rec {
-{{ units }}  };
+{{ unit_entries }}  };
   policyChecks = {
-{{ policy_checks }}  } // extraPolicyChecks;
+{{ policy_check_entries }}  } // extraPolicyChecks;
   withPolicyChecks = package:
     if policyChecks == {} then package else pkgs.symlinkJoin {
       name = "${package.name}-policy-checked";
@@ -28,9 +28,9 @@ in
   roots = [ {{ roots }} ];
   checkedRoots = [ {{ checked_roots }} ];
   packages = {
-{{ packages }}  };
+{{ package_entries }}  };
   binaries = {
-{{ binaries }}  };
+{{ binary_entries }}  };
   libraries = {
-{{ libraries }}  };
+{{ library_entries }}  };
 {{ default_entry }}}

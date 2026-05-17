@@ -31,13 +31,13 @@ struct BuildScriptRun {
 #[derive(askama::Template)]
 #[template(path = "units.nix.askama", escape = "none")]
 struct UnitsNixTemplate {
-    units: String,
-    policy_checks: String,
+    unit_entries: String,
+    policy_check_entries: String,
     roots: String,
     checked_roots: String,
-    packages: String,
-    binaries: String,
-    libraries: String,
+    package_entries: String,
+    binary_entries: String,
+    library_entries: String,
     default_entry: String,
 }
 
@@ -45,28 +45,28 @@ pub fn render_units_nix(graph: &UnitGraph, options: &RenderOptions) -> Result<St
     graph.ensure_supported()?;
     let prepared = prepare_graph(graph, options)?;
     let template = UnitsNixTemplate {
-        units: render_units_block(graph, options, &prepared)?,
-        policy_checks: render_policy_checks(graph, options, &prepared),
+        unit_entries: render_unit_entries(graph, options, &prepared)?,
+        policy_check_entries: render_policy_check_entries(graph, options, &prepared)?,
         roots: render_roots(graph, &prepared),
         checked_roots: render_checked_roots(graph, &prepared),
-        packages: render_root_entries(graph, &prepared, |_| true),
-        binaries: render_root_entries(graph, &prepared, Unit::is_bin),
-        libraries: render_root_entries(graph, &prepared, Unit::is_library),
+        package_entries: render_root_entries(graph, &prepared, |_| true),
+        binary_entries: render_root_entries(graph, &prepared, Unit::is_bin),
+        library_entries: render_root_entries(graph, &prepared, Unit::is_library),
         default_entry: render_default_entry(graph, &prepared),
     };
 
     Ok(template.render()?)
 }
 
-fn render_units_block(
+fn render_unit_entries(
     graph: &UnitGraph,
     options: &RenderOptions,
     prepared: &PreparedGraph,
 ) -> Result<String> {
-    let mut units = String::new();
+    let mut entries = String::new();
     for (run_index, build_script_run) in &prepared.build_script_runs {
         write!(
-            units,
+            entries,
             "    {} = mkUnit {};\n\n",
             prepared.unit_attr(*run_index),
             render_build_script_run(graph, options, prepared, *run_index, build_script_run)?
@@ -79,31 +79,31 @@ fn render_units_block(
         }
 
         write!(
-            units,
+            entries,
             "    {} = mkUnit {};\n\n",
             prepared.unit_attr(index),
-            render_rustc_unit(graph, options, &prepared, index)?
+            render_rustc_unit(graph, options, prepared, index)?
         )?;
     }
 
-    Ok(units)
+    Ok(entries)
 }
 
-fn render_policy_checks(
+fn render_policy_check_entries(
     graph: &UnitGraph,
     options: &RenderOptions,
     prepared: &PreparedGraph,
-) -> String {
-    let mut policy_checks = String::new();
+) -> Result<String> {
+    let mut entries = String::new();
     if options.deny_unused_crate_dependencies {
-        let _ = write!(
-            policy_checks,
+        write!(
+            entries,
             "    unusedCrateDependencies = {};\n",
             render_unused_crate_dependencies_check(graph, options, prepared)
-        );
+        )?;
     }
 
-    policy_checks
+    Ok(entries)
 }
 
 fn render_default_entry(graph: &UnitGraph, prepared: &PreparedGraph) -> String {
