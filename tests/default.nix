@@ -186,14 +186,27 @@ let
     ];
   };
 
-  cargoUnitHello =
-    (ix.cargoUnit.buildWorkspace {
-      src = cargoUnitFixture;
-      cargoArgs = [
-        "--bin"
-        "cargo-unit-hello"
-      ];
-    }).binaries.cargo-unit-hello;
+  cargoUnitWorkspace = ix.cargoUnit.buildWorkspace {
+    src = cargoUnitFixture;
+    cargoArgs = [
+      "--bin"
+      "cargo-unit-hello"
+    ];
+  };
+
+  cargoUnitHello = cargoUnitWorkspace.binaries.cargo-unit-hello;
+
+  cargoUnitPolicyDisabledWorkspace = ix.cargoUnit.buildWorkspace {
+    src = cargoUnitFixture;
+    cargoArgs = [
+      "--bin"
+      "cargo-unit-hello"
+    ];
+    policy = {
+      denyUnusedCrateDependencies = false;
+      cargoAudit.enable = false;
+    };
+  };
 
   fleet = ix.mkFleet {
     deployment.region = "hil-1";
@@ -501,6 +514,25 @@ let
       {
         assertion = !(remoteDesktop.config.systemd.services ? novnc);
         message = "remote-desktop should not use a separate noVNC websockify service";
+      }
+    ];
+
+    helpers = [
+      {
+        assertion = cargoUnitWorkspace.policyChecks ? unusedCrateDependencies;
+        message = "cargo-unit workspaces should expose an unused dependency policy check by default";
+      }
+      {
+        assertion = cargoUnitWorkspace.policyChecks ? cargoAudit;
+        message = "cargo-unit workspaces should expose a cargo-audit policy check by default";
+      }
+      {
+        assertion = cargoUnitWorkspace.binaries.cargo-unit-hello ? unchecked;
+        message = "cargo-unit package outputs should be wrapped by policy checks by default";
+      }
+      {
+        assertion = cargoUnitPolicyDisabledWorkspace.policyChecks == { };
+        message = "cargo-unit policy checks should be disableable for generated workspaces";
       }
     ];
 

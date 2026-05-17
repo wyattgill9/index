@@ -43,6 +43,10 @@ struct RenderArgs {
     /// Salt unit identity hashes with a Rust toolchain id.
     #[arg(long, value_name = "ID")]
     toolchain_id: Option<String>,
+
+    /// Collect and fail builds on dependencies unused across all local package units.
+    #[arg(long)]
+    deny_unused_crate_dependencies: bool,
 }
 
 fn render(args: RenderArgs) -> color_eyre::Result<()> {
@@ -60,6 +64,7 @@ fn render(args: RenderArgs) -> color_eyre::Result<()> {
             vendor_root: args.vendor_root,
             content_addressed: args.content_addressed,
             toolchain_id: args.toolchain_id,
+            deny_unused_crate_dependencies: args.deny_unused_crate_dependencies,
         },
     )
     .wrap_err("rendering Cargo unit graph as Nix")?;

@@ -12,6 +12,23 @@ let
     ];
   };
 
+  defaultRustsecAdvisoryDb = pkgs.fetchFromGitHub {
+    owner = "rustsec";
+    repo = "advisory-db";
+    rev = "f2ae5fc8e5d208373b6c838f9676434525327a72";
+    hash = "sha256-iqXYpuCoWoGypnpM5ceXN748QlYeBXDtZx0uI98qFLo=";
+  };
+
+  defaultPolicy = {
+    denyUnusedCrateDependencies = true;
+    cargoAudit = {
+      enable = true;
+      db = defaultRustsecAdvisoryDb;
+      deny = [ ];
+      ignore = [ ];
+    };
+  };
+
   profileArgs =
     profile:
     if profile == "release" then
@@ -81,6 +98,21 @@ let
     vendorDir = args.vendorDir or null;
     outputHashes = args.outputHashes or { };
     contentAddressed = args.contentAddressed or false;
+    policy =
+      let
+        rawPolicy = args.policy or { };
+        rawCargoAudit = rawPolicy.cargoAudit or { };
+      in
+      {
+        denyUnusedCrateDependencies =
+          rawPolicy.denyUnusedCrateDependencies or defaultPolicy.denyUnusedCrateDependencies;
+        cargoAudit = {
+          enable = rawCargoAudit.enable or defaultPolicy.cargoAudit.enable;
+          db = rawCargoAudit.db or defaultPolicy.cargoAudit.db;
+          deny = rawCargoAudit.deny or defaultPolicy.cargoAudit.deny;
+          ignore = rawCargoAudit.ignore or defaultPolicy.cargoAudit.ignore;
+        };
+      };
   };
 
   renderCargoArgs =
@@ -167,7 +199,8 @@ let
         "--toolchain-id"
         toolchainId
       ]
-      ++ lib.optional args.contentAddressed "--content-addressed";
+      ++ lib.optional args.contentAddressed "--content-addressed"
+      ++ lib.optional args.policy.denyUnusedCrateDependencies "--deny-unused-crate-dependencies";
     in
     pkgs.runCommand "cargo-units.nix"
       {
@@ -178,11 +211,53 @@ let
       '';
 
   /**
+    Audit a workspace `Cargo.lock` with `cargo-audit` as a pure Nix check.
+
+    The advisory database is a pinned RustSec checkout by default, and
+    `cargo-audit` runs with `--no-fetch --stale` so evaluation and builds do
+    not depend on a user Cargo home or network access.
+  */
+  auditCargoLock =
+    rawArgs:
+    let
+      args = commonArgs rawArgs;
+      inherit (args.policy) cargoAudit;
+      auditFlags = [
+        "audit"
+        "--file"
+        (builtins.toString args.cargoLock)
+        "--db"
+        (builtins.toString cargoAudit.db)
+        "--no-fetch"
+        "--stale"
+      ]
+      ++ lib.concatMap (deny: [
+        "--deny"
+        deny
+      ]) cargoAudit.deny
+      ++ lib.concatMap (advisory: [
+        "--ignore"
+        advisory
+      ]) cargoAudit.ignore;
+    in
+    pkgs.runCommand "cargo-unit-cargo-audit"
+      {
+        nativeBuildInputs = [ pkgs.cargo-audit ];
+      }
+      ''
+        export CARGO_HOME="$TMPDIR/cargo-home"
+        mkdir -p "$CARGO_HOME"
+        cargo-audit ${lib.escapeShellArgs auditFlags}
+        mkdir -p "$out"
+      '';
+
+  /**
     Build a Rust workspace as one Nix derivation per Cargo rustc unit.
 
-    Returns the generated attrset with `units`, `roots`, `packages`,
-    `binaries`, `libraries`, `default`, plus the intermediate `unitGraphJson`,
-    `unitsNix`, and `vendorDir` derivations for inspection.
+    Returns the generated attrset with `units`, `roots`, `checkedRoots`,
+    `packages`, `binaries`, `libraries`, `default`, `policyChecks`, plus the
+    intermediate `unitGraphJson`, `unitsNix`, and `vendorDir` derivations for
+    inspection.
   */
   buildWorkspace =
     rawArgs:
@@ -203,6 +278,14 @@ let
         inherit (args) src rustToolchain;
         extraNativeBuildInputs = args.nativeBuildInputs;
         extraEnv = args.env;
+        extraPolicyChecks = lib.optionalAttrs args.policy.cargoAudit.enable {
+          cargoAudit = auditCargoLock (
+            rawArgs
+            // {
+              inherit vendorDir;
+            }
+          );
+        };
       };
     in
     units
@@ -266,6 +349,7 @@ in
     buildBinary
     buildPackage
     buildWorkspace
+    auditCargoLock
     generateUnitGraph
     generateUnitsNix
     ;
