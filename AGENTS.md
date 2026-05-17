@@ -210,6 +210,10 @@ in
 
 Mods without config (lithium, krypton, chunky) do not need a module. The slug in `mods` is sufficient. Register mod modules in `modules/default.nix` under `minecraft.mods.<name>`.
 
+### Minecraft player access
+
+Whitelist and operator files are derived from `services.minecraft.players`. Put each player's UUID and optional display name there, then set `whitelist = true` and/or `operator.enable = true` on the player. Use `services.minecraft.whitelist.enable` for `server.properties` whitelist enforcement, and `services.minecraft.operators.manage` only when you intentionally want the generated `ops.json` to exist even with no operators. Presets and examples should not hand-author `ops.json` or `whitelist.json` unless they are explicitly testing the raw `serverFiles` escape hatch.
+
 ### Config file format inference
 
 `configFiles` keys are relative paths under `config/`. The serialization format is inferred from the file extension: `.toml`, `.json`, `.yaml`/`.yml`, `.properties`. Values are plain Nix attrsets. Mod modules never import `pkgs.formats` directly.

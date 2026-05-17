@@ -96,6 +96,72 @@ let
     };
   };
 
+  playerType = types.submodule (
+    { name, ... }:
+    {
+      options = {
+        uuid = mkOption {
+          type = types.str;
+          example = "069a79f4-44e9-4726-a5be-fca90e38aaf5";
+          description = "Minecraft account UUID for this player.";
+        };
+
+        name = mkOption {
+          type = types.str;
+          default = name;
+          defaultText = lib.literalMD "the attribute name under `services.minecraft.players`";
+          description = "Minecraft player name written to access-control files.";
+        };
+
+        whitelist = mkOption {
+          type = types.bool;
+          default = false;
+          description = "Whether to include this player in the generated whitelist.json.";
+        };
+
+        operator = {
+          enable = mkOption {
+            type = types.bool;
+            default = false;
+            description = "Whether to include this player in the generated ops.json.";
+          };
+
+          level = mkOption {
+            type = types.ints.between 0 4;
+            default = 4;
+            description = "Minecraft operator permission level.";
+          };
+
+          bypassesPlayerLimit = mkOption {
+            type = types.bool;
+            default = false;
+            description = "Whether this operator can join when the server is full.";
+          };
+        };
+      };
+    }
+  );
+
+  players = lib.attrValues cfg.players;
+
+  whitelistEntries = map (player: {
+    inherit (player) uuid name;
+  }) (lib.filter (player: player.whitelist) players);
+
+  operatorEntries = map (player: {
+    inherit (player) uuid name;
+    inherit (player.operator) level bypassesPlayerLimit;
+  }) (lib.filter (player: player.operator.enable) players);
+
+  accessServerFiles = lib.mkMerge [
+    (lib.mkIf (cfg.whitelist.manage || whitelistEntries != [ ]) {
+      "whitelist.json" = lib.mkDefault whitelistEntries;
+    })
+    (lib.mkIf (cfg.operators.manage || operatorEntries != [ ]) {
+      "ops.json" = lib.mkDefault operatorEntries;
+    })
+  ];
+
   modJars = lib.mapAttrsToList (
     slug: _:
     let
@@ -407,6 +473,38 @@ in
       description = "Slug to locked Bukkit plugin artifact mapping.";
     };
 
+    players = mkOption {
+      type = types.attrsOf playerType;
+      default = { };
+      description = "Minecraft players keyed by a stable local name. Entries can be reused by whitelist.json and ops.json without repeating UUIDs.";
+    };
+
+    whitelist = {
+      enable = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Whether to enable the Minecraft whitelist in server.properties.";
+      };
+
+      enforce = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Whether the server should disconnect players who are removed from the whitelist while online.";
+      };
+
+      manage = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Whether to generate whitelist.json even when no players currently have `whitelist = true`.";
+      };
+    };
+
+    operators.manage = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Whether to generate ops.json even when no players currently have `operator.enable = true`.";
+    };
+
     javaPackage = mkOption {
       type = types.package;
       default = pkgs.temurin-jre-bin-25;
@@ -551,7 +649,18 @@ in
   };
 
   config = mkIf cfg.enable {
-    services.minecraft.serverFiles."server.properties".server-port = lib.mkDefault cfg.port;
+    services.minecraft.serverFiles = lib.mkMerge [
+      {
+        "server.properties".server-port = lib.mkDefault cfg.port;
+      }
+      (lib.mkIf cfg.whitelist.enable {
+        "server.properties" = {
+          white-list = lib.mkDefault true;
+          enforce-whitelist = lib.mkDefault cfg.whitelist.enforce;
+        };
+      })
+      accessServerFiles
+    ];
 
     networking.firewall.allowedTCPPorts = [
       cfg.port

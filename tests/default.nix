@@ -139,6 +139,40 @@ let
           inherit config;
           managed.serverFiles = config.environment.etc."minecraft/managed-server-files".source;
         };
+
+      access =
+        let
+          config = evalConfig [
+            ../images/games/minecraft
+            defaultMinecraftModule
+            {
+              services.minecraft = {
+                whitelist.enable = true;
+                players = {
+                  Alice = {
+                    uuid = "00000000-0000-0000-0000-000000000001";
+                    whitelist = true;
+                    operator = {
+                      enable = true;
+                      level = 3;
+                      bypassesPlayerLimit = true;
+                    };
+                  };
+
+                  Bob = {
+                    uuid = "00000000-0000-0000-0000-000000000002";
+                    whitelist = true;
+                  };
+                };
+              };
+            }
+          ];
+        in
+        {
+          inherit config;
+          cfg = config.services.minecraft;
+          managed.serverFiles = config.environment.etc."minecraft/managed-server-files".source;
+        };
     };
 
   bedrock =
@@ -404,6 +438,34 @@ let
             minecraft.rcon.openFirewall.cfg.rcon.port
           ];
         message = "typed minecraft RCON should open the firewall only when requested";
+      }
+      {
+        assertion = minecraft.access.cfg.serverFiles."server.properties".white-list;
+        message = "typed minecraft whitelist should enable server.properties white-list";
+      }
+      {
+        assertion = minecraft.access.cfg.serverFiles."server.properties".enforce-whitelist;
+        message = "typed minecraft whitelist should enable enforce-whitelist by default";
+      }
+      {
+        assertion =
+          map (player: player.name) minecraft.access.cfg.serverFiles."whitelist.json" == [
+            "Alice"
+            "Bob"
+          ];
+        message = "typed minecraft players should generate whitelist.json entries";
+      }
+      {
+        assertion =
+          minecraft.access.cfg.serverFiles."ops.json" == [
+            {
+              uuid = "00000000-0000-0000-0000-000000000001";
+              name = "Alice";
+              level = 3;
+              bypassesPlayerLimit = true;
+            }
+          ];
+        message = "typed minecraft players should generate ops.json entries";
       }
     ];
 
@@ -693,6 +755,12 @@ let
       ! grep -R 'rcon.password' ${minecraft.rcon.managed.serverFiles}
       grep -q '^query.port=25565$' ${minecraft.nestedProperties.managed.serverFiles}/server.properties
       grep -q '^rcon.port=25575$' ${minecraft.nestedProperties.managed.serverFiles}/server.properties
+      grep -q '^white-list=true$' ${minecraft.access.managed.serverFiles}/server.properties
+      grep -q '^enforce-whitelist=true$' ${minecraft.access.managed.serverFiles}/server.properties
+      grep -q '"name": "Alice"' ${minecraft.access.managed.serverFiles}/whitelist.json
+      grep -q '"name": "Bob"' ${minecraft.access.managed.serverFiles}/whitelist.json
+      grep -q '"level": 3' ${minecraft.access.managed.serverFiles}/ops.json
+      grep -q '"bypassesPlayerLimit": true' ${minecraft.access.managed.serverFiles}/ops.json
     '';
 
     "minecraft_1.21.11-paper" = ''

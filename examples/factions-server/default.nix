@@ -15,6 +15,17 @@ index.lib.mkFleet {
           paper.enable = true;
           rcon.enable = true;
 
+          # Uncomment and add real Minecraft UUIDs to derive whitelist.json
+          # and ops.json from one player record.
+          # whitelist.enable = true;
+          # players = {
+          #   Alice = {
+          #     uuid = "00000000-0000-0000-0000-000000000000";
+          #     whitelist = true;
+          #     operator.enable = true;
+          #   };
+          # };
+
           plugins = {
             luckperms = { };
             teams-api = { };
