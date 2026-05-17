@@ -181,6 +181,93 @@ let
   mkMinecraftLoader = import ./minecraft-loader.nix;
 
   /**
+    Nix constructors for typed Minecraft NBT values.
+
+    Plain Nix attrsets, lists, strings, booleans, integers, and floats can be
+    encoded as compound, list, string, byte, int/long, and double tags. These
+    constructors are the explicit escape hatch for Minecraft's narrower tag
+    types: bytes, shorts, floats, typed numeric arrays, and named roots.
+  */
+  minecraft = {
+    nbt =
+      let
+        tagged = tag: value: {
+          __minecraftNbt = tag;
+          inherit value;
+        };
+      in
+      {
+        root = name: value: {
+          __minecraftNbt = "root";
+          inherit name value;
+        };
+        byte = tagged "byte";
+        short = tagged "short";
+        int = tagged "int";
+        long = tagged "long";
+        float = tagged "float";
+        double = tagged "double";
+        string = tagged "string";
+        bool = value: tagged "byte" (if value then 1 else 0);
+        byteArray = tagged "byteArray";
+        intArray = tagged "intArray";
+        longArray = tagged "longArray";
+        list = tagged "list";
+        compound = tagged "compound";
+      };
+  };
+
+  /**
+    Build a `pkgs.formats`-style generator for Minecraft NBT data.
+
+    Arguments:
+    - `pkgs`: package set used to build the encoder and output derivation.
+    - `format`: `snbt` for readable stringified NBT or `nbt` for binary NBT.
+    - `flavor`: binary NBT compression flavor: `uncompressed`, `gzip`, or
+      `zlib`. Ignored for `snbt`.
+
+    Returns an attrset with `type` and `generate`, matching `pkgs.formats.*`.
+  */
+  mkMinecraftNbtFormat =
+    pkgs:
+    {
+      format,
+      flavor ? "uncompressed",
+    }:
+    let
+      validFormats = [
+        "nbt"
+        "snbt"
+      ];
+      validFlavors = [
+        "uncompressed"
+        "gzip"
+        "zlib"
+      ];
+      jsonFormat = pkgs.formats.json { };
+      minecraftNbt = pkgs.callPackage paths.packages.minecraftNbt { };
+    in
+    assert lib.assertMsg (builtins.elem format validFormats)
+      "mkMinecraftNbtFormat: format must be one of ${lib.concatStringsSep ", " validFormats}";
+    assert lib.assertMsg (builtins.elem flavor validFlavors)
+      "mkMinecraftNbtFormat: flavor must be one of ${lib.concatStringsSep ", " validFlavors}";
+    {
+      inherit (jsonFormat) type;
+      generate =
+        name: value:
+        let
+          input = pkgs.writeText "${name}.json" (builtins.toJSON value);
+        in
+        pkgs.runCommand name { nativeBuildInputs = [ minecraftNbt ]; } ''
+          minecraft-nbt \
+            --format ${lib.escapeShellArg format} \
+            --flavor ${lib.escapeShellArg flavor} \
+            --input ${input} \
+            --output "$out"
+        '';
+    };
+
+  /**
     Build the `minecraft-sync-managed` wrapper for a Minecraft service.
 
     The wrapper passes the mutable data directory, managed `/etc/minecraft`
@@ -321,6 +408,7 @@ let
         minestom.helloServerJar = pkgs.callPackage paths.packages.minestom.servers.hello {
           ix = ixForPackages;
         };
+        minecraft-nbt = pkgs.callPackage paths.packages.minecraftNbt { };
         minecraft-sync-managed = pkgs.callPackage paths.packages.minecraftSyncManaged { };
         nix-cargo-unit = pkgs.callPackage paths.packages.nixCargoUnit { };
         oci-image-builder = pkgs.callPackage paths.packages.ociImageBuilder { };
@@ -349,7 +437,9 @@ let
       bunLockFor
       cargoUnit
       cargoUnitFor
+      minecraft
       mkMinecraftLoader
+      mkMinecraftNbtFormat
       mkMinecraftSyncManaged
       systemdHardening
       writeNushellApplication
@@ -509,7 +599,9 @@ in
     bunLockFor
     cargoUnit
     cargoUnitFor
+    minecraft
     mkMinecraftLoader
+    mkMinecraftNbtFormat
     mkMinecraftSyncManaged
     packageSetFor
     systemdHardening

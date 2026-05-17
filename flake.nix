@@ -42,6 +42,7 @@
         packages = {
           ix = ./packages/ix;
           minecraftHotReloadAgent = ./packages/minecraft-hot-reload-agent;
+          minecraftNbt = ./packages/minecraft-nbt;
           minecraftRcon = ./packages/minecraft-rcon;
           minecraftSyncManaged = ./packages/minecraft-sync-managed;
           minestom.servers.hello = ./packages/minestom/servers/hello;

@@ -107,7 +107,6 @@ let
             versions."26.1.2-paper"
             {
               services.minecraft.plugins = {
-                fastasyncworldedit = { };
                 pvpindex-factions = { };
                 simple-voice-chat.port = 24455;
                 terraformgenerator.worlds = [
@@ -115,6 +114,7 @@ let
                   "factions_nether"
                   "factions_the_end"
                 ];
+                worldedit = { };
               };
               services.minecraft.properties.level-name = "factions";
             }
@@ -269,6 +269,68 @@ let
             rconPort = config.services.minecraft.rcon.port;
             rconPasswordFile = "/build/minecraft-access-data/.ix-rcon-password";
             rconBroadcastToOps = false;
+          };
+        };
+
+      nbt =
+        let
+          tags = ix.minecraft.nbt;
+          config = evalConfig [
+            ../images/games/minecraft
+            defaultMinecraftModule
+            {
+              services.minecraft = {
+                serverFiles = {
+                  "generated/example.snbt" = tags.compound {
+                    DataVersion = tags.int 4325;
+                    Enabled = tags.bool true;
+                    Health = tags.short 20;
+                    Angle = tags.float 0.5;
+                    Precise = tags.double 12.25;
+                    Flags = tags.byteArray [
+                      1
+                      0
+                      (-1)
+                    ];
+                    Spawn = tags.compound {
+                      Dimension = tags.string "minecraft:overworld";
+                      Pos = tags.list [
+                        (tags.double 1.5)
+                        (tags.double 65.25)
+                        (tags.double (-30.5))
+                      ];
+                    };
+                  };
+
+                  "generated/example.nbt" = tags.root "ix" (
+                    tags.compound {
+                      Name = tags.string "binary";
+                      Values = tags.intArray [
+                        1
+                        2
+                        3
+                      ];
+                    }
+                  );
+
+                  "generated/example.nbt.gz" = tags.compound {
+                    Name = tags.string "compressed";
+                  };
+                };
+
+                configFiles."generated/client.snbt" = tags.compound {
+                  Side = tags.string "config";
+                };
+              };
+            }
+          ];
+        in
+        {
+          inherit config;
+          cfg = config.services.minecraft;
+          managed = {
+            config = config.environment.etc."minecraft/managed-config".source;
+            serverFiles = config.environment.etc."minecraft/managed-server-files".source;
           };
         };
     };
@@ -583,6 +645,18 @@ let
         assertion = builtins.elem minecraft.access.managed.access minecraft.access.service.unit.restartTriggers;
         message = "typed minecraft access changes should restart the server so Minecraft rereads mutable access files";
       }
+      {
+        assertion = builtins.hasAttr "generated/example.snbt" minecraft.nbt.cfg.serverFiles;
+        message = "minecraft serverFiles should accept readable SNBT files";
+      }
+      {
+        assertion = builtins.hasAttr "generated/example.nbt" minecraft.nbt.cfg.serverFiles;
+        message = "minecraft serverFiles should accept binary NBT files";
+      }
+      {
+        assertion = builtins.hasAttr "generated/client.snbt" minecraft.nbt.cfg.configFiles;
+        message = "minecraft configFiles should accept readable SNBT files";
+      }
     ];
 
     "minecraft_1.21.11-paper" = [
@@ -625,9 +699,8 @@ let
         message = "Generated Paper plugin catalog should preserve Bukkit plugin names";
       }
       {
-        assertion =
-          minecraft.paperPlugins.cfg.pluginCatalog.fastasyncworldedit.pluginName == "FastAsyncWorldEdit";
-        message = "Paper minecraft should prefer FastAsyncWorldEdit over the stock WorldEdit plugin";
+        assertion = minecraft.paperPlugins.cfg.pluginCatalog.worldedit.pluginName == "WorldEdit";
+        message = "Paper minecraft should expose the generated WorldEdit plugin entry";
       }
       {
         assertion = minecraft.paperPlugins.cfg.pluginCatalog.simple-voice-chat.pluginName == "voicechat";
@@ -926,6 +999,17 @@ let
       grep -q '"bypassesPlayerLimit": true' /build/minecraft-access-data/ops.json
       grep -q '"name": "ManualOp"' /build/minecraft-access-data/ops.json
       ! grep -q '"name": "RemovedOp"' /build/minecraft-access-data/ops.json
+
+      grep -q 'DataVersion: 4325' ${minecraft.nbt.managed.serverFiles}/generated/example.snbt
+      grep -q 'Enabled: 1B' ${minecraft.nbt.managed.serverFiles}/generated/example.snbt
+      grep -q 'Health: 20S' ${minecraft.nbt.managed.serverFiles}/generated/example.snbt
+      grep -q 'Angle: 0.5F' ${minecraft.nbt.managed.serverFiles}/generated/example.snbt
+      grep -q 'Precise: 12.25' ${minecraft.nbt.managed.serverFiles}/generated/example.snbt
+      grep -q 'B;' ${minecraft.nbt.managed.serverFiles}/generated/example.snbt
+      grep -q 'Dimension: "minecraft:overworld"' ${minecraft.nbt.managed.serverFiles}/generated/example.snbt
+      grep -q 'Side: config' ${minecraft.nbt.managed.config}/generated/client.snbt
+      test "$(od -An -tx1 -N5 ${minecraft.nbt.managed.serverFiles}/generated/example.nbt | tr -d ' \n')" = "0a00026978"
+      test "$(od -An -tx1 -N2 ${minecraft.nbt.managed.serverFiles}/generated/example.nbt.gz | tr -d ' \n')" = "1f8b"
     '';
 
     "minecraft_1.21.11-paper" = ''

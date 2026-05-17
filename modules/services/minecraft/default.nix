@@ -6,9 +6,9 @@
 # `dropinDir` is where mod jars get symlinked: fabric/neoforge/sponge use
 # `mods`, paper/folia/purpur/spigot use `plugins`.
 #
-# All server config files (server.properties, bukkit.yml, spigot.yml, etc.)
-# go through `serverFiles`. Mod config files go through `configFiles` (placed
-# under config/).
+# All server config files (server.properties, bukkit.yml, spigot.yml, NBT
+# data, etc.) go through `serverFiles`. Mod config files go through
+# `configFiles` (placed under config/).
 {
   config,
   ix,
@@ -285,20 +285,39 @@ let
       }
     ];
 
+  nbtFormats = {
+    nbt = ix.mkMinecraftNbtFormat pkgs { format = "nbt"; };
+    snbt = ix.mkMinecraftNbtFormat pkgs { format = "snbt"; };
+    nbtGzip = ix.mkMinecraftNbtFormat pkgs {
+      format = "nbt";
+      flavor = "gzip";
+    };
+    nbtZlib = ix.mkMinecraftNbtFormat pkgs {
+      format = "nbt";
+      flavor = "zlib";
+    };
+  };
+
   # Infer serialization format from file extension.
   formatFor =
     path:
     let
       ext = fileExt path;
     in
-    {
-      toml = pkgs.formats.toml { };
-      json = pkgs.formats.json { };
-      yaml = pkgs.formats.yaml { };
-      yml = pkgs.formats.yaml { };
-      properties = pkgs.formats.keyValue { };
-    }
-    .${ext} or (throw "configFiles: unsupported extension .${ext} on '${path}'");
+    if lib.hasSuffix ".nbt.gz" path then
+      nbtFormats.nbtGzip
+    else if lib.hasSuffix ".nbt.zlib" path then
+      nbtFormats.nbtZlib
+    else
+      {
+        toml = pkgs.formats.toml { };
+        json = pkgs.formats.json { };
+        yaml = pkgs.formats.yaml { };
+        yml = pkgs.formats.yaml { };
+        properties = pkgs.formats.keyValue { };
+        inherit (nbtFormats) nbt snbt;
+      }
+      .${ext} or (throw "minecraft managed files: unsupported extension .${ext} on '${path}'");
 
   normalizeFor = path: value: if fileExt path == "properties" then flattenProperties value else value;
 
@@ -646,7 +665,7 @@ in
     configFiles = mkOption {
       type = types.attrsOf formatValueType;
       default = { };
-      description = "Config files to place under config/. Keys are relative paths (format inferred from extension: .toml, .json, .yaml, .yml, .properties). Values are Nix attrsets.";
+      description = "Config files to place under config/. Keys are relative paths (format inferred from extension: .toml, .json, .yaml, .yml, .properties, .snbt, .nbt, .nbt.gz, .nbt.zlib). Values are Nix attrsets.";
     };
 
     properties = mkOption {
@@ -715,7 +734,7 @@ in
       ];
 
       bukkit = lib.mkIf (bukkit.worlds != { }) {
-        worlds = bukkit.worlds;
+        inherit (bukkit) worlds;
       };
 
       serverFiles = lib.mkMerge [
