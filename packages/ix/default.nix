@@ -25,6 +25,10 @@ stdenvNoCC.mkDerivation {
   meta = {
     description = "ix deployment platform CLI";
     mainProgram = "ix";
-    platforms = [ "x86_64-linux" ];
+    platforms = [
+      "x86_64-linux"
+      "aarch64-darwin"
+      "x86_64-darwin"
+    ];
   };
 }

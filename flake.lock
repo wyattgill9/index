@@ -1,5 +1,29 @@
 {
   "nodes": {
+    "ixCliAarch64Darwin": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-lPxd7XkazzfTkM2Az4R1ENlEmXzaF70O93OagH1Kn2s=",
+        "type": "file",
+        "url": "https://ix.dev/cli/darwin-arm64/ix"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://ix.dev/cli/darwin-arm64/ix"
+      }
+    },
+    "ixCliX86_64Darwin": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-ivkOJr+NUsoeyZ5m90LcS1BC89ibnzVKPui+Z7GdjkQ=",
+        "type": "file",
+        "url": "https://ix.dev/cli/darwin-x86_64/ix"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://ix.dev/cli/darwin-x86_64/ix"
+      }
+    },
     "ixCliX86_64Linux": {
       "flake": false,
       "locked": {
@@ -30,6 +54,8 @@
     },
     "root": {
       "inputs": {
+        "ixCliAarch64Darwin": "ixCliAarch64Darwin",
+        "ixCliX86_64Darwin": "ixCliX86_64Darwin",
         "ixCliX86_64Linux": "ixCliX86_64Linux",
         "nixpkgs": "nixpkgs"
       }
