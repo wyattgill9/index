@@ -290,6 +290,7 @@ let
             plugmanReloadEnabled = false;
             rconEnabled = false;
             ignoredPlugins = [ ];
+            datapackWorlds = [ ];
             rconPort = config.services.minecraft.rcon.port;
             rconPasswordFile = "/build/minecraft-access-data/.ix-rcon-password";
             rconBroadcastToOps = false;
@@ -355,6 +356,50 @@ let
           managed = {
             config = config.environment.etc."minecraft/managed-config".source;
             serverFiles = config.environment.etc."minecraft/managed-server-files".source;
+          };
+        };
+
+      datapacks =
+        let
+          config = evalConfig [
+            ../images/games/minecraft
+            defaultMinecraftModule
+            {
+              services.minecraft = {
+                properties.level-name = "custom";
+                datapacks."max-height".dimensionTypes.overworld = {
+                  min_y = -2032;
+                  height = 4064;
+                  logical_height = 4064;
+                };
+              };
+            }
+          ];
+        in
+        {
+          inherit config;
+          cfg = config.services.minecraft;
+          service =
+            let
+              unit = config.systemd.services.minecraft;
+            in
+            {
+              inherit unit;
+              config = unit.serviceConfig;
+            };
+          managed.datapacks = config.environment.etc."minecraft/managed-datapacks".source;
+          syncManaged = ix.mkMinecraftSyncManaged {
+            inherit pkgs;
+            inherit (config.services.minecraft) dropinDir;
+            dataDir = "/build/minecraft-datapack-data";
+            managedRoot = "/build/minecraft-datapack-managed-root";
+            plugmanReloadEnabled = false;
+            rconEnabled = false;
+            ignoredPlugins = [ ];
+            datapackWorlds = config.services.minecraft.datapacks."max-height".worlds;
+            rconPort = config.services.minecraft.rcon.port;
+            rconPasswordFile = "/build/minecraft-datapack-data/.ix-rcon-password";
+            rconBroadcastToOps = false;
           };
         };
     };
@@ -548,6 +593,7 @@ let
       cfg = config.services.minecraft;
       managed = {
         config = config.environment.etc."minecraft/managed-config".source;
+        datapacks = config.environment.etc."minecraft/managed-datapacks".source;
         dropins = config.environment.etc."minecraft/managed-dropins".source;
         serverFiles = config.environment.etc."minecraft/managed-server-files".source;
       };
@@ -615,6 +661,13 @@ let
           ]
           && !(builtins.hasAttr "fastasyncworldedit" factionsExample.cfg.plugins);
         message = "factions-server example should use the curated Paper plugin catalog slugs";
+      }
+      {
+        assertion =
+          factionsExample.cfg.datapacks."max-height".dimensionTypes.overworld.min_y == -2032
+          && factionsExample.cfg.datapacks."max-height".dimensionTypes.overworld.height == 4064
+          && factionsExample.cfg.datapacks."max-height".dimensionTypes.the_end.height == 4064;
+        message = "factions-server example should install a max-height datapack";
       }
       {
         assertion =
@@ -885,6 +938,18 @@ let
       {
         assertion = builtins.hasAttr "generated/client.snbt" minecraft.nbt.cfg.configFiles;
         message = "minecraft configFiles should accept readable SNBT files";
+      }
+      {
+        assertion = minecraft.datapacks.cfg.datapacks."max-height".worlds == [ "custom" ];
+        message = "minecraft datapacks should default to the configured level-name world";
+      }
+      {
+        assertion = builtins.hasAttr "/var/lib/minecraft/custom/datapacks" minecraft.datapacks.config.ix.extendedAttributes;
+        message = "minecraft datapacks should annotate target world datapack directories";
+      }
+      {
+        assertion = builtins.elem minecraft.datapacks.managed.datapacks minecraft.datapacks.service.unit.restartTriggers;
+        message = "minecraft datapack changes should restart the server so registries are reloaded";
       }
     ];
 
@@ -1293,6 +1358,8 @@ let
       grep -q 'query-plugins: false' ${factionsExample.managed.serverFiles}/bukkit.yml
       grep -q '"port": 8100' ${factionsExample.managed.serverFiles}/plugins/BlueMap/webserver.conf
       grep -q '"accept-download": true' ${factionsExample.managed.serverFiles}/plugins/BlueMap/core.conf
+      grep -q '"height": 4064' ${factionsExample.managed.datapacks}/max-height/data/minecraft/dimension_type/overworld.json
+      grep -q '"height": 4064' ${factionsExample.managed.datapacks}/max-height/data/minecraft/dimension_type/the_end.json
       grep -q 'optimize-explosions: true' ${factionsExample.managed.config}/paper-world-defaults.yml
       grep -q 'allow-piston-duplication: true' ${factionsExample.managed.config}/paper-global.yml
       grep -q 'worldborder set 12000' ${factionsExample.service.serviceConfig.ExecStart}
@@ -1364,6 +1431,18 @@ let
       grep -q 'Side: config' ${minecraft.nbt.managed.config}/generated/client.snbt
       test "$(od -An -tx1 -N5 ${minecraft.nbt.managed.serverFiles}/generated/example.nbt | tr -d ' \n')" = "0a00026978"
       test "$(od -An -tx1 -N2 ${minecraft.nbt.managed.serverFiles}/generated/example.nbt.gz | tr -d ' \n')" = "1f8b"
+
+      grep -q '"max_format": 101' ${minecraft.datapacks.managed.datapacks}/max-height/pack.mcmeta
+      grep -q '"min_y": -2032' ${minecraft.datapacks.managed.datapacks}/max-height/data/minecraft/dimension_type/overworld.json
+      grep -q '"height": 4064' ${minecraft.datapacks.managed.datapacks}/max-height/data/minecraft/dimension_type/overworld.json
+
+      rm -rf /build/minecraft-datapack-data /build/minecraft-datapack-managed-root
+      mkdir -p /build/minecraft-datapack-managed-root
+      ln -s ${minecraft.datapacks.managed.datapacks} /build/minecraft-datapack-managed-root/managed-datapacks
+
+      ${lib.getExe minecraft.datapacks.syncManaged}
+      test -L /build/minecraft-datapack-data/custom/datapacks/max-height
+      grep -q '"logical_height": 4064' /build/minecraft-datapack-data/custom/datapacks/max-height/data/minecraft/dimension_type/overworld.json
     '';
 
     "minecraft_1.21.11-paper" = ''

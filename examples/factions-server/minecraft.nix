@@ -31,6 +31,11 @@ in
 
     plugins = plugins.enabled;
 
+    datapacks."max-height" = {
+      inherit (world.height) dimensionTypes pack;
+      worlds = [ world.name ];
+    };
+
     properties = {
       motd = "ix Factions | territory, raids, shops";
       difficulty = "hard";

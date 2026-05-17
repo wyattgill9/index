@@ -18,6 +18,8 @@ It uses Paper `26.1.2` with a generated Paper plugin catalog entry for:
 The example also sets:
 
 - a vanilla world border at `0,0` with a `12000` block diameter
+- a generated max-height datapack, raising dimension height to the valid
+  4064-block maximum from Y `-2032` through Y `2031`
 - `server.properties` gameplay defaults for a public factions server
 - `bukkit.yml` spawn and autosave policy
 - `spigot.yml` entity, hopper, high-TNT, tracking, and message policy
@@ -46,6 +48,7 @@ ports are the only public TCP ports in this example.
 - `plugins.nix` selects catalog plugins and PlugManX reload policy.
 - `bukkit.nix`, `paper.nix`, and `spigot.nix` hold loader config files.
 - `world.nix` keeps the seed and world-border constants in one place.
+- `world-height.nix` contains the generated max-height dimension-type datapack.
 
 ## Use
 

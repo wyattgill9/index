@@ -30,6 +30,9 @@ struct Config {
     #[arg(long = "plugman-ignored-plugin")]
     plugman_ignored_plugins: Vec<String>,
 
+    #[arg(long = "datapack-world")]
+    datapack_worlds: Vec<String>,
+
     #[arg(long)]
     rcon_port: u16,
 
@@ -620,6 +623,14 @@ fn main() -> Result<()> {
         &config.data_dir.join(".ix-managed-server-files"),
         &BTreeSet::from(["ops.json".to_owned(), "whitelist.json".to_owned()]),
     )?;
+    for world in &config.datapack_worlds {
+        sync_tree(
+            &config.managed_root.join("managed-datapacks"),
+            &config.data_dir.join(world).join("datapacks"),
+            &config.data_dir.join(world).join(".ix-managed-datapacks"),
+            &BTreeSet::new(),
+        )?;
+    }
     reconcile_access(&config)?;
 
     if config.rcon_enable {

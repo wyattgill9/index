@@ -357,9 +357,10 @@ let
     Build the `minecraft-sync-managed` wrapper for a Minecraft service.
 
     The wrapper passes the mutable data directory, managed `/etc/minecraft`
-    roots, reload settings, and RCON settings to the Rust sync tool. The tool
-    then syncs ordinary managed files and reconciles `whitelist.json` and
-    `ops.json` against the live server files by UUID.
+    roots, datapack worlds, reload settings, and RCON settings to the Rust
+    sync tool. The tool then syncs ordinary managed files and datapacks, and
+    reconciles `whitelist.json` and `ops.json` against the live server files
+    by UUID.
   */
   mkMinecraftSyncManaged =
     args:

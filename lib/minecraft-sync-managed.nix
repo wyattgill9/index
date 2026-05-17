@@ -8,6 +8,7 @@
   plugmanReloadEnabled,
   rconEnabled,
   ignoredPlugins,
+  datapackWorlds,
   rconPort,
   rconPasswordFile,
   rconBroadcastToOps,
@@ -31,6 +32,11 @@ let
     plugin
   ]) ignoredPlugins;
 
+  datapackWorldArgs = lib.concatMap (world: [
+    "--datapack-world"
+    world
+  ]) datapackWorlds;
+
   rconArgs = [
     "--rcon-port"
     (toString rconPort)
@@ -41,7 +47,7 @@ let
   ]
   ++ lib.optionals rconEnabled [ "--rcon-enable" ];
 
-  args = rootArgs ++ reloadArgs ++ ignoredPluginArgs ++ rconArgs;
+  args = rootArgs ++ reloadArgs ++ ignoredPluginArgs ++ datapackWorldArgs ++ rconArgs;
 in
 writeNushellApplication pkgs {
   name = "minecraft-sync-managed";

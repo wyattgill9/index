@@ -96,6 +96,64 @@ let
     };
   };
 
+  datapackType = types.submodule (
+    { name, ... }:
+    {
+      options = {
+        enable = mkOption {
+          type = types.bool;
+          default = true;
+          description = "Whether to install this datapack.";
+        };
+
+        src = mkOption {
+          type = types.nullOr types.path;
+          default = null;
+          description = "Prebuilt datapack archive or directory. Leave unset to generate a datapack from `files` and `dimensionTypes`.";
+        };
+
+        fileName = mkOption {
+          type = types.nullOr types.str;
+          default = null;
+          defaultText = lib.literalMD "the attribute name under `services.minecraft.datapacks`";
+          description = "Name placed under each target world's `datapacks/` directory. Use a `.zip` suffix when `src` is a datapack archive.";
+        };
+
+        worlds = mkOption {
+          type = types.listOf types.str;
+          default = [ defaultWorldName ];
+          defaultText = lib.literalMD "the configured `services.minecraft.properties.level-name`, or `world`";
+          description = "World directories whose `datapacks/` directory should receive this datapack.";
+        };
+
+        pack = mkOption {
+          type = formatValueType;
+          default = {
+            description = "ix managed datapack: ${name}";
+            min_format = [
+              101
+              1
+            ];
+            max_format = 101;
+          };
+          description = "Value written under the `pack` key in generated `pack.mcmeta` files.";
+        };
+
+        files = mkOption {
+          type = types.attrsOf formatValueType;
+          default = { };
+          description = "Generated datapack files keyed by relative path from the datapack root.";
+        };
+
+        dimensionTypes = mkOption {
+          type = types.attrsOf formatValueType;
+          default = { };
+          description = "Dimension type JSON files generated under `data/minecraft/dimension_type/<name>.json`.";
+        };
+      };
+    }
+  );
+
   worldType = types.submodule {
     options.generator = mkOption {
       type = types.nullOr types.str;
@@ -213,6 +271,13 @@ let
     "ops.json"
     "whitelist.json"
   ] (lib.attrNames cfg.serverFiles);
+  enabledDatapacks = lib.filterAttrs (_: datapack: datapack.enable) cfg.datapacks;
+  sourcedGeneratedDatapacks = lib.filterAttrs (
+    _: datapack: datapack.src != null && (datapack.files != { } || datapack.dimensionTypes != { })
+  ) enabledDatapacks;
+  datapackWorldNames = lib.unique (
+    lib.concatMap (datapack: datapack.worlds) (lib.attrValues enabledDatapacks)
+  );
 
   bukkit = {
     worlds = lib.filterAttrs (_: world: world != { }) (
@@ -372,6 +437,7 @@ let
         yaml = pkgs.formats.yaml { };
         yml = pkgs.formats.yaml { };
         properties = pkgs.formats.keyValue { };
+        mcmeta = pkgs.formats.json { };
         inherit (nbtFormats) nbt snbt;
       }
       .${ext} or (throw "minecraft managed files: unsupported extension .${ext} on '${path}'");
@@ -381,7 +447,9 @@ let
   serverFiles = cfg.serverFiles // pluginConfigFiles;
 
   defaultWorldName = toString (cfg.properties."level-name" or "world");
-  annotatedWorldNames = lib.unique ([ defaultWorldName ] ++ lib.attrNames cfg.worlds);
+  annotatedWorldNames = lib.unique (
+    [ defaultWorldName ] ++ lib.attrNames cfg.worlds ++ datapackWorldNames
+  );
   mkXattrDefaults = kind: attributes: {
     attributes = lib.mapAttrs (_: lib.mkDefault) (
       {
@@ -432,6 +500,14 @@ let
       }) (regionDirectoriesFor world)
     ) annotatedWorldNames
   );
+  datapackXattrs = lib.listToAttrs (
+    map (world: {
+      name = "${dataDir}/${world}/datapacks";
+      value = mkCreatedXattrDefaults "minecraft.datapacks" {
+        "user.ix.minecraft.world" = world;
+      };
+    }) datapackWorldNames
+  );
 
   mkManaged =
     label: source:
@@ -447,6 +523,27 @@ let
         ) source
       )}
     '';
+  datapackFiles =
+    datapack:
+    {
+      "pack.mcmeta" = {
+        inherit (datapack) pack;
+      };
+    }
+    // (lib.mapAttrs' (dimension: value: {
+      name = "data/minecraft/dimension_type/${dimension}.json";
+      inherit value;
+    }) datapack.dimensionTypes)
+    // datapack.files;
+  datapackFileName = name: datapack: if datapack.fileName == null then name else datapack.fileName;
+  datapackRoots = lib.mapAttrsToList (name: datapack: {
+    fileName = datapackFileName name datapack;
+    root =
+      if datapack.src == null then
+        mkManaged "datapack-${name}" (datapackFiles datapack)
+      else
+        datapack.src;
+  }) enabledDatapacks;
 
   managed =
     let
@@ -459,12 +556,20 @@ let
           printf '%s\n' ${lib.escapeShellArg jar.pluginName} > "$out/${jar.name}.plugin-name"
         '') managedJars
       );
+      datapacks = pkgs.runCommand "minecraft-managed-datapacks" { } (
+        ''
+          mkdir -p "$out"
+        ''
+        + lib.concatMapStringsSep "\n" (datapack: ''
+          ln -s ${datapack.root} "$out/${datapack.fileName}"
+        '') datapackRoots
+      );
       configFiles = mkManaged "config" cfg.configFiles;
       serverRootFiles = mkManaged "server-files" serverFiles;
       access = mkManaged "access" accessFiles;
     in
     {
-      inherit dropins;
+      inherit dropins datapacks;
       config = configFiles;
       serverFiles = serverRootFiles;
       inherit access;
@@ -473,7 +578,10 @@ let
         configFiles
         serverRootFiles
       ];
-      restartRoots = [ access ];
+      restartRoots = [
+        access
+        datapacks
+      ];
     };
 
   syncManaged = ix.mkMinecraftSyncManaged {
@@ -487,6 +595,7 @@ let
       rconPasswordFile
       rconBroadcastToOps
       ;
+    datapackWorlds = datapackWorldNames;
     inherit (cfg) dropinDir;
     inherit (cfg.autoReload.plugman) ignoredPlugins;
   };
@@ -637,6 +746,12 @@ in
       type = types.attrsOf pluginType;
       default = { };
       description = "Bukkit-family plugins to install. Empty {} resolves a pinned catalog plugin by slug; attrsets with src install a local or private plugin jar.";
+    };
+
+    datapacks = mkOption {
+      type = types.attrsOf datapackType;
+      default = { };
+      description = "Datapacks to install into target world `datapacks/` directories. Attrsets can point at a prebuilt `src` or generate a datapack from typed files and dimension type definitions.";
     };
 
     modCatalog = mkOption {
@@ -859,6 +974,10 @@ in
         message = "services.minecraft.serverFiles cannot manage ${lib.concatStringsSep ", " rawAccessFileNames}; use services.minecraft.players so ix can reconcile Minecraft's mutable access files by UUID.";
       }
       {
+        assertion = sourcedGeneratedDatapacks == { };
+        message = "services.minecraft.datapacks cannot set both src and generated files/dimensionTypes for: ${lib.concatStringsSep ", " (lib.attrNames sourcedGeneratedDatapacks)}";
+      }
+      {
         assertion = !cfg.worldBorder.enable || rconEnabled;
         message = "services.minecraft.worldBorder.enable requires local RCON. Leave services.minecraft.rcon.enable at its worldBorder default, or keep a Bukkit-family autoReload RCON driver enabled.";
       }
@@ -913,6 +1032,7 @@ in
         "${dataDir}/config" = mkCreatedXattrDefaults "minecraft.config" { };
       }
       worldXattrs
+      datapackXattrs
     ];
 
     networking.firewall.allowedTCPPorts = [
@@ -921,6 +1041,7 @@ in
     ++ lib.optionals cfg.rcon.openFirewall [ rconPort ];
     environment.etc = {
       "minecraft/managed-dropins".source = managed.dropins;
+      "minecraft/managed-datapacks".source = managed.datapacks;
       "minecraft/managed-config".source = managed.config;
       "minecraft/managed-server-files".source = managed.serverFiles;
       "minecraft/managed-access".source = managed.access;
