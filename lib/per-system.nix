@@ -170,6 +170,7 @@ in
   checks =
     lib.optionalAttrs (system == ix.system) {
       inherit (tests) eval;
+      cargo-unit-real-workspaces = tests.cargoUnitRealWorkspaces;
       lint = pkgs.runCommand "ix-images-lint" { nativeBuildInputs = [ pkgs.coreutils ]; } ''
         cp -R ${lintSource} source
         chmod -R u+w source

@@ -499,6 +499,129 @@ let
     };
   };
 
+  cargoUnitRealWorkspacePolicy = {
+    denyUnusedCrateDependencies = false;
+    cargoAudit.enable = false;
+    cargoMachete.enable = false;
+    clippy.enable = false;
+  };
+
+  cargoUnitRealWorkspaceSource =
+    {
+      name,
+      upstream,
+      lockFile,
+    }:
+    pkgs.runCommand "cargo-unit-${name}-source-with-lock" { } ''
+      cp -R ${upstream}/. "$out"
+      chmod -R u+w "$out"
+      cp ${lockFile} "$out/Cargo.lock"
+    '';
+
+  cargoUnitRealWorkspace =
+    {
+      name,
+      owner,
+      repo,
+      rev,
+      hash,
+      lockFile,
+      buildArgs ? [ "--workspace" ],
+      testArgs ? null,
+    }:
+    let
+      upstream = pkgs.fetchFromGitHub {
+        inherit
+          owner
+          repo
+          rev
+          hash
+          ;
+      };
+      src = cargoUnitRealWorkspaceSource {
+        inherit name upstream lockFile;
+      };
+      commonArgs = {
+        pname = "cargo-unit-real-workspace-${name}";
+        inherit src;
+        cargoLock = lockFile;
+        policy = cargoUnitRealWorkspacePolicy;
+      };
+      buildWorkspace = ix.cargoUnit.buildWorkspace (commonArgs // { cargoArgs = buildArgs; });
+      testWorkspace =
+        if testArgs == null then
+          null
+        else
+          ix.cargoUnit.buildWorkspace (
+            commonArgs
+            // {
+              pname = "cargo-unit-real-workspace-${name}-tests";
+              cargoArgs = testArgs;
+            }
+          );
+    in
+    {
+      inherit buildWorkspace testWorkspace;
+      buildRoots = pkgs.linkFarmFromDrvs "cargo-unit-real-workspace-${name}-roots" buildWorkspace.roots;
+      testRoots =
+        if testWorkspace == null then
+          null
+        else
+          pkgs.linkFarmFromDrvs "cargo-unit-real-workspace-${name}-tests" (
+            builtins.attrValues testWorkspace.tests
+          );
+    };
+
+  # These upstream workspaces currently do not commit Cargo.lock. The fixture
+  # locks make the check exercise the same frozen/offline path as downstream
+  # Nix packaging without vendoring forked source trees into this repo.
+  cargoUnitRealWorkspaces = {
+    serde = cargoUnitRealWorkspace {
+      name = "serde";
+      owner = "serde-rs";
+      repo = "serde";
+      rev = "fa7da4a93567ed347ad0735c28e439fca688ef26";
+      hash = "sha256-5Ercr2dCC52VLV9dAZUsMlw+Ovup5Qui6vDQHxl70v4=";
+      lockFile = ./fixtures/cargo-unit-real-workspaces/serde/Cargo.lock;
+    };
+
+    thiserror = cargoUnitRealWorkspace {
+      name = "thiserror";
+      owner = "dtolnay";
+      repo = "thiserror";
+      rev = "d4a2507576d276dbebc4be45c9b3d657216b727f";
+      hash = "sha256-0DU1KSWZ+T4v9cfTfY8QQ2bMLgko9+c1dOXEk99KvUo=";
+      lockFile = ./fixtures/cargo-unit-real-workspaces/thiserror/Cargo.lock;
+    };
+
+    indexmap = cargoUnitRealWorkspace {
+      name = "indexmap";
+      owner = "indexmap-rs";
+      repo = "indexmap";
+      rev = "0a5535021aec77a2c9890c0bec273fa446c6593a";
+      hash = "sha256-7WBUZ1QJ6tywpdmo50QpX01fu7HMkpfoh/TC2LkPxiM=";
+      lockFile = ./fixtures/cargo-unit-real-workspaces/indexmap/Cargo.lock;
+      testArgs = [
+        "--workspace"
+        "--tests"
+      ];
+    };
+
+    regex = cargoUnitRealWorkspace {
+      name = "regex";
+      owner = "rust-lang";
+      repo = "regex";
+      rev = "839d16bc65b60e2006d3599d20bfa6efc14049d8";
+      hash = "sha256-9czj9Oa25H8VhMmZNyS0h9sFn6rYDrEPlOuGm9NJd9A=";
+      lockFile = ./fixtures/cargo-unit-real-workspaces/regex/Cargo.lock;
+      testArgs = [
+        "-p"
+        "regex-syntax"
+        "--tests"
+      ];
+    };
+  };
+
   bunSiteFixture = fs.toSource {
     root = ./fixtures/bun-site;
     fileset = fs.unions [
@@ -1486,6 +1609,38 @@ let
     grep -q '^3$' python-mcp-eval.out
   '';
 
+  cargoUnitRealWorkspaceAssertions = [
+    {
+      assertion = builtins.hasAttr "serde_derive" cargoUnitRealWorkspaces.serde.buildWorkspace.libraries;
+      message = "cargo-unit should build Serde's proc-macro workspace library";
+    }
+    {
+      assertion = builtins.hasAttr "thiserror_impl" cargoUnitRealWorkspaces.thiserror.buildWorkspace.libraries;
+      message = "cargo-unit should build Thiserror's derive implementation workspace member";
+    }
+    {
+      assertion = builtins.hasAttr "indexmap" cargoUnitRealWorkspaces.indexmap.testWorkspace.tests;
+      message = "cargo-unit should expose Indexmap's real workspace test binary";
+    }
+    {
+      assertion = builtins.hasAttr "regex-cli" cargoUnitRealWorkspaces.regex.buildWorkspace.binaries;
+      message = "cargo-unit should expose Regex's real workspace binary target";
+    }
+    {
+      assertion = builtins.hasAttr "regex_syntax" cargoUnitRealWorkspaces.regex.testWorkspace.tests;
+      message = "cargo-unit should expose Regex Syntax's real package tests";
+    }
+  ];
+
+  cargoUnitRealWorkspaceScript = ''
+    test -d ${cargoUnitRealWorkspaces.serde.buildRoots}
+    test -d ${cargoUnitRealWorkspaces.thiserror.buildRoots}
+    test -d ${cargoUnitRealWorkspaces.indexmap.buildRoots}
+    test -d ${cargoUnitRealWorkspaces.indexmap.testRoots}
+    test -d ${cargoUnitRealWorkspaces.regex.buildRoots}
+    test -d ${cargoUnitRealWorkspaces.regex.testRoots}
+  '';
+
   # --- Test derivation builder ----------------------------------------------
 
   mkTest =
@@ -1511,9 +1666,14 @@ let
     ${helperScript}
     mkdir -p "$out"
   '';
+
+  cargoUnitRealWorkspacesTest =
+    mkTest "cargo-unit-real-workspaces" cargoUnitRealWorkspaceAssertions
+      cargoUnitRealWorkspaceScript;
 in
 {
   inherit imageTests;
+  cargoUnitRealWorkspaces = cargoUnitRealWorkspacesTest;
 
   # Aggregate. Pulls every per-image test into one derivation so
   # `nix flake check` covers the whole suite.
