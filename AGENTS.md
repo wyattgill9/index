@@ -34,6 +34,8 @@ Match upstream's own capitalization. `nixpkgs`, `systemd`, `ix`, `znver5`, `pnpm
 
 Name the failure mode you are claiming to avoid. "Will not crash your VM on a bad switch" is more useful than "stable"; "recovers in one rollback" beats "reliable". Failures are concrete and falsifiable. Adjectives like "stable" and "reliable" are not.
 
+Link concrete nouns. When prose names a repo-owned tool, package, command, file, directory, or upstream project, make it a link wherever a curious reader might want to click through. The first mention of `llm-clippy` in a README should link to `packages/llm-clippy/`; `nixpkgs` links to the project; a directory pointer like `images/` links to `images/`. Anchor text is the literal name in code voice (backticks live inside the link, as `[`llm-clippy`](packages/llm-clippy/)`). Link only the first mention in a given section; do not relink the same noun every paragraph. Skip the link only when the target genuinely does not exist or when the reader is already standing on it (no self-links in the same file).
+
 ## Rust style
 
 Prefer local type annotations over turbofish when they make the data shape clearer. For example, use `let args: Vec<_> = env::args().collect();` instead of `let args = env::args().collect::<Vec<_>>();`. Keep turbofish for cases where an expression-local type is genuinely clearer, such as method chains where naming an intermediate value would add noise.
