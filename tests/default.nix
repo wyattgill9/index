@@ -10,6 +10,7 @@ let
   inherit (nixpkgs) lib;
   inherit (ix) pkgs;
   fs = lib.fileset;
+  repoPackages = ix.packageSetFor pkgs;
 
   versions = import ../images/games/minecraft/versions.nix {
     inherit lib;
@@ -408,6 +409,14 @@ let
 
   cargoUnitHello = cargoUnitWorkspace.binaries.cargo-unit-hello;
 
+  cargoUnitTestWorkspace = ix.cargoUnit.buildWorkspace {
+    src = cargoUnitFixture;
+    cargoArgs = [
+      "--workspace"
+      "--tests"
+    ];
+  };
+
   cargoUnitPolicyDisabledWorkspace = ix.cargoUnit.buildWorkspace {
     src = cargoUnitFixture;
     cargoArgs = [
@@ -417,6 +426,8 @@ let
     policy = {
       denyUnusedCrateDependencies = false;
       cargoAudit.enable = false;
+      cargoMachete.enable = false;
+      clippy.enable = false;
     };
   };
 
@@ -944,12 +955,36 @@ let
         message = "cargo-unit workspaces should expose a cargo-audit policy check by default";
       }
       {
+        assertion = cargoUnitWorkspace.policyChecks ? cargoClippy;
+        message = "cargo-unit workspaces should expose a clippy policy check by default";
+      }
+      {
+        assertion = cargoUnitWorkspace.policyChecks ? cargoMachete;
+        message = "cargo-unit workspaces should expose a cargo-machete policy check by default";
+      }
+      {
         assertion = cargoUnitWorkspace.binaries.cargo-unit-hello ? unchecked;
         message = "cargo-unit package outputs should be wrapped by policy checks by default";
       }
       {
+        assertion = builtins.hasAttr "cargo_unit_hello" cargoUnitTestWorkspace.tests;
+        message = "cargo-unit workspaces should expose test targets as separate checks";
+      }
+      {
         assertion = cargoUnitPolicyDisabledWorkspace.policyChecks == { };
         message = "cargo-unit policy checks should be disableable for generated workspaces";
+      }
+      {
+        assertion = repoPackages.minecraft-nbt.passthru.policyChecks ? cargoMachete;
+        message = "repo Rust packages should expose cargo-machete policy checks by default";
+      }
+      {
+        assertion = repoPackages.minecraft-nbt.passthru.policyChecks ? cargoClippy;
+        message = "repo Rust packages should expose clippy policy checks by default";
+      }
+      {
+        assertion = repoPackages.minecraft-nbt.passthru.tests ? package;
+        message = "repo Rust package builds should be exposed as flake-checkable tests";
       }
       {
         assertion =
@@ -1146,6 +1181,7 @@ let
 
     ${cargoUnitHello}/bin/cargo-unit-hello > cargo-unit-hello.out
     grep -q 'hello from cargo-unit' cargo-unit-hello.out
+    test -d ${cargoUnitTestWorkspace.tests.cargo_unit_hello}
 
     grep -q 'class="ix bun"' ${bunSite}/share/bun-site-fixture/index.html
     test -d ${bunSite.bunNodeModules}/node_modules/clsx

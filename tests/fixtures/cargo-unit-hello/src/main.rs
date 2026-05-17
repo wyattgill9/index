@@ -1,3 +1,3 @@
 fn main() {
-    println!("hello from cargo-unit");
+    println!("{}", cargo_unit_hello::greeting());
 }

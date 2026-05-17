@@ -3,6 +3,10 @@ name = "cargo-unit-hello"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+name = "cargo_unit_hello"
+path = "src/lib.rs"
+
 [[bin]]
 name = "cargo-unit-hello"
 path = "src/main.rs"
