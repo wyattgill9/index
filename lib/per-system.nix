@@ -1,8 +1,8 @@
 # Per-system flake outputs (packages / apps / checks / formatter).
 #
 # Kept out of flake.nix so the flake top-level can read as a manifest of
-# inputs and output categories. All composition logic for apps, image preset
-# wrappers, and lint plumbing lives here.
+# inputs and output categories. Composition logic for apps and lint plumbing
+# lives here.
 {
   system,
   ix,
@@ -67,29 +67,6 @@ let
 
   benchFilesystem = import paths.bench.filesystem { inherit ix pkgs; };
 
-  claudeCodeDemo = import paths.imagePresets.claudeCodeDemo {
-    ix = {
-      lib = ix;
-    };
-    hostSystem = system;
-  };
-  claudeCodeDemoImages = lib.mapAttrs' (
-    name: package: lib.nameValuePair "claude-code-demo-${name}-image" package
-  ) claudeCodeDemo.packages;
-  mkDemoVmUp =
-    vm:
-    ix.writeNushellApplication pkgs {
-      name = "claude-code-demo-${vm}-up";
-      runtimeInputs = [ claudeCodeDemo.up ];
-      text = ''
-        def --wrapped main [...args] {
-          exec ix-fleet-up --on ${vm} ...$args
-        }
-      '';
-    };
-  claudeCodeDemoLinuxUp = mkDemoVmUp "linux";
-  claudeCodeDemoMinecraftUp = mkDemoVmUp "minecraft";
-
   repoPackages = ix.packageSetFor pkgs;
 
   rustPackageTests =
@@ -121,17 +98,7 @@ in
       root = paths.images;
       inherit (tests) imageTests;
     })
-    // claudeCodeDemo.systemPackages
-    // claudeCodeDemoImages
     // {
-      claude-code-demo-command = claudeCodeDemo.command;
-      claude-code-demo-diff = claudeCodeDemo.diff;
-      claude-code-demo-plan = claudeCodeDemo.planCommand;
-      claude-code-demo-replace = claudeCodeDemo.replace;
-      claude-code-demo-switch = claudeCodeDemo.switch;
-      claude-code-demo-up = claudeCodeDemo.up;
-      claude-code-demo-linux-up = claudeCodeDemoLinuxUp;
-      claude-code-demo-minecraft-up = claudeCodeDemoMinecraftUp;
       inherit (repoPackages)
         hyperion
         minecraft-nbt
@@ -157,13 +124,6 @@ in
     ix-fleet = mkApp ixFleet "Render ix fleet plans and commands";
     nix-cargo-unit = mkApp repoPackages.nix-cargo-unit "Render Cargo unit graphs as Nix derivations";
     python-mcp-server = mkApp repoPackages.python-mcp-server "Run a Python MCP server";
-    claude-code-demo-diff = mkApp claudeCodeDemo.diff "Diff the Claude Code demo fleet against live VMs";
-    claude-code-demo-plan = mkApp claudeCodeDemo.planCommand "Render the Claude Code demo fleet plan";
-    claude-code-demo-replace = mkApp claudeCodeDemo.replace "Build replacement images for the Claude Code demo fleet";
-    claude-code-demo-up = mkApp claudeCodeDemo.up "Build and upload demo OCI images, then create or start VMs from them";
-    claude-code-demo-linux-up = mkApp claudeCodeDemoLinuxUp "Build and upload the Claude Code demo Linux image, then create or start only the Linux VM";
-    claude-code-demo-minecraft-up = mkApp claudeCodeDemoMinecraftUp "Build and upload the Claude Code demo Minecraft image, then create or start only the Minecraft VM";
-    claude-code-demo-switch = mkApp claudeCodeDemo.switch "Switch the Claude Code demo fleet";
   };
 
   checks =

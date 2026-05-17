@@ -1,33 +1,38 @@
 # Index
 
-**Ready-to-run ix VMs. Zero plumbing.**
+## TLDR
 
-## Why You'll Like This
+`index` builds ready-to-run [ix](https://ix.dev/) VM images from NixOS modules.
+Every image targets AMD EPYC Gen 5 (`znver5`) and ships as an OCI archive.
 
-- **Images that just boot.** Minecraft, Postgres, remote desktop, and the long tail you'd otherwise babysit.
-- **Services that compose.** Mix them like LEGO™. (The metaphor breaks the first time two services want port 25565.)
-- **[`llm-clippy`](packages/llm-clippy/) included.** A Rust linter that emits diagnostics an LLM can actually parse.
-- **~67 OCI layers per closure, every package compiled for znver5.** No [nixpkgs](https://github.com/NixOS/nixpkgs) cache hits, on purpose.
+Use it for runnable images and reusable service modules.
 
-## Try It
+## Quick Check
 
 ```sh
-nix build .#minecraft              # build an image
-nix run .#claude-code-demo-up      # spin up the demo fleet
+nix build .#minecraft
+nix run .#lint
 ```
 
-The first build is slow: every package compiles from source for AMD EPYC Gen 5. After that the nix store does its job and rebuilds are cheap.
+The first image build is slow because the full closure compiles from source for
+`znver5`. Later rebuilds reuse the local Nix store.
+
+## What Is Here
+
+- [`images/`](images/) contains runnable systems.
+- [`modules/`](modules/) contains opt-in NixOS service modules.
+- [`examples/`](examples/) contains standalone consumer fleets, including a
+  daily Python scraper.
+- [`packages/`](packages/) contains repo-owned tools such as
+  [`llm-clippy`](packages/llm-clippy/).
+- [`lib/`](lib/) contains the shared helper API used by the repo and consumers.
 
 ## Bad Fit If
 
-You're on aarch64, FreeBSD, or any CPU that isn't znver5. The "from source" rule isn't negotiable: the whole closure recompiles for `-march=znver5`, and there's no fallback path to a generic x86_64 cache.
+You need generic x86_64 binaries, aarch64 images, or FreeBSD. This repo chooses
+`-march=znver5` for the whole closure, so generic [nixpkgs](https://github.com/NixOS/nixpkgs)
+cache hits are intentionally out of scope.
 
-## Want More?
-
-- [`packages/`](packages/) for tools (including [`llm-clippy`](packages/llm-clippy/))
-- [`modules/`](modules/) for services to plug in
-- [`images/`](images/) for runnable systems
-- [`examples/`](examples/) for downstream-style fleets such as a daily Python scraper
-- [`lib/`](lib/) for the shared helpers the rest stands on
+## Contributor Notes
 
 See [AGENTS.md](AGENTS.md) and [CONTRIBUTING.md](CONTRIBUTING.md) when you're ready to dig in.

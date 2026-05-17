@@ -38,7 +38,6 @@
         modules = ./modules;
         tests = ./tests;
         bench.filesystem = ./bench/filesystem;
-        imagePresets.claudeCodeDemo = ./images/presets/claude-code-demo;
         minecraftMods = ./images/games/minecraft/mods;
         minecraftPaperPlugins = ./images/games/minecraft/plugins/paper;
         packages = {

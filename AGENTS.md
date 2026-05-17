@@ -14,6 +14,12 @@ When a commit actually fixes a tracked GitHub issue, include an auto-closing key
 
 These rules apply to prose in docs, READMEs, comments, issues, and PR descriptions.
 
+README files are written for human scanning. Machine-readable detail belongs in
+typed options, generated reference, or linked source files. Assume a reader with
+severe ADHD is trying to decide what this thing is and what to do next: put the
+TLDR first, keep paragraphs short, use direct headings, and remove completeness
+theater. The README should leave the reader oriented, not exhausted.
+
 Do not use the "X, not Y" or "X, don't Y" rhetorical pattern. It is filler that reads as marketing. State what the thing is in a positive form, drop the contrast. Replace "ix VMs without the plumbing, not glue" with "ix VMs with services that compose." Replace "Compose, don't glue" with "Compose services."
 
 Do not use em dashes. Write so the sentence does not need one: split into two sentences, use a colon, use parentheses, or restructure. If the urge is to insert "—", the sentence is doing two jobs and should be cut into two.
@@ -174,9 +180,9 @@ nix-rules/                                 # ast-grep lint rules
 Do not put inside `flake.nix`:
 
 - Fetched-artifact URLs. They are data, not flake-graph participants; keep URL + SRI hash beside the catalog entry and call `pkgs.fetchurl` at use.
-- App wrapper definitions (`writeNushellApplication { ... }` for `lint`, `update-mods`, `ix-fleet`, demo wrappers, etc.). Define them in a dedicated module under `./lib/` and reference them from `outputs` by name.
+- App wrapper definitions (`writeNushellApplication { ... }` for `lint`, `update-mods`, `ix-fleet`, preset wrappers, etc.). Define them in a dedicated module under `./lib/` and reference them from `outputs` by name.
 - Per-system `let`-bindings that compose many helpers. Push the composition into a single `mkOutputs system` function in `./lib/` and call it from `lib.genAttrs devSystems`.
-- Image preset or demo wiring (`claudeCodeDemoFor`, per-VM wrappers, etc.). Move into the preset's own `default.nix` and import it once.
+- Image preset wiring, per-VM wrappers, or other scenario-specific command composition. Move it into the preset's own `default.nix` and import it once.
 
 Target: `flake.nix` fits comfortably in a single screen and its body would look almost unsurprising as JSON. The cost of an inline helper today is the year-from-now untangle. Pay the structure cost up front.
 
@@ -398,7 +404,7 @@ They should not include generic `Use` sections or wrapper outputs for
 routine `ix shell ... journalctl` inspection. Example `flake.nix` files expose
 the build artifacts the example owns, such as image packages or a local app
 package. Leave `plan`/`diff`/`up`/`switch`/`replace` apps and matching wrapper
-packages out of downstream-style examples. Keep examples focused on the shape
+packages out of standalone consumer examples. Keep examples focused on the shape
 being taught: files, modules, service settings, data paths, and the specific
 operational caveats that are unusual for that example.
 

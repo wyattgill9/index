@@ -1,55 +1,34 @@
 # Factions Server
 
-Standalone downstream-style example for a Paper factions server on ix. It is
-intended to be runnable as-is, then customized with real player UUIDs and
-spawn/claim policy once the world exists.
+## TLDR
 
-It uses Paper `26.1.2` with a generated Paper plugin catalog entry for:
+Standalone consumer example for a Paper factions server on ix.
 
-- PvPIndex Factions, TeamsAPI, PlaceholderAPI, and LuckPerms
-- EssentialsX and EssentialsX Spawn for player/admin command basics
-- CoreProtect for block, container, and rollback auditing
-- VaultUnlocked, EternalEconomy, QuickShop-Hikari, and TradePost for money,
-  chest shops, and an auction-house style market
-- WorldEdit and WorldGuard for spawn/admin regions and claim-adjacent tooling
-- TerraformGenerator for custom overworld generation
-- CombatLog for PvP logout protection
-- Simple Voice Chat for proximity voice on UDP `24454`
-- Distant Horizons Support
-- BlueMap for a 3D browser map on TCP `8100`
-- Skript for server-side scripted gameplay and admin automation
+It builds one VM image with Paper `26.1.2`, a curated plugin set, a `12000`
+block world border, a 4064-block max-height datapack, BlueMap on TCP `8100`,
+Simple Voice Chat on UDP `24454`, and local-only RCON for managed reloads.
 
-The example also sets:
+Customize real player UUIDs and spawn/claim policy before using it with real
+players.
 
-- a vanilla world border at `0,0` with a `12000` block diameter
-- a generated max-height datapack, raising dimension height to the valid
-  4064-block maximum from Y `-2032` through Y `2031`
-- `server.properties` gameplay defaults for a public factions server
-- `bukkit.yml` spawn and autosave policy
-- `spigot.yml` entity, hopper, high-TNT, tracking, and message policy
-- Paper `paper-global.yml` and `paper-world-defaults.yml` performance,
-  cannon, and raid policy
+## Shape
 
-The plugin URLs and hashes are not owned by this example. They come from
-`images/games/minecraft/plugins/paper/manifest.json`, regenerated from the repo
-root with:
+- [`minecraft.nix`](minecraft.nix) wires the Minecraft service.
+- [`plugins.nix`](plugins.nix) selects factions, economy, audit, map, voice, and
+  scripting plugins from the generated catalog.
+- [`world.nix`](world.nix) owns the seed and border constants.
+- [`world-height.nix`](world-height.nix) contains the generated datapack.
+- [`bukkit.nix`](bukkit.nix), [`paper.nix`](paper.nix), and
+  [`spigot.nix`](spigot.nix) hold loader config files.
+
+The plugin URLs and hashes come from
+[`images/games/minecraft/plugins/paper/manifest.json`](../../images/games/minecraft/plugins/paper/manifest.json).
+Regenerate the catalog from the repo root with:
 
 ```bash
 nix run .#update-mods -- --manifest images/games/minecraft/plugins/paper/manifest.json
 ```
 
-The world border is applied after startup through local RCON. The RCON port is
-not opened in the firewall by default; it exists so ix can apply the border and
-reload managed Paper plugins during a switch.
-
-BlueMap opens TCP `8100` for the rendered 3D web map. Simple Voice Chat opens
-UDP `24454` with the module default. RCON stays local.
-
-## Layout
-
-- `default.nix` defines the ix fleet node.
-- `minecraft.nix` wires the Minecraft service and shared world settings.
-- `plugins.nix` selects catalog plugins and PlugManX reload policy.
-- `bukkit.nix`, `paper.nix`, and `spigot.nix` hold loader config files.
-- `world.nix` keeps the seed and world-border constants in one place.
-- `world-height.nix` contains the generated max-height dimension-type datapack.
+The world border is applied after startup through local RCON. RCON stays off the
+firewall by default; ix uses it to apply the border and reload managed Paper
+plugins during a switch.
