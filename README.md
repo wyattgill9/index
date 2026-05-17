@@ -1,13 +1,13 @@
 # Index
 
-**Ready-to-run ix VMs. One flake. Zero plumbing.**
+**Ready-to-run ix VMs. Zero plumbing.**
 
 ## Why You'll Like This
 
-- **Images that just boot.** Minecraft, Postgres, remote desktop, more.
+- **Images that just boot.** Minecraft, Postgres, remote desktop, and the long tail you'd otherwise babysit.
 - **Services that compose.** Mix them like Lego.
-- **`llm-clippy` included.** A Rust linter tuned for LLM-friendly output.
-- **One lockfile, one catalog, one source of truth.**
+- **`llm-clippy` included.** A Rust linter tuned for output an LLM can actually read.
+- **One lockfile pinning the whole catalog.**
 
 ## Try It
 

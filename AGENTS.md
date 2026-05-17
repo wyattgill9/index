@@ -18,6 +18,8 @@ Do not use the "X, not Y" or "X, don't Y" rhetorical pattern. It is filler that 
 
 Do not use em dashes. Write so the sentence does not need one: split into two sentences, use a colon, use parentheses, or restructure. If the urge is to insert "—", the sentence is doing two jobs and should be cut into two.
 
+Avoid the rule of three. Tricolons like "one lockfile, one catalog, one source of truth" or "fast, cheap, reliable" read as 2024-era LLM cadence and have become cliché. By 2026 readers have shifted toward out-of-distribution phrasing with a little friction in it: uneven list lengths, unexpected concrete nouns, sentences that resolve at two beats or at four. Prefer two-part or four-part structures, mix clause lengths, and reach for a specific surprising detail instead of a third parallel slot. If a sentence falls naturally into three balanced clauses, suspect the cadence and rewrite.
+
 ## Rust style
 
 Prefer local type annotations over turbofish when they make the data shape clearer. For example, use `let args: Vec<_> = env::args().collect();` instead of `let args = env::args().collect::<Vec<_>>();`. Keep turbofish for cases where an expression-local type is genuinely clearer, such as method chains where naming an intermediate value would add noise.
