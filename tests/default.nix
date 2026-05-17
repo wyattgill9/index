@@ -453,6 +453,23 @@ let
   };
 
   uvLockedDistribution = builtins.head uvApplication.uvWheelhouse.lock.distributions;
+  uvWheelhouseDistributionNames = map (
+    distribution: distribution.fileName
+  ) uvApplication.uvWheelhouse.distributions;
+
+  pythonMcpServer =
+    let
+      config = evalConfig [
+        {
+          services.python-mcp-server.enable = true;
+        }
+      ];
+    in
+    {
+      inherit config;
+      cfg = config.services.python-mcp-server;
+      clientConfig = config.environment.etc."mcp/ix-python.json".source;
+    };
 
   fleet = ix.mkFleet {
     deployment.region = "hil-1";
@@ -960,6 +977,27 @@ let
           && lib.hasPrefix "sha256-" uvLockedDistribution.hash;
         message = "uv lock helper should derive registry fetch metadata from uv.lock";
       }
+      {
+        assertion =
+          builtins.elem "click-8.1.7-py3-none-any.whl" uvWheelhouseDistributionNames
+          && !(builtins.elem "click-8.1.7.tar.gz" uvWheelhouseDistributionNames);
+        message = "uv wheelhouses should prefer compatible wheels over sdists";
+      }
+    ];
+
+    python-mcp-server = [
+      {
+        assertion = pythonMcpServer.cfg.enable;
+        message = "python MCP server module should enable services.python-mcp-server";
+      }
+      {
+        assertion = builtins.elem pythonMcpServer.cfg.package pythonMcpServer.config.environment.systemPackages;
+        message = "python MCP server module should install its package";
+      }
+      {
+        assertion = pythonMcpServer.cfg.package.meta.mainProgram == "ix-python-mcp";
+        message = "python MCP server package should expose ix-python-mcp as its main program";
+      }
     ];
 
     fleet = [
@@ -1122,6 +1160,15 @@ let
       grep -q -- '--password-file "/var/lib/minecraft/.ix-rcon-password"' ${minecraft.paper.service.config.ExecReload}
       grep -q 'plugman $row.action $row.plugin' ${minecraft.paper.service.config.ExecReload}
       ! grep -q 'reload all' ${minecraft.paper.service.config.ExecReload}
+    '';
+
+    python-mcp-server = ''
+      grep -q '"ix-python"' ${pythonMcpServer.clientConfig}
+      grep -q '"serve"' ${pythonMcpServer.clientConfig}
+
+      ${lib.getExe pythonMcpServer.cfg.package} eval '1 + 2' > python-mcp-eval.out
+      grep -q 'result:' python-mcp-eval.out
+      grep -q '^3$' python-mcp-eval.out
     '';
   };
 

@@ -119,6 +119,7 @@ in
         minecraft-sync-managed
         nix-cargo-unit
         oci-image-builder
+        python-mcp-server
         ;
       minestom-hello-server-jar = repoPackages.minestom.helloServerJar;
     }
@@ -135,6 +136,7 @@ in
     update-mods = mkApp updateMods "Regenerate Minecraft mod catalogs";
     ix-fleet = mkApp ixFleet "Render ix fleet plans and commands";
     nix-cargo-unit = mkApp repoPackages.nix-cargo-unit "Render Cargo unit graphs as Nix derivations";
+    python-mcp-server = mkApp repoPackages.python-mcp-server "Run a Python MCP server";
     claude-code-demo-diff = mkApp claudeCodeDemo.diff "Diff the Claude Code demo fleet against live VMs";
     claude-code-demo-plan = mkApp claudeCodeDemo.planCommand "Render the Claude Code demo fleet plan";
     claude-code-demo-replace = mkApp claudeCodeDemo.replace "Build replacement images for the Claude Code demo fleet";

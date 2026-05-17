@@ -13,6 +13,7 @@
   minestom = ./services/minestom.nix;
   minecraft-bedrock = ./services/minecraft-bedrock.nix;
   postgresql = ./services/postgresql.nix;
+  python-mcp-server = ./services/python-mcp-server.nix;
   remote-desktop = ./services/remote-desktop.nix;
   resource-monitor = ./services/resource-monitor;
 

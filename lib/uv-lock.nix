@@ -35,13 +35,94 @@ let
       key = packageKey lockedPackage;
     };
 
-  distributionsFor =
+  allDistributionsFor =
     lockedPackage:
     let
       wheels = lockedPackage.wheels or [ ];
       sdist = lib.optional (lockedPackage ? sdist) lockedPackage.sdist;
     in
     map (distributionFor lockedPackage) (wheels ++ sdist);
+
+  wheelTagsFor =
+    fileName:
+    let
+      parts = lib.splitString "-" fileName;
+      partsCount = builtins.length parts;
+    in
+    if lib.hasSuffix ".whl" fileName && partsCount >= 5 then
+      {
+        python = lib.splitString "." (builtins.elemAt parts (partsCount - 3));
+        abi = lib.splitString "." (builtins.elemAt parts (partsCount - 2));
+        platform = lib.splitString "." (lib.removeSuffix ".whl" (builtins.elemAt parts (partsCount - 1)));
+      }
+    else
+      null;
+
+  compatiblePlatformTag =
+    platform: tag:
+    tag == "any"
+    || (
+      platform.isLinux
+      && lib.hasInfix "manylinux" tag
+      && (
+        (platform.isx86_64 && lib.hasSuffix "x86_64" tag)
+        || (platform.isAarch64 && lib.hasSuffix "aarch64" tag)
+      )
+    )
+    || (
+      platform.isDarwin
+      && lib.hasPrefix "macosx" tag
+      && (
+        lib.hasSuffix "universal2" tag
+        || (platform.isx86_64 && lib.hasSuffix "x86_64" tag)
+        || (platform.isAarch64 && lib.hasSuffix "arm64" tag)
+      )
+    );
+
+  compatibleWheel =
+    {
+      python,
+      platform,
+    }:
+    distribution:
+    let
+      tags = wheelTagsFor distribution.fileName;
+      versionParts = lib.splitString "." python.pythonVersion;
+      major = builtins.elemAt versionParts 0;
+      minor = builtins.elemAt versionParts 1;
+      cpythonTag = "cp${major}${minor}";
+      abi3CpythonTags = map (candidateMinor: "cp${major}${toString candidateMinor}") (
+        lib.range 2 (lib.toInt minor)
+      );
+      pythonTags = [
+        "py3"
+        "py${major}"
+        cpythonTag
+      ]
+      ++ lib.optionals (builtins.elem "abi3" tags.abi) abi3CpythonTags;
+      abiTags = [
+        "none"
+        "abi3"
+        cpythonTag
+      ];
+    in
+    tags != null
+    && lib.any (tag: builtins.elem tag pythonTags) tags.python
+    && lib.any (tag: builtins.elem tag abiTags) tags.abi
+    && lib.any (compatiblePlatformTag platform) tags.platform;
+
+  wheelhouseDistributionsFor =
+    {
+      python,
+      platform,
+    }:
+    lockedPackage:
+    let
+      wheels = map (distributionFor lockedPackage) (lockedPackage.wheels or [ ]);
+      compatibleWheels = lib.filter (compatibleWheel { inherit python platform; }) wheels;
+      sdist = lib.optional (lockedPackage ? sdist) (distributionFor lockedPackage lockedPackage.sdist);
+    in
+    if compatibleWheels != [ ] then compatibleWheels else sdist;
 
   self = {
     /**
@@ -58,7 +139,7 @@ let
       Returns:
       - `raw`: parsed TOML lockfile.
       - `packages`: lockfile package entries.
-      - `distributions`: normalized archive entries with SRI hashes.
+      - `distributions`: all normalized archive entries with SRI hashes.
     */
     importLock =
       {
@@ -71,7 +152,7 @@ let
       in
       {
         inherit raw packages;
-        distributions = lib.concatMap distributionsFor packages;
+        distributions = lib.concatMap allDistributionsFor packages;
       };
 
     /**
@@ -83,6 +164,8 @@ let
       Arguments:
       - `uvRoot`: project root containing `uv.lock`.
       - `uvLock`: optional lockfile contents override.
+      - `python`: interpreter whose tags select compatible wheels.
+      - `platform`: host platform whose tags select compatible wheels.
       - `fetcherOpts`: per-package fetcher overrides keyed by
         `<name>-<version>`, for unusual URLs that need extra `fetchurl` flags.
 
@@ -92,10 +175,15 @@ let
       {
         uvRoot,
         uvLock ? builtins.readFile (uvRoot + "/uv.lock"),
+        python ? pkgs.python3,
+        platform ? pkgs.stdenv.hostPlatform,
         fetcherOpts ? { },
       }:
       let
         lock = self.importLock { inherit uvRoot uvLock; };
+        distributions = lib.concatMap (wheelhouseDistributionsFor {
+          inherit python platform;
+        }) lock.packages;
         fetchedDistributions = map (distribution: {
           inherit distribution;
           src = pkgs.fetchurl (
@@ -105,12 +193,12 @@ let
             }
             // (fetcherOpts.${distribution.key} or { })
           );
-        }) lock.distributions;
+        }) distributions;
       in
       pkgs.runCommand "uv-wheelhouse"
         {
           passthru = {
-            inherit lock;
+            inherit distributions lock;
           };
         }
         ''

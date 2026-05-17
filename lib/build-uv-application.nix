@@ -9,6 +9,8 @@
   `uv lock` and do not maintain a separate Nix dependency hash. Locked
   distributions are fetched into a wheelhouse, installed offline into a virtual
   environment, and the local project is built as a wheel before installation.
+  Type checking runs by default after install against the installed virtual
+  environment, matching `writePythonApplication`.
 
   The default path supports registry packages with `wheels` or `sdist` entries
   in `uv.lock`. Projects that use a non-uv build backend may need to pass a
@@ -20,8 +22,11 @@
   - `src`: project root containing `pyproject.toml` and `uv.lock`.
   - `python`: Python interpreter used for the virtual environment.
   - `mainProgram`: executable to expose under `$out/bin`.
-  - `dependencyGroups`, `extras`: uv dependency groups and extras to install.
+  - `groups`, `extras`: uv dependency groups and extras to install.
+  - `dev`, `allGroups`, `allExtras`: dependency selection shortcuts.
   - `exportFlags`, `pipInstallFlags`, `buildFlags`: extra uv flags.
+  - `check`, `typeCheckingMode`, `pythonPlatform`, `typeCheckPaths`:
+    basedpyright knobs.
   - `extraNativeBuildInputs`: extra packages on PATH for the build.
   - `fetcherOpts`: per-package fetcher overrides for locked distributions.
   - `meta`: standard derivation meta.
@@ -33,11 +38,21 @@ pkgs:
   src,
   python ? pkgs.python3,
   mainProgram ? pname,
-  dependencyGroups ? [ ],
+  groups ? [ ],
+  dependencyGroups ? groups,
   extras ? [ ],
+  dev ? false,
+  allGroups ? false,
+  allExtras ? false,
   exportFlags ? [ ],
   pipInstallFlags ? [ ],
   buildFlags ? [ ],
+  check ? true,
+  typeCheckingMode ? "all",
+  pythonPlatform ? "Linux",
+  typeCheckPaths ? [ "." ],
+  extraPaths ? [ ],
+  typeCheckArgs ? [ ],
   extraNativeBuildInputs ? [ ],
   fetcherOpts ? { },
   meta ? { },
@@ -48,7 +63,7 @@ let
   uvLock = uvLockFor pkgs;
   uvWheelhouse = uvLock.buildWheelhouse {
     uvRoot = src;
-    inherit fetcherOpts;
+    inherit fetcherOpts python;
   };
   pythonExecutable = lib.getExe python;
   groupFlags = lib.concatMap (group: [
@@ -59,14 +74,23 @@ let
     "--extra"
     extra
   ]) extras;
+  pyrightConfig = pkgs.writeText "basedpyright-${pname}.json" (
+    builtins.toJSON {
+      include = typeCheckPaths;
+      inherit extraPaths typeCheckingMode pythonPlatform;
+      inherit (python) pythonVersion;
+    }
+  );
   exportArgs = [
     "--frozen"
-    "--no-dev"
     "--no-emit-project"
     "--no-editable"
     "--format"
     "requirements.txt"
   ]
+  ++ lib.optional (!dev && !allGroups) "--no-dev"
+  ++ lib.optional allGroups "--all-groups"
+  ++ lib.optional allExtras "--all-extras"
   ++ groupFlags
   ++ extraFlags
   ++ exportFlags;
@@ -110,8 +134,11 @@ pkgs.stdenvNoCC.mkDerivation (_: {
   ]
   ++ extraNativeBuildInputs;
 
+  nativeInstallCheckInputs = [ pkgs.basedpyright ];
+
   dontConfigure = true;
   dontBuild = true;
+  doInstallCheck = check;
 
   installPhase = ''
     runHook preInstall
@@ -135,6 +162,19 @@ pkgs.stdenvNoCC.mkDerivation (_: {
     ln -s "$out/venv/bin/${mainProgram}" "$out/bin/${mainProgram}"
 
     runHook postInstall
+  '';
+
+  installCheckPhase = ''
+    runHook preInstallCheck
+
+    basedpyright \
+      --project ${pyrightConfig} \
+      --pythonpath "$out/venv/bin/python" \
+      --level warning \
+      --warnings \
+      ${lib.escapeShellArgs (typeCheckPaths ++ typeCheckArgs)}
+
+    runHook postInstallCheck
   '';
 
   passthru = {

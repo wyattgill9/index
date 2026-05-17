@@ -421,6 +421,9 @@ let
         minecraft-sync-managed = pkgs.callPackage paths.packages.minecraftSyncManaged { };
         nix-cargo-unit = pkgs.callPackage paths.packages.nixCargoUnit { };
         oci-image-builder = pkgs.callPackage paths.packages.ociImageBuilder { };
+        python-mcp-server = pkgs.callPackage paths.packages.pythonMcpServer {
+          ix = ixForPackages;
+        };
         tonbo-artifacts = pkgs.callPackage paths.packages.tonboArtifacts { };
       };
       cliPackages = lib.optionalAttrs (builtins.hasAttr packageSystem cliArtifacts) {
