@@ -631,10 +631,22 @@ in
       description = "Config files to place under config/. Keys are relative paths (format inferred from extension: .toml, .json, .yaml, .yml, .properties). Values are Nix attrsets.";
     };
 
+    properties = mkOption {
+      type = types.attrsOf formatValueType;
+      default = { };
+      description = "Settings written to server.properties. Nested attrsets flatten to dotted properties keys.";
+    };
+
+    bukkit = mkOption {
+      type = types.attrsOf formatValueType;
+      default = { };
+      description = "Settings written to bukkit.yml.";
+    };
+
     serverFiles = mkOption {
       type = types.attrsOf formatValueType;
       default = { };
-      description = "Files to place relative to the server root. Keys are paths (server.properties, bukkit.yml, etc.). Format inferred from extension. Use services.minecraft.players for whitelist.json and ops.json so ix can reconcile Minecraft's mutable access files.";
+      description = "Files to place relative to the server root. Keys are paths and format is inferred from extension. Prefer services.minecraft.properties for server.properties, services.minecraft.bukkit for bukkit.yml, and services.minecraft.players for whitelist.json and ops.json so ix can reconcile Minecraft's mutable access files.";
     };
 
     port = mkOption {
@@ -655,17 +667,38 @@ in
       }
     ];
 
-    services.minecraft.serverFiles = lib.mkMerge [
-      {
-        "server.properties".server-port = lib.mkDefault cfg.port;
-      }
-      (lib.mkIf cfg.whitelist.enable {
-        "server.properties" = {
+    services.minecraft = {
+      properties = lib.mkMerge [
+        {
+          server-port = lib.mkDefault cfg.port;
+          max-players = lib.mkDefault 100000;
+          online-mode = lib.mkDefault true;
+          enforce-secure-profile = lib.mkDefault true;
+          gamemode = lib.mkDefault "survival";
+          force-gamemode = lib.mkDefault false;
+          pvp = lib.mkDefault true;
+          hardcore = lib.mkDefault false;
+          spawn-protection = lib.mkDefault 16;
+          view-distance = lib.mkDefault 32;
+          simulation-distance = lib.mkDefault 32;
+          allow-flight = lib.mkDefault false;
+          enable-command-block = lib.mkDefault false;
+        }
+        (lib.mkIf cfg.whitelist.enable {
           white-list = lib.mkDefault true;
           enforce-whitelist = lib.mkDefault cfg.whitelist.enforce;
-        };
-      })
-    ];
+        })
+      ];
+
+      serverFiles = lib.mkMerge [
+        {
+          "server.properties" = cfg.properties;
+        }
+        (lib.mkIf (cfg.bukkit != { }) {
+          "bukkit.yml" = cfg.bukkit;
+        })
+      ];
+    };
 
     networking.firewall.allowedTCPPorts = [
       cfg.port

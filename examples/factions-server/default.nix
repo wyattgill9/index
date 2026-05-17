@@ -38,31 +38,11 @@ index.lib.mkFleet {
             distant-horizons-support = { };
           };
 
-          serverFiles = {
-            "server.properties" = {
-              motd = "ix Factions";
-              max-players = 60;
-              online-mode = true;
-              enforce-secure-profile = true;
-              gamemode = "survival";
-              force-gamemode = false;
-              difficulty = "hard";
-              pvp = true;
-              hardcore = false;
-              spawn-protection = 16;
-              level-name = "factions";
-              level-seed = "4504535438041489910";
-              view-distance = 12;
-              simulation-distance = 8;
-              allow-flight = false;
-            };
-
-            # TerraformGenerator is a Bukkit world generator. Paper reads the
-            # generator binding from bukkit.yml before creating the world named
-            # by `level-name`.
-            "bukkit.yml" = {
-              worlds.factions.generator = "TerraformGenerator";
-            };
+          properties = {
+            motd = "ix Factions";
+            difficulty = "hard";
+            level-name = "factions";
+            level-seed = "4504535438041489910";
           };
         };
       })

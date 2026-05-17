@@ -30,6 +30,7 @@
       distant-horizons = ./services/minecraft/mods/distant-horizons.nix;
       luckperms = ./services/minecraft/mods/luckperms.nix;
       simple-voice-chat = ./services/minecraft/mods/simple-voice-chat.nix;
+      terraformgenerator = ./services/minecraft/mods/terraformgenerator.nix;
     };
   };
 }

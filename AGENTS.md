@@ -216,9 +216,11 @@ Whitelist and operator files are derived from `services.minecraft.players`. Put 
 
 ### Config file format inference
 
-`configFiles` keys are relative paths under `config/`. The serialization format is inferred from the file extension: `.toml`, `.json`, `.yaml`/`.yml`, `.properties`. Values are plain Nix attrsets. Mod modules never import `pkgs.formats` directly.
+`services.minecraft.properties` writes `server.properties` and `services.minecraft.bukkit` writes `bukkit.yml`. Use those first-class options in images, presets, and examples; keep `serverFiles` as the escape hatch for less common root files. `configFiles` keys are relative paths under `config/`. The serialization format is inferred from the file extension: `.toml`, `.json`, `.yaml`/`.yml`, `.properties`. Values are plain Nix attrsets. Mod modules never import `pkgs.formats` directly.
 
 ```nix
+services.minecraft.properties.motd = "ix-powered Minecraft";
+services.minecraft.bukkit.worlds.factions.generator = "TerraformGenerator";
 services.minecraft.configFiles."SomeMod.toml" = { section.key = "value"; };
 services.minecraft.configFiles."other.yml" = { setting = true; };
 ```
@@ -279,6 +281,8 @@ Relative paths to children or siblings inside the same package/module directory 
 
 Bukkit-family loaders (Paper, Folia, Purpur, Spigot) use `services.minecraft.plugins`. Empty `{}` resolves a pinned plugin by slug from `pluginCatalog`; an attrset with `src` installs a local or private plugin jar; other attrset fields are reserved for plugin-specific modules such as `services.minecraft.plugins.simple-voice-chat.port`. The repo's plugin and mod catalogs (`ix.lib.artifacts.minecraft.*`, the generated JSON catalogs under `images/games/minecraft/mods/` and `images/games/minecraft/plugins/`) are the shared surface that presets, examples, and images consume. Presets and examples must not inline plugin or mod URLs and hashes; see the "Presets never own artifact data" rule under Image preset conventions.
 
+When a plugin has required companion config, model that as a module activated by the plugin slug instead of making every consumer hand-write sidecar files. For example, `services.minecraft.plugins.terraformgenerator = { };` should contribute the matching `services.minecraft.bukkit` generator binding from `services.minecraft.properties.level-name`.
+
 Fabric/NeoForge/Sponge-style artifacts stay in `services.minecraft.mods`. Keep mod and plugin catalogs near the image/module artifact plumbing, not in preset fleets. Preset fleets should read like intent: choose a server, select catalog plugins/mods by slug, and show local/private artifacts only when that is the point of the preset.
 
 Paper plugin artifacts are generated from `images/games/minecraft/plugins/paper/manifest.json` into `ix.artifacts.minecraft.paperPluginCatalogs.<version>`. Loader modules seed `services.minecraft.pluginCatalog` from that versioned catalog, with `ix.artifacts.minecraft.paperPluginCatalog` kept as the current default alias. Add shared Paper plugins through the manifest and generator, not by hand-editing `lib/default.nix`.
@@ -309,6 +313,8 @@ The repo has no external consumers, so renaming or collapsing options is free. P
 ## Image preset conventions
 
 Image presets live under `images/presets/`. They are teaching material, not just tests: each preset should be a runnable image or fleet shape that composes the repo's normal modules, packages, and artifact catalogs by name. Add short comments for ix-specific ideas that a first-time reader will not infer from Nix alone: `deployment.switch.overrideInputs`, remote switch builds, fleet defaults, hot-reload behavior, and why an image name or tag is set.
+
+Examples and presets should make the backing API look good. If an example needs to repeat obvious safe defaults, conservative service settings, artifact plumbing, or boilerplate just to be production-shaped, fix the module/helper defaults instead and keep the consumer minimal. The example should show intent; the library should carry the policy.
 
 ### Presets never own artifact data
 

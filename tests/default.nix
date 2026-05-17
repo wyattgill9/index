@@ -109,7 +109,9 @@ let
               services.minecraft.plugins = {
                 pvpindex-factions = { };
                 simple-voice-chat.port = 24455;
+                terraformgenerator = { };
               };
+              services.minecraft.properties.level-name = "factions";
             }
           ];
         in
@@ -124,7 +126,7 @@ let
             ../images/games/minecraft
             defaultMinecraftModule
             {
-              services.minecraft.serverFiles."server.properties" = {
+              services.minecraft.properties = {
                 query = {
                   port = 25565;
                 };
@@ -452,6 +454,33 @@ let
         message = "default minecraft image should use the stable 26.1.2 Fabric variant";
       }
       {
+        assertion = minecraft.cfg.properties."max-players" == 100000;
+        message = "default minecraft image should allow the large ix player ceiling";
+      }
+      {
+        assertion =
+          minecraft.cfg.properties."online-mode"
+          && minecraft.cfg.properties."enforce-secure-profile";
+        message = "default minecraft image should keep account authentication and secure profiles explicit";
+      }
+      {
+        assertion =
+          minecraft.cfg.properties.gamemode == "survival"
+          && !minecraft.cfg.properties."force-gamemode"
+          && minecraft.cfg.properties.pvp
+          && !minecraft.cfg.properties.hardcore
+          && minecraft.cfg.properties."spawn-protection" == 16
+          && !minecraft.cfg.properties."allow-flight"
+          && !minecraft.cfg.properties."enable-command-block";
+        message = "default minecraft image should keep conservative gameplay and command defaults";
+      }
+      {
+        assertion =
+          minecraft.cfg.properties."view-distance" == 32
+          && minecraft.cfg.properties."simulation-distance" == 32;
+        message = "default minecraft image should use the high-distance template defaults";
+      }
+      {
         assertion = lib.all (slug: builtins.hasAttr slug minecraft.config.services.minecraft.mods) [
           "fabric-api"
           "lithium"
@@ -514,7 +543,7 @@ let
         message = "minecraft RCON should default to a state-local password file";
       }
       {
-        assertion = !(minecraft.rcon.cfg.serverFiles."server.properties" ? "rcon.password");
+        assertion = !(minecraft.rcon.cfg.properties ? "rcon.password");
         message = "typed minecraft RCON should not put the password in Nix-managed server.properties";
       }
       {
@@ -531,11 +560,11 @@ let
         message = "typed minecraft RCON should open the firewall only when requested";
       }
       {
-        assertion = minecraft.access.cfg.serverFiles."server.properties".white-list;
+        assertion = minecraft.access.cfg.properties.white-list;
         message = "typed minecraft whitelist should enable server.properties white-list";
       }
       {
-        assertion = minecraft.access.cfg.serverFiles."server.properties".enforce-whitelist;
+        assertion = minecraft.access.cfg.properties.enforce-whitelist;
         message = "typed minecraft whitelist should enable enforce-whitelist by default";
       }
       {
@@ -571,7 +600,7 @@ let
         message = "Paper minecraft should use a state-local RCON password file";
       }
       {
-        assertion = !(minecraft.paper.cfg.serverFiles."server.properties" ? "rcon.password");
+        assertion = !(minecraft.paper.cfg.properties ? "rcon.password");
         message = "Paper minecraft should not put the RCON password in Nix-managed server.properties";
       }
       {
@@ -604,6 +633,10 @@ let
           minecraft.paperPlugins.cfg.serverFiles."plugins/voicechat/voicechat-server.properties".port
           == 24455;
         message = "Simple Voice Chat should render Paper plugin config under plugins/voicechat";
+      }
+      {
+        assertion = minecraft.paperPlugins.cfg.bukkit.worlds.factions.generator == "TerraformGenerator";
+        message = "TerraformGenerator should bind bukkit.yml to the configured level-name";
       }
     ];
 
@@ -840,6 +873,7 @@ let
       grep -q '^rcon.port=25575$' ${minecraft.nestedProperties.managed.serverFiles}/server.properties
       grep -q '^white-list=true$' ${minecraft.access.managed.serverFiles}/server.properties
       grep -q '^enforce-whitelist=true$' ${minecraft.access.managed.serverFiles}/server.properties
+      grep -q 'generator: TerraformGenerator' ${minecraft.paperPlugins.config.environment.etc."minecraft/managed-server-files".source}/bukkit.yml
       grep -q '"name": "Alice"' ${minecraft.access.managed.access}/whitelist.json
       grep -q '"name": "Bob"' ${minecraft.access.managed.access}/whitelist.json
       grep -q '"level": 3' ${minecraft.access.managed.access}/ops.json

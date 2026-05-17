@@ -12,10 +12,9 @@
           luckperms = { };
         };
 
-        serverFiles."server.properties" = {
+        properties = {
           motd = "Claude Code Demo";
           max-players = 20;
-          online-mode = true;
           gamemode = "creative";
           force-gamemode = true;
           level-seed = "1143653337750952406";

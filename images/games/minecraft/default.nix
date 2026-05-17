@@ -17,10 +17,7 @@ in
 
   services.minecraft = {
     enable = true;
-    serverFiles."server.properties" = {
-      motd = "ix-powered Minecraft";
-      max-players = 20;
-    };
+    properties.motd = "ix-powered Minecraft";
     mods = lib.mapAttrs (_: _: { }) commonCatalog;
   };
 }
