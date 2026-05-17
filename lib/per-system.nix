@@ -135,6 +135,7 @@ in
       claude-code-demo-linux-up = claudeCodeDemoLinuxUp;
       claude-code-demo-minecraft-up = claudeCodeDemoMinecraftUp;
       inherit (repoPackages)
+        hyperion
         minecraft-nbt
         minecraft-sync-managed
         llm-clippy

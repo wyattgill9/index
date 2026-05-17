@@ -43,6 +43,7 @@
         minecraftPaperPlugins = ./images/games/minecraft/plugins/paper;
         packages = {
           ix = ./packages/ix;
+          hyperion = ./packages/hyperion;
           minecraftHotReloadAgent = ./packages/minecraft-hot-reload-agent;
           minecraftNbt = ./packages/minecraft-nbt;
           minecraftRcon = ./packages/minecraft-rcon;

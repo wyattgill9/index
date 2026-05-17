@@ -10,6 +10,7 @@
   base = ./profiles/base.nix;
   extended-attributes = ./profiles/extended-attributes.nix;
   git-clone = ./services/git-clone.nix;
+  hyperion = ./services/hyperion.nix;
   minestom = ./services/minestom.nix;
   minecraft-bedrock = ./services/minecraft-bedrock.nix;
   postgresql = ./services/postgresql.nix;

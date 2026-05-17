@@ -500,6 +500,9 @@ let
         inherit pkgs;
       };
       basePackages = {
+        hyperion = (pkgsWithRustOverlayFor pkgs).callPackage paths.packages.hyperion {
+          ix = ixForPackages;
+        };
         minestom.helloServerJar = pkgs.callPackage paths.packages.minestom.servers.hello {
           ix = ixForPackages;
         };
