@@ -863,14 +863,22 @@ let
         message = "factions-server example should keep RCON private while exposing Minecraft and BlueMap";
       }
       {
+        assertion = builtins.elem 24454 factionsExample.config.networking.firewall.allowedUDPPorts;
+        message = "factions-server example should expose Simple Voice Chat on the default UDP port";
+      }
+      {
         assertion =
-          lib.all (claim: builtins.hasAttr claim factionsExample.config.ix.networking.portClaims)
-            [
-              "minecraft"
-              "minecraft-rcon"
-              "bluemap"
-              "simple-voice-chat"
-            ];
+          let
+            claims = factionsExample.config.ix.networking.portClaims;
+          in
+          lib.all (claim: builtins.hasAttr claim claims) [
+            "minecraft"
+            "minecraft-rcon"
+            "bluemap"
+            "simple-voice-chat"
+          ]
+          && claims.simple-voice-chat.protocol == "udp"
+          && claims.simple-voice-chat.port == 24454;
         message = "factions-server example should register every service listener in ix.networking.portClaims";
       }
     ];
@@ -1556,11 +1564,13 @@ let
       grep -q '^CoreProtect$' ${factionsExample.managed.dropins}/coreprotect.jar.plugin-name
       grep -q '^EternalEconomy$' ${factionsExample.managed.dropins}/eternaleconomy.jar.plugin-name
       grep -q '^CombatLog$' ${factionsExample.managed.dropins}/combatlogplugin.jar.plugin-name
+      grep -q '^voicechat$' ${factionsExample.managed.dropins}/simple-voice-chat.jar.plugin-name
       grep -q '^BlueMap$' ${factionsExample.managed.dropins}/bluemap.jar.plugin-name
       grep -q '^Skript$' ${factionsExample.managed.dropins}/skript.jar.plugin-name
       grep -q '^max-world-size=6000$' ${factionsExample.managed.serverFiles}/server.properties
       grep -q 'max-tnt-per-tick: -1' ${factionsExample.managed.serverFiles}/spigot.yml
       grep -q 'query-plugins: false' ${factionsExample.managed.serverFiles}/bukkit.yml
+      grep -q '^port=24454$' ${factionsExample.managed.serverFiles}/plugins/voicechat/voicechat-server.properties
       grep -q '"port": 8100' ${factionsExample.managed.serverFiles}/plugins/BlueMap/webserver.conf
       grep -q '"accept-download": true' ${factionsExample.managed.serverFiles}/plugins/BlueMap/core.conf
       grep -q '"height": 4064' ${factionsExample.managed.datapacks}/max-height/data/minecraft/dimension_type/overworld.json
