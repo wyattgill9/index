@@ -1,0 +1,8 @@
+[package]
+name = "cargo-unit-hello"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "cargo-unit-hello"
+path = "src/main.rs"

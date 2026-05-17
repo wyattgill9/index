@@ -159,6 +159,13 @@ let
 
   buildNpmSite = import ./build-npm-site.nix;
   buildGradleFatJar = import ./build-gradle-fat-jar.nix { inherit lib; };
+  cargoUnitFor =
+    pkgs:
+    import ./cargo-unit.nix {
+      inherit lib pkgs;
+      nixCargoUnit = pkgs.callPackage paths.packages.nixCargoUnit { };
+    };
+  cargoUnit = cargoUnitFor pkgs;
 
   systemdHardening = import ./systemd-hardening.nix;
 
@@ -292,6 +299,7 @@ let
         minestom.helloServerJar = pkgs.callPackage paths.packages.minestom.servers.hello {
           ix = ixForPackages;
         };
+        nix-cargo-unit = pkgs.callPackage paths.packages.nixCargoUnit { };
         oci-image-builder = pkgs.callPackage paths.packages.ociImageBuilder { };
         tonbo-artifacts = pkgs.callPackage paths.packages.tonboArtifacts { };
       };
@@ -313,6 +321,8 @@ let
       artifacts
       buildGradleFatJar
       buildNpmSite
+      cargoUnit
+      cargoUnitFor
       mkMinecraftLoader
       mkMinecraftSyncManaged
       systemdHardening
@@ -467,6 +477,8 @@ in
     artifacts
     buildGradleFatJar
     buildNpmSite
+    cargoUnit
+    cargoUnitFor
     mkMinecraftLoader
     mkMinecraftSyncManaged
     packageSetFor

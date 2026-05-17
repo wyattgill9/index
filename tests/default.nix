@@ -9,6 +9,7 @@
 let
   inherit (nixpkgs) lib;
   inherit (ix) pkgs;
+  fs = lib.fileset;
 
   versions = import ../images/games/minecraft/versions.nix {
     inherit lib;
@@ -175,6 +176,24 @@ let
     '';
     check = false;
   };
+
+  cargoUnitFixture = fs.toSource {
+    root = ./fixtures/cargo-unit-hello;
+    fileset = fs.unions [
+      ./fixtures/cargo-unit-hello/Cargo.lock
+      ./fixtures/cargo-unit-hello/Cargo.toml
+      ./fixtures/cargo-unit-hello/src
+    ];
+  };
+
+  cargoUnitHello =
+    (ix.cargoUnit.buildWorkspace {
+      src = cargoUnitFixture;
+      cargoArgs = [
+        "--bin"
+        "cargo-unit-hello"
+      ];
+    }).binaries.cargo-unit-hello;
 
   fleet = ix.mkFleet {
     deployment.region = "hil-1";
@@ -591,6 +610,9 @@ let
   helperScript = ''
     ${lib.getExe pythonAppClosureProbe} > python-app-closure-probe.out
     grep -q 'python app source is in the runtime closure' python-app-closure-probe.out
+
+    ${cargoUnitHello}/bin/cargo-unit-hello > cargo-unit-hello.out
+    grep -q 'hello from cargo-unit' cargo-unit-hello.out
   '';
 
   # --- Test derivation builder ----------------------------------------------

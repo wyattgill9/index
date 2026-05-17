@@ -1,0 +1,469 @@
+use serde::Deserialize;
+use sha2::Digest as _;
+
+#[derive(Debug, Deserialize)]
+pub struct UnitGraph {
+    pub version: u32,
+    pub units: Vec<Unit>,
+    pub roots: Vec<usize>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Unit {
+    pub pkg_id: String,
+    pub target: Target,
+    pub profile: Profile,
+    #[serde(default)]
+    pub features: Vec<String>,
+    pub mode: String,
+    #[serde(default)]
+    pub dependencies: Vec<Dependency>,
+    #[serde(default)]
+    pub platform: Option<String>,
+    #[serde(default)]
+    pub is_std: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Target {
+    #[serde(default)]
+    pub kind: Vec<String>,
+    #[serde(default)]
+    pub crate_types: Vec<String>,
+    pub name: String,
+    pub src_path: String,
+    pub edition: String,
+    #[serde(default = "default_true")]
+    pub test: bool,
+    #[serde(default = "default_true")]
+    pub doctest: bool,
+    #[serde(default = "default_true")]
+    pub doc: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Profile {
+    pub name: String,
+    pub opt_level: String,
+    #[serde(default)]
+    pub lto: Lto,
+    #[serde(default)]
+    pub codegen_units: Option<u32>,
+    #[serde(default)]
+    pub debuginfo: DebugInfo,
+    #[serde(default)]
+    pub debug_assertions: bool,
+    #[serde(default)]
+    pub overflow_checks: bool,
+    #[serde(default)]
+    pub rpath: bool,
+    #[serde(default)]
+    pub incremental: bool,
+    #[serde(default)]
+    pub panic: Panic,
+    #[serde(default)]
+    pub strip: Strip,
+    #[serde(default)]
+    pub split_debuginfo: Option<String>,
+    #[serde(default)]
+    pub rustflags: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct Dependency {
+    pub index: usize,
+    pub extern_crate_name: String,
+    #[serde(default)]
+    pub public: bool,
+    #[serde(default)]
+    pub noprelude: bool,
+}
+
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
+pub enum Lto {
+    #[default]
+    Off,
+    Thin,
+    Fat,
+}
+
+impl<'de> Deserialize<'de> for Lto {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let value = serde_json::Value::deserialize(deserializer)?;
+        Ok(match value {
+            serde_json::Value::Bool(true) => Self::Fat,
+            serde_json::Value::Bool(false) => Self::Off,
+            serde_json::Value::String(value) => match value.as_str() {
+                "true" | "fat" => Self::Fat,
+                "thin" => Self::Thin,
+                _ => Self::Off,
+            },
+            _ => Self::Off,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
+pub enum DebugInfo {
+    #[default]
+    None,
+    LineDirectivesOnly,
+    LineTablesOnly,
+    Limited,
+    Full,
+}
+
+impl<'de> Deserialize<'de> for DebugInfo {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let value = serde_json::Value::deserialize(deserializer)?;
+        Ok(match value {
+            serde_json::Value::Bool(true) => Self::Full,
+            serde_json::Value::Bool(false) => Self::None,
+            serde_json::Value::Number(number) => match number.as_u64() {
+                Some(0) => Self::None,
+                Some(1) => Self::Limited,
+                Some(2) => Self::Full,
+                _ => Self::Full,
+            },
+            serde_json::Value::String(value) => match value.as_str() {
+                "0" | "none" | "false" => Self::None,
+                "line-directives-only" => Self::LineDirectivesOnly,
+                "line-tables-only" => Self::LineTablesOnly,
+                "1" | "limited" => Self::Limited,
+                "2" | "full" | "true" => Self::Full,
+                _ => Self::None,
+            },
+            _ => Self::None,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum Panic {
+    #[default]
+    Unwind,
+    Abort,
+}
+
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
+pub enum Strip {
+    #[default]
+    None,
+    Debuginfo,
+    Symbols,
+}
+
+impl<'de> Deserialize<'de> for Strip {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let value = serde_json::Value::deserialize(deserializer)?;
+        Ok(match value {
+            serde_json::Value::Bool(true) => Self::Symbols,
+            serde_json::Value::Bool(false) => Self::None,
+            serde_json::Value::String(value) => strip_from_str(&value),
+            serde_json::Value::Object(mut value) => value
+                .remove("resolved")
+                .and_then(|resolved| match resolved {
+                    serde_json::Value::String(value) => Some(strip_from_str(&value)),
+                    serde_json::Value::Object(mut inner) => inner
+                        .remove("Named")
+                        .and_then(|named| named.as_str().map(strip_from_str)),
+                    _ => None,
+                })
+                .unwrap_or_default(),
+            _ => Self::None,
+        })
+    }
+}
+
+fn strip_from_str(value: &str) -> Strip {
+    match value {
+        "debuginfo" => Strip::Debuginfo,
+        "symbols" | "true" => Strip::Symbols,
+        _ => Strip::None,
+    }
+}
+
+fn default_true() -> bool {
+    true
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct PackageId<'a> {
+    pub name: &'a str,
+    pub version: &'a str,
+}
+
+pub fn parse_pkg_id(pkg_id: &str) -> Option<PackageId<'_>> {
+    if pkg_id.starts_with("path+") || pkg_id.starts_with("registry+") || pkg_id.starts_with("git+")
+    {
+        let (scheme_loc, fragment) = pkg_id.split_once('#')?;
+        if let Some((name, version)) = fragment.split_once('@') {
+            return Some(PackageId { name, version });
+        }
+
+        let location = scheme_loc
+            .strip_prefix("git+")
+            .or_else(|| scheme_loc.strip_prefix("path+file://"))
+            .or_else(|| scheme_loc.strip_prefix("registry+"))?;
+        let name = location
+            .rsplit('/')
+            .next()
+            .and_then(|name| name.strip_suffix(".git").or(Some(name)))?;
+
+        return Some(PackageId {
+            name,
+            version: fragment,
+        });
+    }
+
+    let mut parts = pkg_id.split_whitespace();
+    Some(PackageId {
+        name: parts.next()?,
+        version: parts.next()?,
+    })
+}
+
+impl Unit {
+    pub fn package_name(&self) -> &str {
+        parse_pkg_id(&self.pkg_id)
+            .map(|package| package.name)
+            .unwrap_or(&self.target.name)
+    }
+
+    pub fn package_version(&self) -> &str {
+        parse_pkg_id(&self.pkg_id)
+            .map(|package| package.version)
+            .unwrap_or("0.0.0")
+    }
+
+    pub fn is_bin(&self) -> bool {
+        self.target.crate_types.iter().any(|kind| kind == "bin")
+            || self.target.kind.iter().any(|kind| kind == "bin")
+    }
+
+    pub fn is_proc_macro(&self) -> bool {
+        self.target
+            .crate_types
+            .iter()
+            .any(|kind| kind == "proc-macro")
+            || self.target.kind.iter().any(|kind| kind == "proc-macro")
+    }
+
+    pub fn is_library(&self) -> bool {
+        self.target.kind.iter().any(|kind| {
+            matches!(
+                kind.as_str(),
+                "lib" | "rlib" | "dylib" | "cdylib" | "staticlib" | "proc-macro"
+            )
+        })
+    }
+
+    pub fn is_custom_build_compile(&self) -> bool {
+        self.target.kind.iter().any(|kind| kind == "custom-build")
+            && self.mode != "run-custom-build"
+    }
+
+    pub fn is_run_custom_build(&self) -> bool {
+        self.mode == "run-custom-build"
+    }
+
+    pub fn is_test(&self) -> bool {
+        self.mode == "test" || self.target.kind.iter().any(|kind| kind == "test")
+    }
+
+    pub fn is_external(&self) -> bool {
+        self.pkg_id.starts_with("registry+")
+            || self.pkg_id.starts_with("git+")
+            || self.pkg_id.contains("(registry+")
+            || self.pkg_id.contains("(git+")
+    }
+
+    pub fn identity_hash(
+        &self,
+        dependency_hashes: &[String],
+        toolchain_id: Option<&str>,
+    ) -> String {
+        let mut hasher = sha2::Sha256::new();
+        write_unit_identity(&mut hasher, self);
+
+        let mut dependency_hashes = dependency_hashes.to_vec();
+        dependency_hashes.sort();
+        for hash in dependency_hashes {
+            hasher.update(b"dep\0");
+            hasher.update(hash.as_bytes());
+            hasher.update(b"\0");
+        }
+
+        if let Some(toolchain_id) = toolchain_id {
+            hasher.update(b"toolchain\0");
+            hasher.update(toolchain_id.as_bytes());
+            hasher.update(b"\0");
+        }
+
+        let digest = hasher.finalize();
+        hex16(&digest[..8])
+    }
+}
+
+fn write_unit_identity(hasher: &mut sha2::Sha256, unit: &Unit) {
+    hasher.update(unit.pkg_id.as_bytes());
+    hasher.update(b"\0");
+    hasher.update(unit.target.name.as_bytes());
+    hasher.update(b"\0");
+    hasher.update(unit.target.edition.as_bytes());
+    hasher.update(b"\0");
+
+    let mut crate_types = unit.target.crate_types.clone();
+    crate_types.sort();
+    for crate_type in crate_types {
+        hasher.update(crate_type.as_bytes());
+        hasher.update(b"\0");
+    }
+
+    let mut features = unit.features.clone();
+    features.sort();
+    for feature in features {
+        hasher.update(feature.as_bytes());
+        hasher.update(b"\0");
+    }
+
+    hasher.update(unit.profile.name.as_bytes());
+    hasher.update(b"\0");
+    hasher.update(unit.profile.opt_level.as_bytes());
+    hasher.update(b"\0");
+    hasher.update([unit.profile.lto.identity_byte()]);
+    hasher.update([unit.profile.debuginfo.identity_byte()]);
+    hasher.update([unit.profile.panic.identity_byte()]);
+    hasher.update([unit.profile.strip.identity_byte()]);
+    hash_bool(hasher, unit.profile.debug_assertions);
+    hash_bool(hasher, unit.profile.overflow_checks);
+    hash_bool(hasher, unit.profile.rpath);
+    hash_bool(hasher, unit.profile.incremental);
+    if let Some(codegen_units) = unit.profile.codegen_units {
+        hasher.update(codegen_units.to_string().as_bytes());
+    }
+    hasher.update(b"\0");
+    if let Some(split_debuginfo) = &unit.profile.split_debuginfo {
+        hasher.update(split_debuginfo.as_bytes());
+    }
+    hasher.update(b"\0");
+    for flag in &unit.profile.rustflags {
+        hasher.update(flag.as_bytes());
+        hasher.update(b"\0");
+    }
+    hasher.update(unit.mode.as_bytes());
+    hasher.update(b"\0");
+    if let Some(platform) = &unit.platform {
+        hasher.update(platform.as_bytes());
+    }
+    hasher.update(b"\0");
+    hash_bool(hasher, unit.is_std);
+    hash_bool(hasher, unit.target.test);
+    hash_bool(hasher, unit.target.doctest);
+    hash_bool(hasher, unit.target.doc);
+}
+
+fn hash_bool(hasher: &mut sha2::Sha256, value: bool) {
+    hasher.update(if value { b"1" } else { b"0" });
+    hasher.update(b"\0");
+}
+
+impl Lto {
+    pub fn identity_byte(self) -> u8 {
+        match self {
+            Self::Off => b'0',
+            Self::Thin => b'1',
+            Self::Fat => b'2',
+        }
+    }
+}
+
+impl DebugInfo {
+    pub fn identity_byte(self) -> u8 {
+        match self {
+            Self::None => b'0',
+            Self::LineDirectivesOnly => b'1',
+            Self::LineTablesOnly => b'2',
+            Self::Limited => b'3',
+            Self::Full => b'4',
+        }
+    }
+
+    pub fn rustc_value(self) -> &'static str {
+        match self {
+            Self::None => "0",
+            Self::LineDirectivesOnly => "line-directives-only",
+            Self::LineTablesOnly => "line-tables-only",
+            Self::Limited => "1",
+            Self::Full => "2",
+        }
+    }
+
+    pub fn is_enabled(self) -> bool {
+        !matches!(self, Self::None)
+    }
+}
+
+impl Panic {
+    pub fn identity_byte(self) -> u8 {
+        match self {
+            Self::Unwind => b'0',
+            Self::Abort => b'1',
+        }
+    }
+
+    pub fn rustc_value(self) -> &'static str {
+        match self {
+            Self::Unwind => "unwind",
+            Self::Abort => "abort",
+        }
+    }
+}
+
+impl Strip {
+    pub fn identity_byte(self) -> u8 {
+        match self {
+            Self::None => b'0',
+            Self::Debuginfo => b'1',
+            Self::Symbols => b'2',
+        }
+    }
+
+    pub fn rustc_value(self) -> Option<&'static str> {
+        match self {
+            Self::None => None,
+            Self::Debuginfo => Some("debuginfo"),
+            Self::Symbols => Some("symbols"),
+        }
+    }
+}
+
+impl Lto {
+    pub fn rustc_value(self) -> Option<&'static str> {
+        match self {
+            Self::Off => None,
+            Self::Thin => Some("thin"),
+            Self::Fat => Some("fat"),
+        }
+    }
+}
+
+fn hex16(bytes: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut out = String::with_capacity(16);
+    for byte in bytes {
+        out.push(HEX[(byte >> 4) as usize] as char);
+        out.push(HEX[(byte & 0xf) as usize] as char);
+    }
+    out
+}

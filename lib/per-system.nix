@@ -114,7 +114,7 @@ in
       claude-code-demo-up = claudeCodeDemo.up;
       claude-code-demo-linux-up = claudeCodeDemoLinuxUp;
       claude-code-demo-minecraft-up = claudeCodeDemoMinecraftUp;
-      inherit (repoPackages) oci-image-builder;
+      inherit (repoPackages) nix-cargo-unit oci-image-builder;
       minestom-hello-server-jar = repoPackages.minestom.helloServerJar;
     }
     // lib.optionalAttrs (repoPackages ? ix) {
@@ -129,6 +129,7 @@ in
     bench-filesystem = mkApp benchFilesystem "Benchmark file-system behavior from inside an ix VM";
     update-mods = mkApp updateMods "Regenerate Minecraft mod catalogs";
     ix-fleet = mkApp ixFleet "Render ix fleet plans and commands";
+    nix-cargo-unit = mkApp repoPackages.nix-cargo-unit "Render Cargo unit graphs as Nix derivations";
     claude-code-demo-diff = mkApp claudeCodeDemo.diff "Diff the Claude Code demo fleet against live VMs";
     claude-code-demo-plan = mkApp claudeCodeDemo.planCommand "Render the Claude Code demo fleet plan";
     claude-code-demo-replace = mkApp claudeCodeDemo.replace "Build replacement images for the Claude Code demo fleet";
