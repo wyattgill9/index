@@ -157,6 +157,15 @@ let
   # scope; each module stays inert until its `enable` flag is set.
   moduleList = lib.collect builtins.isPath (import paths.modules);
 
+  bunLockFor =
+    pkgs:
+    import ./bun-lock.nix {
+      inherit lib pkgs;
+    };
+  bunLock = bunLockFor pkgs;
+  buildBunSite = import ./build-bun-site.nix {
+    inherit bunLockFor;
+  };
   buildNpmSite = import ./build-npm-site.nix;
   buildGradleFatJar = import ./build-gradle-fat-jar.nix { inherit lib; };
   cargoUnitFor =
@@ -319,8 +328,11 @@ let
   ixSpecialArgs = {
     inherit
       artifacts
+      buildBunSite
       buildGradleFatJar
       buildNpmSite
+      bunLock
+      bunLockFor
       cargoUnit
       cargoUnitFor
       mkMinecraftLoader
@@ -442,10 +454,11 @@ let
       imageTests ? { },
     }:
     let
+      imageCategories = lib.filter (cat: cat != "presets") (subdirs root);
       raw = lib.mergeAttrsList (
         lib.concatMap (
           cat: map (name: imagePackages name (root + "/${cat}/${name}")) (subdirs (root + "/${cat}"))
-        ) (subdirs root)
+        ) imageCategories
       );
       attach =
         name: pkg:
@@ -475,8 +488,11 @@ in
     mkFleetFor
     discoverImages
     artifacts
+    buildBunSite
     buildGradleFatJar
     buildNpmSite
+    bunLock
+    bunLockFor
     cargoUnit
     cargoUnitFor
     mkMinecraftLoader

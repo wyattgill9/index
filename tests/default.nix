@@ -208,6 +208,23 @@ let
     };
   };
 
+  bunSiteFixture = fs.toSource {
+    root = ./fixtures/bun-site;
+    fileset = fs.unions [
+      ./fixtures/bun-site/bin
+      ./fixtures/bun-site/bun.lock
+      ./fixtures/bun-site/package.json
+    ];
+  };
+
+  bunSite = ix.buildBunSite pkgs {
+    pname = "bun-site-fixture";
+    version = "0.1.0";
+    src = bunSiteFixture;
+  };
+
+  bunLockPackage = builtins.head bunSite.bunNodeModules.bunCache.lock.packages;
+
   fleet = ix.mkFleet {
     deployment.region = "hil-1";
     secrets.sessionKey.generate = true;
@@ -534,6 +551,13 @@ let
         assertion = cargoUnitPolicyDisabledWorkspace.policyChecks == { };
         message = "cargo-unit policy checks should be disableable for generated workspaces";
       }
+      {
+        assertion =
+          bunLockPackage.name == "clsx"
+          && bunLockPackage.version == "2.1.1"
+          && lib.hasPrefix "sha512-" bunLockPackage.integrity;
+        message = "bun lock helper should derive registry fetch metadata from bun.lock";
+      }
     ];
 
     fleet = [
@@ -645,6 +669,10 @@ let
 
     ${cargoUnitHello}/bin/cargo-unit-hello > cargo-unit-hello.out
     grep -q 'hello from cargo-unit' cargo-unit-hello.out
+
+    grep -q 'class="ix bun"' ${bunSite}/share/bun-site-fixture/index.html
+    test -d ${bunSite.bunNodeModules}/node_modules/clsx
+    test -x ${bunSite.bunNodeModules.nodeCompat}/bin/node
   '';
 
   # --- Test derivation builder ----------------------------------------------

@@ -27,7 +27,7 @@
     "ixCliX86_64Linux": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-gB5DlidOeq/KhGXsvZl+xDMCpxP+WgZZmK4xvTlKrRg=",
+        "narHash": "sha256-6TpD+Wrme2pl0BV/Z+UqOqz/qeAHv+Bqdo1DyIdXzpo=",
         "type": "file",
         "url": "https://ix.dev/cli/linux-x86_64/ix"
       },

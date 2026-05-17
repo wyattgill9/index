@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+import { mkdir } from "node:fs/promises";
+import { clsx } from "clsx";
+
+await mkdir("dist", { recursive: true });
+await Bun.write("dist/index.html", `<main class="${clsx("ix", "bun")}">Bun lock OK</main>\n`);
