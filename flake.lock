@@ -3,7 +3,7 @@
     "ixCliAarch64Darwin": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-lPxd7XkazzfTkM2Az4R1ENlEmXzaF70O93OagH1Kn2s=",
+        "narHash": "sha256-SgLGCCs7/bHjdD9IcwVFnHEM8jXj+k668h+9ZgPdxoo=",
         "type": "file",
         "url": "https://ix.dev/cli/darwin-arm64/ix"
       },
@@ -15,7 +15,7 @@
     "ixCliX86_64Darwin": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-ivkOJr+NUsoeyZ5m90LcS1BC89ibnzVKPui+Z7GdjkQ=",
+        "narHash": "sha256-8CIpfu2yq+P+aCzCy2jdcPfiEmreXbKXaz0RiggjHOo=",
         "type": "file",
         "url": "https://ix.dev/cli/darwin-x86_64/ix"
       },
@@ -27,7 +27,7 @@
     "ixCliX86_64Linux": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-6TpD+Wrme2pl0BV/Z+UqOqz/qeAHv+Bqdo1DyIdXzpo=",
+        "narHash": "sha256-pLw+BhmBkwmKiE5dx6tpBDvC7YkW3RhGd2U5xV267dA=",
         "type": "file",
         "url": "https://ix.dev/cli/linux-x86_64/ix"
       },

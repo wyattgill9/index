@@ -38,12 +38,14 @@ let
     path == "" || !lib.hasPrefix "/" path || builtins.elem "" segments || builtins.elem ".." segments
   ) (lib.attrNames cfg);
 
-  invalidAttributeNames = lib.concatMapAttrsToList (
-    path: entry:
-    map (name: "${path}: ${name}") (
-      lib.filter (name: !(lib.hasPrefix "user." name) || name == "user.") (lib.attrNames entry.attributes)
-    )
-  ) cfg;
+  invalidAttributeNames = lib.concatLists (
+    lib.mapAttrsToList (
+      path: entry:
+      map (name: "${path}: ${name}") (
+        lib.filter (name: !(lib.hasPrefix "user." name) || name == "user.") (lib.attrNames entry.attributes)
+      )
+    ) cfg
+  );
 
   setfattr = "${pkgs.attr}/bin/setfattr";
   mkdir = "${pkgs.coreutils}/bin/mkdir";

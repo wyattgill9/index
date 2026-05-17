@@ -101,6 +101,29 @@ let
             };
         };
 
+      worldBorder =
+        let
+          config = evalConfig [
+            ../images/games/minecraft
+            defaultMinecraftModule
+            {
+              services.minecraft.worldBorder = {
+                enable = true;
+                center = {
+                  x = 100;
+                  z = -50;
+                };
+                diameter = 8000;
+              };
+            }
+          ];
+          service = config.systemd.services.minecraft-world-border;
+        in
+        {
+          inherit config service;
+          cfg = config.services.minecraft;
+        };
+
       paperPlugins =
         let
           config = evalConfig [
@@ -510,6 +533,26 @@ let
 
   fleetPlan = fleet.planValue.nodes;
 
+  factionsExample =
+    let
+      fleet = import ../examples/factions-server {
+        index = {
+          lib = ix;
+        };
+      };
+      config = fleet.nodes.factions;
+      service = config.systemd.services.minecraft-world-border;
+    in
+    {
+      inherit fleet config service;
+      cfg = config.services.minecraft;
+      managed = {
+        config = config.environment.etc."minecraft/managed-config".source;
+        dropins = config.environment.etc."minecraft/managed-dropins".source;
+        serverFiles = config.environment.etc."minecraft/managed-server-files".source;
+      };
+    };
+
   extendedAttributes =
     let
       config = evalConfig [
@@ -532,6 +575,61 @@ let
   # --- Per-image assertion groups -------------------------------------------
 
   groups = {
+    factions-server = [
+      {
+        assertion = factionsExample.config.ix.image.tag == "factions-server";
+        message = "factions-server example should set a stable replacement image tag";
+      }
+      {
+        assertion =
+          factionsExample.cfg.paper.enable
+          && factionsExample.cfg.version == "26.1.2"
+          && factionsExample.cfg.properties."level-name" == "factions";
+        message = "factions-server example should run the 26.1.2 Paper factions world";
+      }
+      {
+        assertion =
+          factionsExample.cfg.worldBorder.enable
+          && factionsExample.cfg.worldBorder.diameter == 12000
+          && factionsExample.cfg.properties."max-world-size" == 6000;
+        message = "factions-server example should declare a managed world border";
+      }
+      {
+        assertion =
+          lib.all (slug: builtins.hasAttr slug factionsExample.cfg.plugins) [
+            "pvpindex-factions"
+            "teams-api"
+            "placeholderapi"
+            "luckperms"
+            "vaultunlocked"
+            "eternaleconomy"
+            "quickshop-hikari"
+            "tradepost"
+            "worldedit"
+            "worldguard"
+            "terraformgenerator"
+            "combatlogplugin"
+            "simple-voice-chat"
+            "distant-horizons-support"
+          ]
+          && !(builtins.hasAttr "fastasyncworldedit" factionsExample.cfg.plugins);
+        message = "factions-server example should use the curated Paper plugin catalog slugs";
+      }
+      {
+        assertion =
+          builtins.hasAttr "paper-global.yml" factionsExample.cfg.configFiles
+          && builtins.hasAttr "paper-world-defaults.yml" factionsExample.cfg.configFiles
+          && builtins.hasAttr "spigot.yml" factionsExample.cfg.serverFiles
+          && builtins.hasAttr "bukkit.yml" factionsExample.cfg.serverFiles;
+        message = "factions-server example should configure Paper, Spigot, and Bukkit files";
+      }
+      {
+        assertion =
+          factionsExample.config.networking.firewall.allowedTCPPorts == [ factionsExample.cfg.port ];
+        message = "factions-server example should keep RCON private while exposing Minecraft";
+      }
+    ];
+
     extended-attributes = [
       {
         assertion = builtins.hasAttr "/build/ix-xattr-test" extendedAttributes.config.ix.extendedAttributes;
@@ -723,6 +821,34 @@ let
         message = "typed minecraft RCON should open the firewall only when requested";
       }
       {
+        assertion = minecraft.worldBorder.cfg.worldBorder.enable;
+        message = "typed minecraft world border should expose an enable flag";
+      }
+      {
+        assertion =
+          minecraft.worldBorder.cfg.worldBorder.center.x == 100
+          && minecraft.worldBorder.cfg.worldBorder.center.z == -50
+          && minecraft.worldBorder.cfg.worldBorder.diameter == 8000;
+        message = "typed minecraft world border should keep center and diameter settings";
+      }
+      {
+        assertion = minecraft.worldBorder.cfg.rcon.enable;
+        message = "typed minecraft world border should enable local RCON by default";
+      }
+      {
+        assertion =
+          minecraft.worldBorder.config.networking.firewall.allowedTCPPorts == [
+            minecraft.worldBorder.cfg.port
+          ];
+        message = "typed minecraft world border should keep the RCON port private";
+      }
+      {
+        assertion =
+          minecraft.worldBorder.service.after == [ "minecraft.service" ]
+          && minecraft.worldBorder.service.requires == [ "minecraft.service" ];
+        message = "typed minecraft world border should run after the Minecraft service is required";
+      }
+      {
         assertion = minecraft.access.cfg.properties.white-list;
         message = "typed minecraft whitelist should enable server.properties white-list";
       }
@@ -802,6 +928,23 @@ let
       {
         assertion = minecraft.paperPlugins.cfg.pluginCatalog.simple-voice-chat.pluginName == "voicechat";
         message = "Generated Simple Voice Chat plugin entry should use its Bukkit runtime name";
+      }
+      {
+        assertion = minecraft.paperPlugins.cfg.pluginCatalog.vaultunlocked.pluginName == "Vault";
+        message = "Generated VaultUnlocked plugin entry should use the Vault runtime name";
+      }
+      {
+        assertion =
+          minecraft.paperPlugins.cfg.pluginCatalog.quickshop-hikari.pluginName == "QuickShop-Hikari";
+        message = "Generated QuickShop-Hikari plugin entry should preserve its Bukkit runtime name";
+      }
+      {
+        assertion = minecraft.paperPlugins.cfg.pluginCatalog.tradepost.pluginName == "TradePost";
+        message = "Generated TradePost plugin entry should preserve its Bukkit runtime name";
+      }
+      {
+        assertion = minecraft.paperPlugins.cfg.pluginCatalog.combatlogplugin.pluginName == "CombatLog";
+        message = "Generated CombatLog plugin entry should preserve its Bukkit runtime name";
       }
       {
         assertion = builtins.elem 24455 minecraft.paperPlugins.config.networking.firewall.allowedUDPPorts;
@@ -1097,6 +1240,19 @@ let
   # --- Per-image build-time checks ------------------------------------------
 
   buildScripts = {
+    factions-server = ''
+      grep -q '^QuickShop-Hikari$' ${factionsExample.managed.dropins}/quickshop-hikari.jar.plugin-name
+      grep -q '^Vault$' ${factionsExample.managed.dropins}/vaultunlocked.jar.plugin-name
+      grep -q '^EternalEconomy$' ${factionsExample.managed.dropins}/eternaleconomy.jar.plugin-name
+      grep -q '^CombatLog$' ${factionsExample.managed.dropins}/combatlogplugin.jar.plugin-name
+      grep -q '^max-world-size=6000$' ${factionsExample.managed.serverFiles}/server.properties
+      grep -q 'max-tnt-per-tick: 500' ${factionsExample.managed.serverFiles}/spigot.yml
+      grep -q 'query-plugins: false' ${factionsExample.managed.serverFiles}/bukkit.yml
+      grep -q 'optimize-explosions: true' ${factionsExample.managed.config}/paper-world-defaults.yml
+      grep -q 'allow-piston-duplication: false' ${factionsExample.managed.config}/paper-global.yml
+      grep -q 'worldborder set 12000' ${factionsExample.service.serviceConfig.ExecStart}
+    '';
+
     extended-attributes = ''
       rm -rf /build/ix-xattr-test
       mkdir -p /build/ix-xattr-probe
@@ -1112,6 +1268,8 @@ let
 
     minecraft = ''
       ! grep -R 'rcon.password' ${minecraft.rcon.managed.serverFiles}
+      grep -q 'worldborder center 100 -50' ${minecraft.worldBorder.service.serviceConfig.ExecStart}
+      grep -q 'worldborder set 8000' ${minecraft.worldBorder.service.serviceConfig.ExecStart}
       grep -q '^query.port=25565$' ${minecraft.nestedProperties.managed.serverFiles}/server.properties
       grep -q '^rcon.port=25575$' ${minecraft.nestedProperties.managed.serverFiles}/server.properties
       grep -q '^white-list=true$' ${minecraft.access.managed.serverFiles}/server.properties

@@ -104,6 +104,60 @@ let
     };
   };
 
+  worldBorderType = types.submodule {
+    options = {
+      enable = mkEnableOption "a managed vanilla Minecraft world border";
+
+      center = {
+        x = mkOption {
+          type = types.number;
+          default = 0;
+          description = "World border center X coordinate.";
+        };
+
+        z = mkOption {
+          type = types.number;
+          default = 0;
+          description = "World border center Z coordinate.";
+        };
+      };
+
+      diameter = mkOption {
+        type = types.ints.positive;
+        default = 12000;
+        description = "World border diameter in blocks.";
+      };
+
+      warning = {
+        distance = mkOption {
+          type = types.ints.unsigned;
+          default = 64;
+          description = "Distance from the world border where the client warning overlay starts.";
+        };
+
+        time = mkOption {
+          type = types.ints.unsigned;
+          default = 15;
+          description = "Seconds before a moving world border reaches the player when the client warning overlay starts.";
+        };
+      };
+
+      damage = {
+        buffer = mkOption {
+          type = types.number;
+          default = 16;
+          description = "Safe distance beyond the world border before damage starts.";
+        };
+
+        amount = mkOption {
+          type = types.number;
+          default = 0.2;
+          description = "Damage per block per second once a player is beyond the damage buffer.";
+        };
+      };
+    };
+  };
+
   playerType = types.submodule (
     { name, ... }:
     {
@@ -486,6 +540,40 @@ let
     '';
   };
 
+  worldBorderCommand = ix.writeNushellApplication pkgs {
+    name = "minecraft-world-border";
+    runtimeInputs = [ pkgs.minecraft-rcon ];
+    text = ''
+      def rcon [command: string] {
+        minecraft-rcon --host 127.0.0.1 --port ${toString rconPort} --password-file ${builtins.toJSON rconPasswordFile} $command
+      }
+
+      def main [] {
+        mut ready = false
+        for _ in 1..120 {
+          if (do --ignore-errors { rcon "list" }) != null {
+            $ready = true
+            break
+          }
+
+          sleep 2sec
+        }
+
+        if not $ready {
+          print --stderr "minecraft RCON did not become ready for world border setup"
+          exit 1
+        }
+
+        rcon ${builtins.toJSON "worldborder center ${toString cfg.worldBorder.center.x} ${toString cfg.worldBorder.center.z}"}
+        rcon ${builtins.toJSON "worldborder set ${toString cfg.worldBorder.diameter}"}
+        rcon ${builtins.toJSON "worldborder warning distance ${toString cfg.worldBorder.warning.distance}"}
+        rcon ${builtins.toJSON "worldborder warning time ${toString cfg.worldBorder.warning.time}"}
+        rcon ${builtins.toJSON "worldborder damage buffer ${toString cfg.worldBorder.damage.buffer}"}
+        rcon ${builtins.toJSON "worldborder damage amount ${toString cfg.worldBorder.damage.amount}"}
+      }
+    '';
+  };
+
   autoReloadJvmFlags = lib.optionals jvmReloadEnabled [
     "-javaagent:${pkgs.minecraft-hot-reload-agent}/share/minecraft-hot-reload-agent/minecraft-hot-reload-agent.jar=socket=${cfg.autoReload.socketPath}"
   ];
@@ -740,6 +828,12 @@ in
       description = "Bukkit worlds keyed by world name. Generator settings are rendered to bukkit.yml.";
     };
 
+    worldBorder = mkOption {
+      type = worldBorderType;
+      default = { };
+      description = "Vanilla world border applied over local RCON after the server starts.";
+    };
+
     serverFiles = mkOption {
       type = types.attrsOf formatValueType;
       default = { };
@@ -762,9 +856,15 @@ in
         assertion = rawAccessFileNames == [ ];
         message = "services.minecraft.serverFiles cannot manage ${lib.concatStringsSep ", " rawAccessFileNames}; use services.minecraft.players so ix can reconcile Minecraft's mutable access files by UUID.";
       }
+      {
+        assertion = !cfg.worldBorder.enable || rconEnabled;
+        message = "services.minecraft.worldBorder.enable requires local RCON. Leave services.minecraft.rcon.enable at its worldBorder default, or keep a Bukkit-family autoReload RCON driver enabled.";
+      }
     ];
 
     services.minecraft = {
+      rcon.enable = lib.mkIf cfg.worldBorder.enable (lib.mkDefault true);
+
       properties = lib.mkMerge [
         {
           server-port = lib.mkDefault cfg.port;
@@ -849,6 +949,19 @@ in
         echo "eula=true" > ${dataDir}/eula.txt
         ${lib.getExe syncManaged}
       '';
+    };
+
+    systemd.services.minecraft-world-border = lib.mkIf cfg.worldBorder.enable {
+      description = "Apply Minecraft world border";
+      after = [ "minecraft.service" ];
+      requires = [ "minecraft.service" ];
+      wantedBy = [ "multi-user.target" ];
+      restartTriggers = [ worldBorderCommand ];
+      serviceConfig = ix.systemdHardening // {
+        Type = "oneshot";
+        ExecStart = lib.getExe worldBorderCommand;
+        RemainAfterExit = true;
+      };
     };
   };
 }

@@ -1,8 +1,18 @@
 {
+  "combatlogplugin": {
+    "hash": "sha512-7tmc9SSx4gFiaKp6zTrTZg7b26xmKZiFcXgOALWDnwq9VOF6MvJmnbov3IoAUVhkXd2QgGxKQMw0TEWkga7Jzw==",
+    "pluginName": "CombatLog",
+    "url": "https://cdn.modrinth.com/data/TZGNkl3q/versions/kmCJefQE/CombatLogPlugin-1.2.1-26.1%2B.jar"
+  },
   "distant-horizons-support": {
     "hash": "sha512-eyxQSdPch9lYAX/T/8if+Pmv8ViOskyCTgU9PTkh1ZkIuqLdc66erl+7Rg859LVHjjO6C8Oa7OMDGB9I0RtO9A==",
     "pluginName": "DHSupport",
     "url": "https://cdn.modrinth.com/data/IjY7seTG/versions/v7By0W81/DistantHorizonsSupport-0.13.1.jar"
+  },
+  "eternaleconomy": {
+    "hash": "sha512-DucqFS10tswfbXkP5a5L7rGFEwnd10NJB1HbIBXJdIVfElAUiC2UKJKGKTMYfuVG69IJVCVVm1nNy6nXZ79e8w==",
+    "pluginName": "EternalEconomy",
+    "url": "https://cdn.modrinth.com/data/2p0LH33p/versions/iJ7s5W89/EternalEconomy%20v1.0.0.jar"
   },
   "luckperms": {
     "hash": "sha512-dziVZEJgsziBi/7/DHj41PWQ9WsPcRw3ik7skb5uizc1QJm12x6lstzkwCSGITKXptoJZ1yb9vAU+aQAtXcs8w==",
@@ -19,6 +29,11 @@
     "pluginName": "PvPIndexFactions",
     "url": "https://cdn.modrinth.com/data/trDfzeaq/versions/2aurmzJG/pvpindex-factions-1.0.5.jar"
   },
+  "quickshop-hikari": {
+    "hash": "sha512-jW8TiJHoqV8+aAzCyFHU4S7pTDKaqYqVIgkcJDazDoKaBOw67jRZIolRTvy9V3bHkQ28RGasHN9oEhEwnJr1lg==",
+    "pluginName": "QuickShop-Hikari",
+    "url": "https://cdn.modrinth.com/data/ijC5dDkD/versions/QdShnamC/QuickShop-Hikari-6.2.0.11.jar"
+  },
   "simple-voice-chat": {
     "hash": "sha512-hdB1H+M6GF27OeDDCGzk+5WLCmLlpaloC1zBblyoumqbh9H47TP+20T4jnO7uOaAIwZgV0KXpObejuVGti49SA==",
     "pluginName": "voicechat",
@@ -33,6 +48,16 @@
     "hash": "sha512-UZ0zxJW8JrHwy737DJIaL5X25Rwjiqn2wURTzPtPDe8JfshHTy3h+p+OPEsioI015R/eIcv119Td17yWvRFiAQ==",
     "pluginName": "TerraformGenerator",
     "url": "https://cdn.modrinth.com/data/8JQgYY94/versions/rBqVUgFS/TerraformGenerator-26.1.0.jar"
+  },
+  "tradepost": {
+    "hash": "sha512-U/yi3UnMWzq57ujdso7tGZOK2UIWR2AYKTwimE2zOGEobnRLXl1Vz7C3HWBoenmoETBPenWiA+ojsPzu8EcJ3A==",
+    "pluginName": "TradePost",
+    "url": "https://cdn.modrinth.com/data/3gTYwJXk/versions/3DnVhMDh/tradepost-2.8.jar"
+  },
+  "vaultunlocked": {
+    "hash": "sha512-JKi/Gsiee6uAOkq7XTCFmDZxzq9s8bwK2JJfcph+8hrKgqRKF2+DpSqK943OHZUXUffKKW3ruM0JovaN9onIAA==",
+    "pluginName": "Vault",
+    "url": "https://cdn.modrinth.com/data/ayRaM8J7/versions/ypDodbNn/VaultUnlocked-2.19.1.jar"
   },
   "worldedit": {
     "hash": "sha512-Q9L4hloG1jxx0ri8De1mwsf15BPbGmS8L2Zds78l7CiuQHiYhK9L2vQHQKZjIZZJTSiX+ndnXwur+vefGEAIUw==",

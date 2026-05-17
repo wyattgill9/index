@@ -1,13 +1,27 @@
 # Factions Server
 
-Standalone downstream-style example for a Paper factions server on ix.
+Standalone downstream-style example for a Paper factions server on ix. It is
+intended to be runnable as-is, then customized with real player UUIDs and
+spawn/claim policy once the world exists.
 
 It uses Paper `26.1.2` with a generated Paper plugin catalog entry for:
 
-- PvPIndex Factions, TeamsAPI, PlaceholderAPI, LuckPerms
-- WorldEdit and WorldGuard for spawn/admin regions
+- PvPIndex Factions, TeamsAPI, PlaceholderAPI, and LuckPerms
+- VaultUnlocked, EternalEconomy, QuickShop-Hikari, and TradePost for money,
+  chest shops, and an auction-house style market
+- WorldEdit and WorldGuard for spawn/admin regions and claim-adjacent tooling
 - TerraformGenerator for custom overworld generation
+- CombatLog for PvP logout protection
 - Simple Voice Chat and Distant Horizons Support
+
+The example also sets:
+
+- a vanilla world border at `0,0` with a `12000` block diameter
+- `server.properties` gameplay defaults for a public factions server
+- `bukkit.yml` spawn and autosave policy
+- `spigot.yml` entity, hopper, TNT, tracking, and message policy
+- Paper `paper-global.yml` and `paper-world-defaults.yml` performance and
+  exploit-hardening policy
 
 The plugin URLs and hashes are not owned by this example. They come from
 `images/games/minecraft/plugins/paper/manifest.json`, regenerated from the repo
@@ -16,6 +30,10 @@ root with:
 ```bash
 nix run .#update-mods -- --manifest images/games/minecraft/plugins/paper/manifest.json
 ```
+
+The world border is applied after startup through local RCON. The RCON port is
+not opened in the firewall by default; it exists so ix can apply the border and
+reload managed Paper plugins during a switch.
 
 ## Use
 

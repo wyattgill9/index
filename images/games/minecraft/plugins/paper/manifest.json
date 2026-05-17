@@ -15,8 +15,24 @@
         "pluginName": "PlaceholderAPI"
       },
       {
-        "slug": "fastasyncworldedit",
-        "pluginName": "FastAsyncWorldEdit"
+        "slug": "vaultunlocked",
+        "pluginName": "Vault"
+      },
+      {
+        "slug": "eternaleconomy",
+        "pluginName": "EternalEconomy"
+      },
+      {
+        "slug": "quickshop-hikari",
+        "pluginName": "QuickShop-Hikari"
+      },
+      {
+        "slug": "tradepost",
+        "pluginName": "TradePost"
+      },
+      {
+        "slug": "worldedit",
+        "pluginName": "WorldEdit"
       },
       {
         "slug": "worldguard",
@@ -29,6 +45,10 @@
       {
         "slug": "pvpindex-factions",
         "pluginName": "PvPIndexFactions"
+      },
+      {
+        "slug": "combatlogplugin",
+        "pluginName": "CombatLog"
       },
       {
         "slug": "simple-voice-chat",
