@@ -457,19 +457,7 @@ let
     distribution: distribution.fileName
   ) uvApplication.uvWheelhouse.distributions;
 
-  pythonMcpServer =
-    let
-      config = evalConfig [
-        {
-          services.python-mcp-server.enable = true;
-        }
-      ];
-    in
-    {
-      inherit config;
-      cfg = config.services.python-mcp-server;
-      clientConfig = config.environment.etc."mcp/ix-python.json".source;
-    };
+  pythonMcpServerPackage = (ix.packageSetFor pkgs).python-mcp-server;
 
   fleet = ix.mkFleet {
     deployment.region = "hil-1";
@@ -983,19 +971,8 @@ let
           && !(builtins.elem "click-8.1.7.tar.gz" uvWheelhouseDistributionNames);
         message = "uv wheelhouses should prefer compatible wheels over sdists";
       }
-    ];
-
-    python-mcp-server = [
       {
-        assertion = pythonMcpServer.cfg.enable;
-        message = "python MCP server module should enable services.python-mcp-server";
-      }
-      {
-        assertion = builtins.elem pythonMcpServer.cfg.package pythonMcpServer.config.environment.systemPackages;
-        message = "python MCP server module should install its package";
-      }
-      {
-        assertion = pythonMcpServer.cfg.package.meta.mainProgram == "ix-python-mcp";
+        assertion = pythonMcpServerPackage.meta.mainProgram == "ix-python-mcp";
         message = "python MCP server package should expose ix-python-mcp as its main program";
       }
     ];
@@ -1161,15 +1138,6 @@ let
       grep -q 'plugman $row.action $row.plugin' ${minecraft.paper.service.config.ExecReload}
       ! grep -q 'reload all' ${minecraft.paper.service.config.ExecReload}
     '';
-
-    python-mcp-server = ''
-      grep -q '"ix-python"' ${pythonMcpServer.clientConfig}
-      grep -q '"serve"' ${pythonMcpServer.clientConfig}
-
-      ${lib.getExe pythonMcpServer.cfg.package} eval '1 + 2' > python-mcp-eval.out
-      grep -q 'result:' python-mcp-eval.out
-      grep -q '^3$' python-mcp-eval.out
-    '';
   };
 
   helperScript = ''
@@ -1186,6 +1154,10 @@ let
     ${uvApplication}/bin/uv-app-fixture > uv-app-fixture.out
     grep -q 'hello from uv app fixture' uv-app-fixture.out
     test -e ${uvApplication.uvWheelhouse}/click-8.1.7-py3-none-any.whl
+
+    ${lib.getExe pythonMcpServerPackage} eval '1 + 2' > python-mcp-eval.out
+    grep -q 'result:' python-mcp-eval.out
+    grep -q '^3$' python-mcp-eval.out
   '';
 
   # --- Test derivation builder ----------------------------------------------
