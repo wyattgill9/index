@@ -39,6 +39,14 @@ reload managed Paper plugins during a switch.
 BlueMap opens TCP `8100` for the rendered 3D web map. The Minecraft and BlueMap
 ports are the only public TCP ports in this example.
 
+## Layout
+
+- `default.nix` defines the ix fleet node.
+- `minecraft.nix` wires the Minecraft service and shared world settings.
+- `plugins.nix` selects catalog plugins and PlugManX reload policy.
+- `bukkit.nix`, `paper.nix`, and `spigot.nix` hold loader config files.
+- `world.nix` keeps the seed and world-border constants in one place.
+
 ## Use
 
 From this directory:
