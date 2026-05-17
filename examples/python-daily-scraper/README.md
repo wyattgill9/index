@@ -25,30 +25,7 @@ The reusable NixOS module is 163 lines. The Python stays ordinary Python.
 - [`package.nix`](package.nix) builds the uv project into a store executable.
 - [`src/daily_scraper/__init__.py`](src/daily_scraper/__init__.py) fetches one
   GitHub repository record and writes a date-stamped Parquet file.
-- [`flake.nix`](flake.nix) exposes fleet commands plus the Python package.
-
-## Use
-
-From this directory:
-
-```bash
-nix run .#plan
-nix run .#up
-nix run .#switch
-```
-
-Build the Python command alone:
-
-```bash
-nix build .#daily-scraper
-```
-
-After the VM is running, inspect the schedule and the last run:
-
-```bash
-ix shell scraper -- /run/current-system/sw/bin/systemctl list-timers daily-scraper.timer
-ix shell scraper -- /run/current-system/sw/bin/journalctl --no-pager -u daily-scraper.service -n 80
-```
+- [`flake.nix`](flake.nix) exposes the image package and the Python package.
 
 ## S3 Output
 

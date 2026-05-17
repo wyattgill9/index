@@ -392,6 +392,16 @@ In fleet presets, `ix.image.name` usually defaults to the node name. Set it only
 
 Comments should explain why a line exists, not restate Nix syntax. Prefer comments that answer "why is this needed in an ix fleet?" over comments that paraphrase the option name.
 
+Example docs and example flakes assume the reader already has the `ix` CLI.
+They should not include generic `Use` sections or wrapper outputs for
+`nix run .#plan`, `nix run .#up`, `nix run .#switch`, `nix build .#...`, or
+routine `ix shell ... journalctl` inspection. Example `flake.nix` files expose
+the build artifacts the example owns, such as image packages or a local app
+package. Leave `plan`/`diff`/`up`/`switch`/`replace` apps and matching wrapper
+packages out of downstream-style examples. Keep examples focused on the shape
+being taught: files, modules, service settings, data paths, and the specific
+operational caveats that are unusual for that example.
+
 Default to Rust for repo-owned tools that parse structured data, reconcile mutable state, stream archives, move large byte ranges, implement nontrivial CLIs, or sit in build/runtime hot paths. In practice, the vast majority of new first-party tooling with real logic should be Rust with normal source files, Cargo metadata, tests where useful, and Nix packaging. Shell is fine for small orchestration around existing programs, and Python is fine for low-volume generators or ecosystem-heavy tasks such as catalog updates, but do not leave stateful reconcilers, performance-sensitive builders, or runtime helpers in Python merely because it is quick to prototype.
 
 Prefer structured encoders at the boundary that owns the data. For JSON, YAML, TOML, properties files, and test fixtures, use Nix values with `pkgs.formats.*` or a language-native serializer, then copy or link the generated file from the shell step. Keep shell focused on orchestration: arranging directories, invoking tools, and checking outputs. This keeps escaping, ordering, and encoding consistent, and makes the data shape reviewable as Nix or typed source instead of as heredoc text.
