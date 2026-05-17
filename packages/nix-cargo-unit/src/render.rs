@@ -2,6 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
+use color_eyre::eyre::{Result, eyre};
+
 use crate::model::{Unit, UnitGraph};
 use crate::shell;
 
@@ -25,10 +27,7 @@ struct BuildScriptRun {
     dependency_runs: Vec<usize>,
 }
 
-pub fn render_units_nix(
-    graph: &UnitGraph,
-    options: &RenderOptions,
-) -> Result<String, Box<dyn std::error::Error>> {
+pub fn render_units_nix(graph: &UnitGraph, options: &RenderOptions) -> Result<String> {
     let prepared = prepare_graph(graph, options)?;
     let mut out = String::new();
 
@@ -98,10 +97,7 @@ pub fn render_units_nix(
     Ok(out)
 }
 
-fn prepare_graph(
-    graph: &UnitGraph,
-    options: &RenderOptions,
-) -> Result<PreparedGraph, Box<dyn std::error::Error>> {
+fn prepare_graph(graph: &UnitGraph, options: &RenderOptions) -> Result<PreparedGraph> {
     let mut hashes = vec![None; graph.units.len()];
     for index in 0..graph.units.len() {
         compute_hash(graph, options, index, &mut hashes)?;
@@ -155,7 +151,7 @@ fn prepare_graph(
                     .get(*dep_index)
                     .is_some_and(Unit::is_custom_build_compile)
             })
-            .ok_or_else(|| format!("build script run unit {index} has no compile dependency"))?;
+            .ok_or_else(|| eyre!("build script run unit {index} has no compile dependency"))?;
 
         let dependency_runs = unit
             .dependencies
@@ -193,7 +189,7 @@ fn compute_hash(
     options: &RenderOptions,
     index: usize,
     hashes: &mut [Option<String>],
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<String> {
     if let Some(hash) = &hashes[index] {
         return Ok(hash.clone());
     }
@@ -201,11 +197,11 @@ fn compute_hash(
     let unit = graph
         .units
         .get(index)
-        .ok_or_else(|| format!("dependency index {index} is outside the unit graph"))?;
+        .ok_or_else(|| eyre!("dependency index {index} is outside the unit graph"))?;
     let mut dependency_hashes = Vec::new();
     for dependency in &unit.dependencies {
         let dependency_unit = graph.units.get(dependency.index).ok_or_else(|| {
-            format!(
+            eyre!(
                 "dependency index {} is outside the unit graph",
                 dependency.index
             )
@@ -246,7 +242,7 @@ fn render_rustc_unit(
     options: &RenderOptions,
     prepared: &PreparedGraph,
     index: usize,
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<String> {
     let unit = &graph.units[index];
     let mut attrs = Attrs::new();
 
@@ -322,7 +318,7 @@ fn render_rustc_build_phase(
     options: &RenderOptions,
     prepared: &PreparedGraph,
     index: usize,
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<String> {
     let unit = &graph.units[index];
     let mut script = String::new();
 
@@ -578,7 +574,7 @@ fn render_build_script_run(
     prepared: &PreparedGraph,
     run_index: usize,
     build_script_run: &BuildScriptRun,
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<String> {
     let run_unit = &graph.units[run_index];
     let compile_unit = &graph.units[build_script_run.compile_index];
     let mut attrs = Attrs::new();
@@ -631,7 +627,7 @@ fn render_build_script_run_phase(
     run_unit: &Unit,
     compile_unit: &Unit,
     compile_index: usize,
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<String> {
     let mut script = String::new();
     let compile_ref = format!("${{units.{}}}", nix_attr(&prepared.names[compile_index]));
 
