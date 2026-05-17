@@ -30,9 +30,13 @@ index.lib.mkFleet {
             luckperms = { };
             teams-api = { };
             placeholderapi = { };
-            worldedit = { };
+            fastasyncworldedit = { };
             worldguard = { };
-            terraformgenerator = { };
+            terraformgenerator.worlds = [
+              "factions"
+              "factions_nether"
+              "factions_the_end"
+            ];
             pvpindex-factions = { };
             simple-voice-chat = { };
             distant-horizons-support = { };

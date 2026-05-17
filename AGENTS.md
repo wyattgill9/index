@@ -216,11 +216,11 @@ Whitelist and operator files are derived from `services.minecraft.players`. Put 
 
 ### Config file format inference
 
-`services.minecraft.properties` writes `server.properties` and `services.minecraft.bukkit` writes `bukkit.yml`. Use those first-class options in images, presets, and examples; keep `serverFiles` as the escape hatch for less common root files. `configFiles` keys are relative paths under `config/`. The serialization format is inferred from the file extension: `.toml`, `.json`, `.yaml`/`.yml`, `.properties`. Values are plain Nix attrsets. Mod modules never import `pkgs.formats` directly.
+`services.minecraft.properties` writes `server.properties`, and `services.minecraft.worlds.<name>.generator` renders Bukkit world generator bindings into `bukkit.yml`. Use those first-class options in images, presets, and examples; keep `services.minecraft.bukkit` and `serverFiles` as escape hatches for less common root files. `configFiles` keys are relative paths under `config/`. The serialization format is inferred from the file extension: `.toml`, `.json`, `.yaml`/`.yml`, `.properties`. Values are plain Nix attrsets. Mod modules never import `pkgs.formats` directly.
 
 ```nix
 services.minecraft.properties.motd = "ix-powered Minecraft";
-services.minecraft.bukkit.worlds.factions.generator = "TerraformGenerator";
+services.minecraft.worlds.factions.generator = "TerraformGenerator";
 services.minecraft.configFiles."SomeMod.toml" = { section.key = "value"; };
 services.minecraft.configFiles."other.yml" = { setting = true; };
 ```
@@ -281,7 +281,7 @@ Relative paths to children or siblings inside the same package/module directory 
 
 Bukkit-family loaders (Paper, Folia, Purpur, Spigot) use `services.minecraft.plugins`. Empty `{}` resolves a pinned plugin by slug from `pluginCatalog`; an attrset with `src` installs a local or private plugin jar; other attrset fields are reserved for plugin-specific modules such as `services.minecraft.plugins.simple-voice-chat.port`. The repo's plugin and mod catalogs (`ix.lib.artifacts.minecraft.*`, the generated JSON catalogs under `images/games/minecraft/mods/` and `images/games/minecraft/plugins/`) are the shared surface that presets, examples, and images consume. Presets and examples must not inline plugin or mod URLs and hashes; see the "Presets never own artifact data" rule under Image preset conventions.
 
-When a plugin has required companion config, model that as a module activated by the plugin slug instead of making every consumer hand-write sidecar files. For example, `services.minecraft.plugins.terraformgenerator = { };` should contribute the matching `services.minecraft.bukkit` generator binding from `services.minecraft.properties.level-name`.
+When a plugin has required companion config, model that as a module activated by the plugin slug instead of making every consumer hand-write sidecar files. For example, `services.minecraft.plugins.terraformgenerator.worlds = [ "factions" "factions_nether" "factions_the_end" ];` should contribute matching `services.minecraft.worlds.<name>.generator` defaults, which the runtime renders to `bukkit.yml`.
 
 Fabric/NeoForge/Sponge-style artifacts stay in `services.minecraft.mods`. Keep mod and plugin catalogs near the image/module artifact plumbing, not in preset fleets. Preset fleets should read like intent: choose a server, select catalog plugins/mods by slug, and show local/private artifacts only when that is the point of the preset.
 

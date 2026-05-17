@@ -96,6 +96,14 @@ let
     };
   };
 
+  worldType = types.submodule {
+    options.generator = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "Bukkit generator plugin name for this world.";
+    };
+  };
+
   playerType = types.submodule (
     { name, ... }:
     {
@@ -151,6 +159,16 @@ let
     "ops.json"
     "whitelist.json"
   ] (lib.attrNames cfg.serverFiles);
+  bukkit = {
+    worlds = lib.filterAttrs (_: world: world != { }) (
+      lib.mapAttrs (
+        _: world:
+        lib.optionalAttrs (world.generator != null) {
+          inherit (world) generator;
+        }
+      ) cfg.worlds
+    );
+  };
 
   whitelistEntries = map (player: {
     inherit (player) uuid name;
@@ -643,6 +661,12 @@ in
       description = "Settings written to bukkit.yml.";
     };
 
+    worlds = mkOption {
+      type = types.attrsOf worldType;
+      default = { };
+      description = "Bukkit worlds keyed by world name. Generator settings are rendered to bukkit.yml.";
+    };
+
     serverFiles = mkOption {
       type = types.attrsOf formatValueType;
       default = { };
@@ -689,6 +713,10 @@ in
           enforce-whitelist = lib.mkDefault cfg.whitelist.enforce;
         })
       ];
+
+      bukkit = lib.mkIf (bukkit.worlds != { }) {
+        worlds = bukkit.worlds;
+      };
 
       serverFiles = lib.mkMerge [
         {

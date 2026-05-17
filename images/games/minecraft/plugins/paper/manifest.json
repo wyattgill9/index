@@ -15,8 +15,8 @@
         "pluginName": "PlaceholderAPI"
       },
       {
-        "slug": "worldedit",
-        "pluginName": "WorldEdit"
+        "slug": "fastasyncworldedit",
+        "pluginName": "FastAsyncWorldEdit"
       },
       {
         "slug": "worldguard",
@@ -44,36 +44,69 @@
     "paper-26.1.2-server-popular": {
       "limit": 100,
       "index": "downloads",
-      "game_versions": ["26.1.2"],
-      "loaders": ["paper"],
+      "game_versions": [
+        "26.1.2"
+      ],
+      "loaders": [
+        "paper"
+      ],
       "facets": [
-        ["versions:26.1.2"],
-        ["categories:paper"],
-        ["server_side:required", "server_side:optional"]
+        [
+          "versions:26.1.2"
+        ],
+        [
+          "categories:paper"
+        ],
+        [
+          "server_side:required",
+          "server_side:optional"
+        ]
       ]
     },
     "paper-26.1.2-factions": {
       "limit": 50,
       "index": "relevance",
       "query": "factions",
-      "game_versions": ["26.1.2"],
-      "loaders": ["paper"],
+      "game_versions": [
+        "26.1.2"
+      ],
+      "loaders": [
+        "paper"
+      ],
       "facets": [
-        ["versions:26.1.2"],
-        ["categories:paper"],
-        ["server_side:required", "server_side:optional"]
+        [
+          "versions:26.1.2"
+        ],
+        [
+          "categories:paper"
+        ],
+        [
+          "server_side:required",
+          "server_side:optional"
+        ]
       ]
     },
     "paper-26.1.2-worldgen": {
       "limit": 50,
       "index": "downloads",
       "query": "world generation",
-      "game_versions": ["26.1.2"],
-      "loaders": ["paper"],
+      "game_versions": [
+        "26.1.2"
+      ],
+      "loaders": [
+        "paper"
+      ],
       "facets": [
-        ["versions:26.1.2"],
-        ["categories:paper"],
-        ["server_side:required", "server_side:optional"]
+        [
+          "versions:26.1.2"
+        ],
+        [
+          "categories:paper"
+        ],
+        [
+          "server_side:required",
+          "server_side:optional"
+        ]
       ]
     }
   }

@@ -107,9 +107,14 @@ let
             versions."26.1.2-paper"
             {
               services.minecraft.plugins = {
+                fastasyncworldedit = { };
                 pvpindex-factions = { };
                 simple-voice-chat.port = 24455;
-                terraformgenerator = { };
+                terraformgenerator.worlds = [
+                  "factions"
+                  "factions_nether"
+                  "factions_the_end"
+                ];
               };
               services.minecraft.properties.level-name = "factions";
             }
@@ -459,8 +464,7 @@ let
       }
       {
         assertion =
-          minecraft.cfg.properties."online-mode"
-          && minecraft.cfg.properties."enforce-secure-profile";
+          minecraft.cfg.properties."online-mode" && minecraft.cfg.properties."enforce-secure-profile";
         message = "default minecraft image should keep account authentication and secure profiles explicit";
       }
       {
@@ -621,6 +625,11 @@ let
         message = "Generated Paper plugin catalog should preserve Bukkit plugin names";
       }
       {
+        assertion =
+          minecraft.paperPlugins.cfg.pluginCatalog.fastasyncworldedit.pluginName == "FastAsyncWorldEdit";
+        message = "Paper minecraft should prefer FastAsyncWorldEdit over the stock WorldEdit plugin";
+      }
+      {
         assertion = minecraft.paperPlugins.cfg.pluginCatalog.simple-voice-chat.pluginName == "voicechat";
         message = "Generated Simple Voice Chat plugin entry should use its Bukkit runtime name";
       }
@@ -635,8 +644,18 @@ let
         message = "Simple Voice Chat should render Paper plugin config under plugins/voicechat";
       }
       {
-        assertion = minecraft.paperPlugins.cfg.bukkit.worlds.factions.generator == "TerraformGenerator";
-        message = "TerraformGenerator should bind bukkit.yml to the configured level-name";
+        assertion =
+          minecraft.paperPlugins.cfg.worlds.factions.generator == "TerraformGenerator"
+          && minecraft.paperPlugins.cfg.worlds.factions_nether.generator == "TerraformGenerator"
+          && minecraft.paperPlugins.cfg.worlds.factions_the_end.generator == "TerraformGenerator";
+        message = "TerraformGenerator should bind every configured world to its generator";
+      }
+      {
+        assertion =
+          minecraft.paperPlugins.cfg.bukkit.worlds.factions.generator == "TerraformGenerator"
+          && minecraft.paperPlugins.cfg.bukkit.worlds.factions_nether.generator == "TerraformGenerator"
+          && minecraft.paperPlugins.cfg.bukkit.worlds.factions_the_end.generator == "TerraformGenerator";
+        message = "Minecraft worlds should render to bukkit.yml world generator entries";
       }
     ];
 
@@ -873,7 +892,15 @@ let
       grep -q '^rcon.port=25575$' ${minecraft.nestedProperties.managed.serverFiles}/server.properties
       grep -q '^white-list=true$' ${minecraft.access.managed.serverFiles}/server.properties
       grep -q '^enforce-whitelist=true$' ${minecraft.access.managed.serverFiles}/server.properties
-      grep -q 'generator: TerraformGenerator' ${minecraft.paperPlugins.config.environment.etc."minecraft/managed-server-files".source}/bukkit.yml
+      grep -q 'factions_nether:' ${
+        minecraft.paperPlugins.config.environment.etc."minecraft/managed-server-files".source
+      }/bukkit.yml
+      grep -q 'factions_the_end:' ${
+        minecraft.paperPlugins.config.environment.etc."minecraft/managed-server-files".source
+      }/bukkit.yml
+      grep -q 'generator: TerraformGenerator' ${
+        minecraft.paperPlugins.config.environment.etc."minecraft/managed-server-files".source
+      }/bukkit.yml
       grep -q '"name": "Alice"' ${minecraft.access.managed.access}/whitelist.json
       grep -q '"name": "Bob"' ${minecraft.access.managed.access}/whitelist.json
       grep -q '"level": 3' ${minecraft.access.managed.access}/ops.json
