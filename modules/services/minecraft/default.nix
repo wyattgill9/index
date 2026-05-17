@@ -80,6 +80,8 @@ let
   };
 
   pluginType = types.submodule {
+    freeformType = formatValueType;
+
     options = {
       src = mkOption {
         type = types.nullOr types.path;

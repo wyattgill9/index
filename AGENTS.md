@@ -179,13 +179,13 @@ services.minecraft.mods = {
 
 The `modCatalog` option maps slugs to locked artifact sources. Set by the image base (from `common.json`) and version overlays (from `<version>.json`), then enriched through `ix.artifacts.attachArtifactSources`, which wraps each catalog entry's `{ url, hash }` in a `pkgs.fetchurl` derivation. The runtime resolves every key in `mods` to that derivation's store path.
 
-### Mod catalog generation
+### Minecraft artifact catalog generation
 
-The canonical Minecraft mod catalog generator is `tools/update-mods.py`, exposed as `nix run .#update-mods`. Edit `images/games/minecraft/mods/manifest.json`, then run the app to regenerate `common.json`, the per-version lock catalogs, and the rich metadata catalog under `metadata/catalog.json`. For one game version, pass `--version <version>`.
+The canonical Minecraft artifact catalog generator is `tools/update-mods.py`, exposed as `nix run .#update-mods`. For Fabric/NeoForge/Sponge mods, edit `images/games/minecraft/mods/manifest.json`, then run the app to regenerate `common.json`, the per-version lock catalogs, and the rich metadata catalog under `metadata/catalog.json`. For Paper plugins, edit `images/games/minecraft/plugins/paper/manifest.json`, then run `nix run .#update-mods -- --manifest images/games/minecraft/plugins/paper/manifest.json`. For one game version, pass `--version <version>`.
 
-Modrinth-hosted entries should be listed by slug so the generator owns URL and hash selection. Non-Modrinth or hand-picked artifacts belong in the manifest as a small object with the slug and URL; the generated catalog is where `{ url, hash }` belongs. Do not hand-edit the generated JSON except to inspect a diff before committing.
+Modrinth-hosted entries should be listed by slug so the generator owns URL and hash selection. When a Bukkit plugin's runtime name differs from the slug, set `pluginName` in the manifest so PlugMan reloads use the correct name. Non-Modrinth or hand-picked artifacts belong in the manifest as a small object with the slug and URL; the generated catalog is where `{ url, hash }` belongs. Do not hand-edit the generated JSON except to inspect a diff before committing.
 
-Use manifest `searches` for broad agent-queryable indexes such as popular Fabric mods or Paper-compatible server plugins. Search results enrich `metadata/catalog.json` with descriptions, project pages, icons, gallery images, links, selected version files, and dependency metadata without adding every discovered artifact to `services.minecraft.mods`. Keep the per-version lock catalogs curated; they are the install set that Nix consumes.
+Use manifest `searches` for broad agent-queryable indexes such as popular Fabric mods or Paper-compatible server plugins. Search results enrich `metadata/catalog.json` with descriptions, project pages, icons, gallery images, links, selected version files, and dependency metadata without adding every discovered artifact to `services.minecraft.mods` or `services.minecraft.plugins`. Keep the per-version lock catalogs curated; they are the install set that Nix consumes.
 
 ### Mod modules
 
@@ -273,11 +273,11 @@ Relative paths to children or siblings inside the same package/module directory 
 
 ## Plugin conventions
 
-Bukkit-family loaders (Paper, Folia, Purpur, Spigot) use `services.minecraft.plugins`. Empty `{}` resolves a pinned plugin by slug from `pluginCatalog`; an attrset with `src` installs a local or private plugin jar. The repo's plugin and mod catalogs (`ix.lib.artifacts.minecraft.*`, the per-version JSON catalogs under `images/games/minecraft/mods/`) are the shared surface that presets and images consume. Presets must not inline plugin or mod URLs and hashes; see the "Presets never own artifact data" rule under Image preset conventions.
+Bukkit-family loaders (Paper, Folia, Purpur, Spigot) use `services.minecraft.plugins`. Empty `{}` resolves a pinned plugin by slug from `pluginCatalog`; an attrset with `src` installs a local or private plugin jar; other attrset fields are reserved for plugin-specific modules such as `services.minecraft.plugins.simple-voice-chat.port`. The repo's plugin and mod catalogs (`ix.lib.artifacts.minecraft.*`, the generated JSON catalogs under `images/games/minecraft/mods/` and `images/games/minecraft/plugins/`) are the shared surface that presets, examples, and images consume. Presets and examples must not inline plugin or mod URLs and hashes; see the "Presets never own artifact data" rule under Image preset conventions.
 
 Fabric/NeoForge/Sponge-style artifacts stay in `services.minecraft.mods`. Keep mod and plugin catalogs near the image/module artifact plumbing, not in preset fleets. Preset fleets should read like intent: choose a server, select catalog plugins/mods by slug, and show local/private artifacts only when that is the point of the preset.
 
-There is no separate plugin generator today. Extend the library-owned plugin catalog, such as `ix.artifacts.minecraft.paperPluginCatalog`, when adding shared pinned plugins; add generation only when the plugin catalog has enough repeated artifact data to justify it.
+Paper plugin artifacts are generated from `images/games/minecraft/plugins/paper/manifest.json` into `ix.artifacts.minecraft.paperPluginCatalogs.<version>`. Loader modules seed `services.minecraft.pluginCatalog` from that versioned catalog, with `ix.artifacts.minecraft.paperPluginCatalog` kept as the current default alias. Add shared Paper plugins through the manifest and generator, not by hand-editing `lib/default.nix`.
 
 ## Image conventions
 
@@ -312,7 +312,7 @@ Presets must not inline URLs, hashes, or pinned version strings for fetched arti
 
 In-repo presets that exercise this repo's library, modules, fleets, or pinned artifacts should be exposed from the root `flake.nix` as `apps`/`packages` and share the root `flake.lock`. Keep the actual fleet or image value in the preset's `default.nix` so tests and root outputs can import it. Do not add a nested preset `flake.lock` that pins this same repo; it will drift from the API under test.
 
-Use a standalone template flake only when the template is intentionally a downstream consumer. In that case its inputs should look like a real external user's inputs (`github:indexable-inc/index`, registry refs, etc.), not `path:../..` or `git+file:../..` backedges into the parent checkout. Do not add template-local artifact inputs when the root flake already exposes the locked artifact through `ix.lib.artifacts`.
+Use a standalone template or `examples/<name>` flake only when it is intentionally a downstream consumer. In that case its inputs should look like a real external user's inputs (`github:indexable-inc/index`, registry refs, etc.), not `path:../..` or `git+file:../..` backedges into the parent checkout. Do not add template-local artifact inputs when the root flake already exposes the locked artifact through `ix.lib.artifacts`.
 
 In fleet presets, `ix.image.name` usually defaults to the node name. Set it only when the replacement image should be named differently. Set `ix.image.tag` when the default `latest` would make plans or registry destinations ambiguous.
 

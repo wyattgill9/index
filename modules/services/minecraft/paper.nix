@@ -11,7 +11,17 @@ ix.mkMinecraftLoader {
   inherit ix config lib;
   name = "paper";
   dropDir = "plugins";
-  configFragment = _: {
-    services.minecraft.pluginCatalog = ix.artifacts.minecraft.paperPluginCatalog;
-  };
+  configFragment =
+    _:
+    let
+      cfg = config.services.minecraft;
+      versionCatalogs = ix.artifacts.minecraft.paperPluginCatalogs;
+    in
+    {
+      services.minecraft.pluginCatalog =
+        if cfg.version != null && builtins.hasAttr cfg.version versionCatalogs then
+          versionCatalogs.${cfg.version}
+        else
+          ix.artifacts.minecraft.paperPluginCatalog;
+    };
 }

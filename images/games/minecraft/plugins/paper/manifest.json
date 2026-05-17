@@ -1,0 +1,80 @@
+{
+  "loader": "paper",
+  "versions": {
+    "26.1.2": [
+      {
+        "slug": "luckperms",
+        "pluginName": "LuckPerms"
+      },
+      {
+        "slug": "teams-api",
+        "pluginName": "TeamsAPI"
+      },
+      {
+        "slug": "placeholderapi",
+        "pluginName": "PlaceholderAPI"
+      },
+      {
+        "slug": "worldedit",
+        "pluginName": "WorldEdit"
+      },
+      {
+        "slug": "worldguard",
+        "pluginName": "WorldGuard"
+      },
+      {
+        "slug": "terraformgenerator",
+        "pluginName": "TerraformGenerator"
+      },
+      {
+        "slug": "pvpindex-factions",
+        "pluginName": "PvPIndexFactions"
+      },
+      {
+        "slug": "simple-voice-chat",
+        "pluginName": "voicechat"
+      },
+      {
+        "slug": "distant-horizons-support",
+        "pluginName": "DHSupport"
+      }
+    ]
+  },
+  "searches": {
+    "paper-26.1.2-server-popular": {
+      "limit": 100,
+      "index": "downloads",
+      "game_versions": ["26.1.2"],
+      "loaders": ["paper"],
+      "facets": [
+        ["versions:26.1.2"],
+        ["categories:paper"],
+        ["server_side:required", "server_side:optional"]
+      ]
+    },
+    "paper-26.1.2-factions": {
+      "limit": 50,
+      "index": "relevance",
+      "query": "factions",
+      "game_versions": ["26.1.2"],
+      "loaders": ["paper"],
+      "facets": [
+        ["versions:26.1.2"],
+        ["categories:paper"],
+        ["server_side:required", "server_side:optional"]
+      ]
+    },
+    "paper-26.1.2-worldgen": {
+      "limit": 50,
+      "index": "downloads",
+      "query": "world generation",
+      "game_versions": ["26.1.2"],
+      "loaders": ["paper"],
+      "facets": [
+        ["versions:26.1.2"],
+        ["categories:paper"],
+        ["server_side:required", "server_side:optional"]
+      ]
+    }
+  }
+}

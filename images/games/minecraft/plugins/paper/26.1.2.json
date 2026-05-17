@@ -1,0 +1,47 @@
+{
+  "distant-horizons-support": {
+    "hash": "sha512-eyxQSdPch9lYAX/T/8if+Pmv8ViOskyCTgU9PTkh1ZkIuqLdc66erl+7Rg859LVHjjO6C8Oa7OMDGB9I0RtO9A==",
+    "pluginName": "DHSupport",
+    "url": "https://cdn.modrinth.com/data/IjY7seTG/versions/v7By0W81/DistantHorizonsSupport-0.13.1.jar"
+  },
+  "luckperms": {
+    "hash": "sha512-dziVZEJgsziBi/7/DHj41PWQ9WsPcRw3ik7skb5uizc1QJm12x6lstzkwCSGITKXptoJZ1yb9vAU+aQAtXcs8w==",
+    "pluginName": "LuckPerms",
+    "url": "https://cdn.modrinth.com/data/Vebnzrzj/versions/OrIs0S6b/LuckPerms-Bukkit-5.5.17.jar"
+  },
+  "placeholderapi": {
+    "hash": "sha512-lK3fmWukXhbb3tP8rwXotEIhLODVd/ftxCt0OtlTLB4kEVJjl2Em028nwIaKscA8QMLROUeYUSS5LavKRSfd2w==",
+    "pluginName": "PlaceholderAPI",
+    "url": "https://cdn.modrinth.com/data/lKEzGugV/versions/UmbIiI5H/PlaceholderAPI-2.12.2.jar"
+  },
+  "pvpindex-factions": {
+    "hash": "sha512-Vwb3p8ijsF9STJn6xWfic2muAYVUOjKSgv0/rxmp4FzkSXyMjZZhniX4I5RFaMFBA72Eqn0xKU1OUlUydJ6tMg==",
+    "pluginName": "PvPIndexFactions",
+    "url": "https://cdn.modrinth.com/data/trDfzeaq/versions/2aurmzJG/pvpindex-factions-1.0.5.jar"
+  },
+  "simple-voice-chat": {
+    "hash": "sha512-hdB1H+M6GF27OeDDCGzk+5WLCmLlpaloC1zBblyoumqbh9H47TP+20T4jnO7uOaAIwZgV0KXpObejuVGti49SA==",
+    "pluginName": "voicechat",
+    "url": "https://cdn.modrinth.com/data/9eGKb6K1/versions/Qnk9puxN/voicechat-bukkit-2.6.17.jar"
+  },
+  "teams-api": {
+    "hash": "sha512-2y0DVB9nukRIp3V69NDYM/zheCaqOubh5W3ounwIjQ/hP7m8cIWfbx8/dOfQ97trO5SoV1drny2WTW0NjovsHg==",
+    "pluginName": "TeamsAPI",
+    "url": "https://cdn.modrinth.com/data/2NJKwgXC/versions/VrtMVBRI/teams-api-plugin-1.5.0.jar"
+  },
+  "terraformgenerator": {
+    "hash": "sha512-UZ0zxJW8JrHwy737DJIaL5X25Rwjiqn2wURTzPtPDe8JfshHTy3h+p+OPEsioI015R/eIcv119Td17yWvRFiAQ==",
+    "pluginName": "TerraformGenerator",
+    "url": "https://cdn.modrinth.com/data/8JQgYY94/versions/rBqVUgFS/TerraformGenerator-26.1.0.jar"
+  },
+  "worldedit": {
+    "hash": "sha512-Q9L4hloG1jxx0ri8De1mwsf15BPbGmS8L2Zds78l7CiuQHiYhK9L2vQHQKZjIZZJTSiX+ndnXwur+vefGEAIUw==",
+    "pluginName": "WorldEdit",
+    "url": "https://cdn.modrinth.com/data/1u6JkXh5/versions/yDUBafTJ/worldedit-bukkit-7.4.3.jar"
+  },
+  "worldguard": {
+    "hash": "sha512-cO0H8UWhtobicLrTuiNaOl5wAF2DV8E+MTC/AysEit0aod0AD1Uh93QJxToUERHaL2vz62EGVMBfR2ZnadEdTA==",
+    "pluginName": "WorldGuard",
+    "url": "https://cdn.modrinth.com/data/DKY9btbd/versions/EZl3moba/worldguard-bukkit-7.0.16.jar"
+  }
+}

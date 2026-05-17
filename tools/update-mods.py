@@ -118,11 +118,18 @@ def sri_from_url(url: str) -> str:
     return "sha256-" + base64.b64encode(sha256.digest()).decode()
 
 
-def artifact_lock(file: JsonObject) -> JsonObject:
-    return {
+def artifact_lock(file: JsonObject, extra: JsonObject | None = None) -> JsonObject:
+    value = {
         "url": file["url"],
         "hash": sri_from_modrinth(file),
     }
+    if extra:
+        value.update(extra)
+    return value
+
+
+def catalog_extra(ref: JsonObject) -> JsonObject:
+    return {key: ref[key] for key in ["pluginName"] if key in ref}
 
 
 def summarize_file(file: JsonObject) -> JsonObject:
@@ -257,16 +264,22 @@ def resolve(
 
     while queue:
         ref = queue.pop(0)
+        extra: JsonObject = {}
         if isinstance(ref, dict):
             slug = ref["slug"]
-            artifact_hash = sri_from_url(ref["url"])
-            resolved[slug] = {
-                "url": ref["url"],
-                "hash": artifact_hash,
-            }
-            projects[slug] = summarize_explicit_artifact(ref, artifact_hash)
-            print(f"  {slug}: explicit artifact", file=sys.stderr)
-            continue
+            extra = catalog_extra(ref)
+            if "url" in ref:
+                artifact_hash = sri_from_url(ref["url"])
+                resolved[slug] = {
+                    "url": ref["url"],
+                    "hash": artifact_hash,
+                    **extra,
+                }
+                projects[slug] = summarize_explicit_artifact(ref, artifact_hash)
+                print(f"  {slug}: explicit artifact", file=sys.stderr)
+                continue
+
+            ref = slug
 
         project = get_project(ref)
         pid = project["id"]
@@ -281,7 +294,7 @@ def resolve(
             continue
 
         file = primary_file(version)
-        resolved[project["slug"]] = artifact_lock(file)
+        resolved[project["slug"]] = artifact_lock(file, extra)
         remember_selected_version(projects, project, selection_key, version, file)
         print(f"  {project['slug']}: {version['name']}", file=sys.stderr)
 
@@ -328,6 +341,8 @@ def discover_projects(
             break
 
         slugs.extend(hit["slug"] for hit in hits)
+        if len(hits) < page_limit:
+            break
 
     if not slugs:
         return compact({

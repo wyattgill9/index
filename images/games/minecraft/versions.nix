@@ -39,6 +39,12 @@ let
       ];
     };
 
+    "26.1.2-paper" = {
+      loader = "paper";
+      version = "26.1.2";
+      mods = [ ];
+    };
+
     "1.21.11-fabric" = {
       loader = "fabric";
       version = "1.21.11";

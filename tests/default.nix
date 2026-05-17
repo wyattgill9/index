@@ -100,6 +100,24 @@ let
             };
         };
 
+      paperPlugins =
+        let
+          config = evalConfig [
+            ../images/games/minecraft
+            versions."26.1.2-paper"
+            {
+              services.minecraft.plugins = {
+                pvpindex-factions = { };
+                simple-voice-chat.port = 24455;
+              };
+            }
+          ];
+        in
+        {
+          inherit config;
+          cfg = config.services.minecraft;
+        };
+
       nestedProperties =
         let
           config = evalConfig [
@@ -415,6 +433,32 @@ let
         assertion =
           minecraft.paper.config.networking.firewall.allowedTCPPorts == [ minecraft.paper.cfg.port ];
         message = "Paper minecraft should not expose the local RCON reload port through the firewall";
+      }
+    ];
+
+    "minecraft_26.1.2-paper" = [
+      {
+        assertion = builtins.hasAttr "pvpindex-factions" minecraft.paperPlugins.cfg.pluginCatalog;
+        message = "Paper minecraft should seed pluginCatalog from the generated 26.1.2 Paper catalog";
+      }
+      {
+        assertion =
+          minecraft.paperPlugins.cfg.pluginCatalog.pvpindex-factions.pluginName == "PvPIndexFactions";
+        message = "Generated Paper plugin catalog should preserve Bukkit plugin names";
+      }
+      {
+        assertion = minecraft.paperPlugins.cfg.pluginCatalog.simple-voice-chat.pluginName == "voicechat";
+        message = "Generated Simple Voice Chat plugin entry should use its Bukkit runtime name";
+      }
+      {
+        assertion = builtins.elem 24455 minecraft.paperPlugins.config.networking.firewall.allowedUDPPorts;
+        message = "Simple Voice Chat should open its UDP port when installed as a Paper plugin";
+      }
+      {
+        assertion =
+          minecraft.paperPlugins.cfg.serverFiles."plugins/voicechat/voicechat-server.properties".port
+          == 24455;
+        message = "Simple Voice Chat should render Paper plugin config under plugins/voicechat";
       }
     ];
 
