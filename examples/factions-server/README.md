@@ -14,6 +14,7 @@ It uses Paper `26.1.2` with a generated Paper plugin catalog entry for:
 - CombatLog for PvP logout protection
 - Simple Voice Chat and Distant Horizons Support
 - BlueMap for a 3D browser map on TCP `8100`
+- Skript for server-side scripted gameplay and admin automation
 
 The example also sets:
 

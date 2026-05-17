@@ -658,6 +658,7 @@ let
             "simple-voice-chat"
             "distant-horizons-support"
             "bluemap"
+            "skript"
           ]
           && !(builtins.hasAttr "fastasyncworldedit" factionsExample.cfg.plugins);
         message = "factions-server example should use the curated Paper plugin catalog slugs";
@@ -1353,6 +1354,7 @@ let
       grep -q '^EternalEconomy$' ${factionsExample.managed.dropins}/eternaleconomy.jar.plugin-name
       grep -q '^CombatLog$' ${factionsExample.managed.dropins}/combatlogplugin.jar.plugin-name
       grep -q '^BlueMap$' ${factionsExample.managed.dropins}/bluemap.jar.plugin-name
+      grep -q '^Skript$' ${factionsExample.managed.dropins}/skript.jar.plugin-name
       grep -q '^max-world-size=6000$' ${factionsExample.managed.serverFiles}/server.properties
       grep -q 'max-tnt-per-tick: -1' ${factionsExample.managed.serverFiles}/spigot.yml
       grep -q 'query-plugins: false' ${factionsExample.managed.serverFiles}/bukkit.yml

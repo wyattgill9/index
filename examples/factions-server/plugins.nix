@@ -14,6 +14,7 @@
     "PvPIndexFactions"
     "CombatLog"
     "BlueMap"
+    "Skript"
   ];
 
   enabled = {
@@ -36,5 +37,6 @@
     simple-voice-chat = { };
     distant-horizons-support = { };
     bluemap = { };
+    skript = { };
   };
 }

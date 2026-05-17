@@ -44,10 +44,15 @@
     "pluginName": "voicechat",
     "url": "https://cdn.modrinth.com/data/9eGKb6K1/versions/Qnk9puxN/voicechat-bukkit-2.6.17.jar"
   },
+  "skript": {
+    "hash": "sha512-c7wMB4iYtFQCPmwoghfYMLXDO43A0ql5nxMvpOyQ2p03wG2zFO9Qh0n7RETWKdFQr332Bjv9C6lS/uocwZe/Yw==",
+    "pluginName": "Skript",
+    "url": "https://cdn.modrinth.com/data/xFNYAvMk/versions/uA0AEenw/Skript-2.15.2.jar"
+  },
   "teams-api": {
-    "hash": "sha512-2y0DVB9nukRIp3V69NDYM/zheCaqOubh5W3ounwIjQ/hP7m8cIWfbx8/dOfQ97trO5SoV1drny2WTW0NjovsHg==",
+    "hash": "sha512-pDcsw3F8zvNd7q6GrtBUlgGNINb+kRGOlPg8z76Erh2WhbTHbfTajnkpJQTWnivjIBSEWUv8ASnF7k6kkOHthQ==",
     "pluginName": "TeamsAPI",
-    "url": "https://cdn.modrinth.com/data/2NJKwgXC/versions/VrtMVBRI/teams-api-plugin-1.5.0.jar"
+    "url": "https://cdn.modrinth.com/data/2NJKwgXC/versions/QHbY0VSi/teams-api-plugin-1.6.0.jar"
   },
   "terraformgenerator": {
     "hash": "sha512-UZ0zxJW8JrHwy737DJIaL5X25Rwjiqn2wURTzPtPDe8JfshHTy3h+p+OPEsioI015R/eIcv119Td17yWvRFiAQ==",

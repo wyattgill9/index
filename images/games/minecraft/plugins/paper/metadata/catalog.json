@@ -252,7 +252,7 @@
           "url": "https://paypal.me/ajgeiss0702"
         }
       ],
-      "downloads": 85587,
+      "downloads": 85592,
       "followers": 180,
       "gallery": [
         {
@@ -379,7 +379,7 @@
               "version_id": null
             }
           ],
-          "downloads": 3979,
+          "downloads": 3982,
           "file": {
             "filename": "ajLeaderboards-2.11.0.jar",
             "hashes": {
@@ -503,7 +503,7 @@
           "url": "https://paypal.me/archydev"
         }
       ],
-      "downloads": 170491,
+      "downloads": 170495,
       "followers": 345,
       "game_versions": [
         "1.14.4",
@@ -567,7 +567,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-06T21:15:12.492402Z",
-          "downloads": 10142,
+          "downloads": 10145,
           "file": {
             "filename": "AuraSkills-2.3.12.jar",
             "hashes": {
@@ -636,7 +636,7 @@
       "date_created": "2023-12-22T13:36:04.796703Z",
       "date_modified": "2024-08-22T10:51:21.965135Z",
       "description": "A reliable, stable fork of AuthMe with various bug fixes, new exciting features and Folia support",
-      "downloads": 198126,
+      "downloads": 198145,
       "followers": 149,
       "gallery": [
         {
@@ -864,17 +864,17 @@
       "description": "A lightweight, customizable automatic tree chopping plugin for Paper/Folia servers.",
       "donation_urls": [
         {
-          "id": "paypal",
-          "platform": "Paypal",
-          "url": "https://paypal.me/Maoyue914"
-        },
-        {
           "id": "ko-fi",
           "platform": "Ko-fi",
           "url": "https://ko-fi.com/maoyue"
+        },
+        {
+          "id": "paypal",
+          "platform": "Paypal",
+          "url": "https://paypal.me/Maoyue914"
         }
       ],
-      "downloads": 83607,
+      "downloads": 83617,
       "followers": 120,
       "game_versions": [
         "1.17",
@@ -937,7 +937,7 @@
               "version_id": null
             }
           ],
-          "downloads": 9197,
+          "downloads": 9208,
           "file": {
             "filename": "AutoTreeChop-1.7.4.jar",
             "hashes": {
@@ -1013,8 +1013,8 @@
       "date_modified": "2026-04-05T19:57:02.425774Z",
       "description": "A lightweight grave (death chest) plugin focused on performance & compatibility.",
       "discord_url": "https://dc.artillex-studios.com/",
-      "downloads": 144548,
-      "followers": 309,
+      "downloads": 144559,
+      "followers": 310,
       "gallery": [
         {
           "created": "2023-11-21T17:43:51.187108Z",
@@ -1076,7 +1076,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-05T19:57:02.425774Z",
-          "downloads": 12490,
+          "downloads": 12503,
           "file": {
             "filename": "AxGraves-1.28.0.jar",
             "hashes": {
@@ -1154,7 +1154,7 @@
           "url": "https://www.paypal.com/paypalme/moulberry"
         }
       ],
-      "downloads": 185891,
+      "downloads": 185900,
       "followers": 277,
       "gallery": [
         {
@@ -1206,7 +1206,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-09T05:43:04.707426Z",
-          "downloads": 2093,
+          "downloads": 2096,
           "file": {
             "filename": "AxiomPaperPlugin-5.0.4-for-MC26.1.jar",
             "hashes": {
@@ -1252,14 +1252,14 @@
       "discord_url": "https://discord.com/invite/rePyFESDbk",
       "donation_urls": [
         {
-          "id": "paypal",
-          "platform": "Paypal",
-          "url": "https://www.paypal.com/paypalme/toxicity188?country.x=KR&locale.x=en_US"
-        },
-        {
           "id": "bmac",
           "platform": "Bmac",
           "url": "https://buymeacoffee.com/toxicity188"
+        },
+        {
+          "id": "paypal",
+          "platform": "Paypal",
+          "url": "https://www.paypal.com/paypalme/toxicity188?country.x=KR&locale.x=en_US"
         },
         {
           "id": "github",
@@ -1267,7 +1267,7 @@
           "url": "https://github.com/sponsors/toxicity188"
         }
       ],
-      "downloads": 57219,
+      "downloads": 57222,
       "followers": 327,
       "gallery": [
         {
@@ -1531,7 +1531,7 @@
           "url": "https://www.patreon.com/bluecolored"
         }
       ],
-      "downloads": 350045,
+      "downloads": 350071,
       "followers": 1323,
       "gallery": [
         {
@@ -1633,7 +1633,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-12T17:15:51.421995Z",
-          "downloads": 4529,
+          "downloads": 4538,
           "file": {
             "filename": "bluemap-5.20-paper.jar",
             "hashes": {
@@ -1686,7 +1686,7 @@
           "url": "https://github.com/sponsors/Jsinco"
         }
       ],
-      "downloads": 50022,
+      "downloads": 50025,
       "followers": 118,
       "gallery": [
         {
@@ -1776,7 +1776,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-08T07:00:50.617700Z",
-          "downloads": 1466,
+          "downloads": 1469,
           "file": {
             "filename": "BreweryX-3.7.0.jar",
             "hashes": {
@@ -1847,8 +1847,8 @@
       "date_created": "2025-02-05T11:35:51.667146Z",
       "date_modified": "2026-05-02T14:15:42.195037Z",
       "description": "Minecraft too easy? Try this mods with nearly 40 modifiers - settings new mini bosses, which made minecraft become hard & insane.  Enhanced hostile mobs' AI & Angry passive mob. Zombie place/break blocks. Skeleton,Spider,Creeper,Enderman.",
-      "downloads": 61106,
-      "followers": 193,
+      "downloads": 61111,
+      "followers": 194,
       "gallery": [
         {
           "created": "2025-02-05T14:08:23.247646Z",
@@ -2015,7 +2015,7 @@
           "url": "https://www.paypal.com/paypalme/pop4959"
         }
       ],
-      "downloads": 12575735,
+      "downloads": 12576495,
       "followers": 5479,
       "game_versions": [
         "1.13.2",
@@ -2089,7 +2089,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-04T05:46:08.712785Z",
-          "downloads": 12072,
+          "downloads": 12087,
           "file": {
             "filename": "Chunky-Bukkit-1.5.3.jar",
             "hashes": {
@@ -2148,7 +2148,7 @@
           "url": "https://mc-host24.de/donate/FS_HEFT"
         }
       ],
-      "downloads": 105209,
+      "downloads": 105222,
       "followers": 61,
       "gallery": [
         {
@@ -2232,7 +2232,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-14T14:12:27.058803Z",
-          "downloads": 2008,
+          "downloads": 2021,
           "file": {
             "filename": "ClearLag 1.7.7.1 VER 1.18-1.21.jar",
             "hashes": {
@@ -2309,7 +2309,7 @@
       "date_modified": "2026-04-20T08:27:33.350405Z",
       "description": "Click to pick up any mob into your inventory and carry\nthem around!",
       "discord_url": "https://discord.gg/zUetzp3Gzk",
-      "downloads": 131040,
+      "downloads": 131053,
       "followers": 216,
       "gallery": [
         {
@@ -2386,7 +2386,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-03-26T18:54:56.423368Z",
-          "downloads": 8448,
+          "downloads": 8453,
           "file": {
             "filename": "ClickMobs-paper-1.3.1.jar",
             "hashes": {
@@ -2451,7 +2451,7 @@
       "date_modified": "2026-04-19T12:47:32.050850Z",
       "description": "Click to pick up villagers, reset their trades, change their biomes, claim them and much more!",
       "discord_url": "https://discord.gg/zUetzp3Gzk",
-      "downloads": 342576,
+      "downloads": 342623,
       "followers": 445,
       "gallery": [
         {
@@ -2691,7 +2691,7 @@
           "url": "https://github.com/sponsors/YouHaveTrouble"
         }
       ],
-      "downloads": 70761,
+      "downloads": 70768,
       "followers": 218,
       "game_versions": [
         "1.13",
@@ -2775,7 +2775,7 @@
               "version_id": null
             }
           ],
-          "downloads": 22923,
+          "downloads": 22925,
           "file": {
             "filename": "CommandWhitelist-Bukkit-2.12.0.jar",
             "hashes": {
@@ -2837,7 +2837,7 @@
       "date_modified": "2026-05-13T21:44:02.407278Z",
       "description": "Forge and Fabric Unified Networking Solution",
       "discord_url": "https://discord.com/invite/eP8gE69",
-      "downloads": 2365117,
+      "downloads": 2365363,
       "followers": 174,
       "game_versions": [
         "1.19.3",
@@ -2937,7 +2937,7 @@
           "url": "https://ko-fi.com/ajneb97"
         }
       ],
-      "downloads": 53130,
+      "downloads": 53132,
       "followers": 108,
       "game_versions": [
         "1.8",
@@ -3150,7 +3150,7 @@
           "url": "https://ko-fi.com/ryderbelserion"
         }
       ],
-      "downloads": 112966,
+      "downloads": 112970,
       "followers": 103,
       "game_versions": [
         "1.8.8",
@@ -3261,7 +3261,7 @@
           "url": "https://ko-fi.com/ryderbelserion"
         }
       ],
-      "downloads": 276592,
+      "downloads": 276602,
       "followers": 246,
       "gallery": [
         {
@@ -3383,7 +3383,7 @@
               "version_id": null
             }
           ],
-          "downloads": 16325,
+          "downloads": 16332,
           "file": {
             "filename": "CrazyCrates-5.0.0.jar",
             "hashes": {
@@ -3438,14 +3438,14 @@
           "url": "https://www.paypal.com/paypalme/foxikledev"
         },
         {
-          "id": "github",
-          "platform": "Github",
-          "url": "https://github.com/sponsors/Foxikle"
-        },
-        {
           "id": "patreon",
           "platform": "Patreon",
           "url": "https://www.patreon.com/Foxikle"
+        },
+        {
+          "id": "github",
+          "platform": "Github",
+          "url": "https://github.com/sponsors/Foxikle"
         }
       ],
       "downloads": 49857,
@@ -3565,7 +3565,7 @@
           "url": "https://ko-fi.com/d0by1"
         }
       ],
-      "downloads": 160693,
+      "downloads": 160701,
       "followers": 208,
       "gallery": [
         {
@@ -3703,7 +3703,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-01T13:45:08.629864Z",
-          "downloads": 8732,
+          "downloads": 8738,
           "file": {
             "filename": "DecentHolograms-2.9.10.jar",
             "hashes": {
@@ -3824,17 +3824,17 @@
       "discord_url": "https://discordsrv.com/discord",
       "donation_urls": [
         {
-          "id": "github",
-          "platform": "Github",
-          "url": "https://github.com/sponsors/Scarsz"
-        },
-        {
           "id": "paypal",
           "platform": "Paypal",
           "url": "https://scarsz.me/donate"
+        },
+        {
+          "id": "github",
+          "platform": "Github",
+          "url": "https://github.com/sponsors/Scarsz"
         }
       ],
-      "downloads": 426625,
+      "downloads": 426640,
       "followers": 796,
       "game_versions": [
         "1.7.10",
@@ -3932,7 +3932,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-24T12:01:20.640408Z",
-          "downloads": 14633,
+          "downloads": 14648,
           "file": {
             "filename": "DiscordSRV-Build-1.30.5.jar",
             "hashes": {
@@ -4057,7 +4057,7 @@
           "url": "https://ko-fi.com/distanthorizons"
         }
       ],
-      "downloads": 32637,
+      "downloads": 32642,
       "followers": 103,
       "game_versions": [
         "1.16",
@@ -4118,7 +4118,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-10T12:05:12.944518Z",
-          "downloads": 936,
+          "downloads": 938,
           "file": {
             "filename": "DistantHorizonsSupport-0.13.1.jar",
             "hashes": {
@@ -4219,7 +4219,7 @@
           "url": "https://www.paypal.com/paypalme/gsdevs"
         }
       ],
-      "downloads": 63146,
+      "downloads": 63147,
       "followers": 97,
       "game_versions": [
         "1.14",
@@ -4377,7 +4377,7 @@
           "url": "https://boosty.to/dima_dencep"
         }
       ],
-      "downloads": 5742480,
+      "downloads": 5742801,
       "followers": 2158,
       "game_versions": [
         "1.16.5",
@@ -4433,7 +4433,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-26T02:44:59.373913Z",
-          "downloads": 2542,
+          "downloads": 2544,
           "file": {
             "filename": "emotecraft-paper-for-MC26.1.2-3.3.0-a.build.150.jar",
             "hashes": {
@@ -4712,7 +4712,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-18T19:52:06.973920Z",
-          "downloads": 10266,
+          "downloads": 10274,
           "file": {
             "filename": "FancyHolograms-2.10.0.jar",
             "hashes": {
@@ -4774,7 +4774,7 @@
           "url": "https://www.buymeacoffee.com/realoliver"
         }
       ],
-      "downloads": 289374,
+      "downloads": 289381,
       "followers": 467,
       "gallery": [
         {
@@ -4889,7 +4889,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-18T19:45:38.001778Z",
-          "downloads": 13791,
+          "downloads": 13808,
           "file": {
             "filename": "FancyNpcs-2.10.0.jar",
             "hashes": {
@@ -4935,7 +4935,7 @@
       "date_created": "2025-02-05T11:44:16.858182Z",
       "date_modified": "2026-05-02T14:11:32.715948Z",
       "description": "> Fokus / Focus API - Library for CoffeeG's datapack/mod/plugin.",
-      "downloads": 110680,
+      "downloads": 110685,
       "followers": 44,
       "game_versions": [
         "1.13",
@@ -5103,14 +5103,14 @@
       "discord_url": "https://discord.zowi.gay/",
       "donation_urls": [
         {
-          "id": "paypal",
-          "platform": "Paypal",
-          "url": "https://paypal.me/ybritez"
-        },
-        {
           "id": "ko-fi",
           "platform": "Ko-fi",
           "url": "https://ko-fi.com/imzowi"
+        },
+        {
+          "id": "paypal",
+          "platform": "Paypal",
+          "url": "https://paypal.me/ybritez"
         }
       ],
       "downloads": 60624,
@@ -5219,7 +5219,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2024-07-30T22:22:42.028122Z",
-          "downloads": 26983,
+          "downloads": 26984,
           "file": {
             "filename": "FoxAddition.jar",
             "hashes": {
@@ -5346,7 +5346,7 @@
       "date_created": "2022-08-15T22:17:51.457470Z",
       "date_modified": "2026-05-04T03:02:37.443799Z",
       "description": "Liberate your server from the chat-reporting bourgeoisie! The best paper chat report disabler this side of the Mississippi",
-      "downloads": 104390,
+      "downloads": 104394,
       "followers": 357,
       "game_versions": [
         "1.19.1",
@@ -5442,7 +5442,7 @@
           "url": "https://opencollective.com/GeyserMC"
         }
       ],
-      "downloads": 859471,
+      "downloads": 859528,
       "followers": 1157,
       "game_versions": [
         "1.16.5",
@@ -5500,7 +5500,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-13T13:25:39.698144Z",
-          "downloads": 6706,
+          "downloads": 6738,
           "file": {
             "filename": "Geyser-Spigot.jar",
             "hashes": {
@@ -5666,7 +5666,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-13T02:57:36.180193Z",
-          "downloads": 9036,
+          "downloads": 9038,
           "file": {
             "filename": "geyserupdater-spigot.jar",
             "hashes": {
@@ -5736,8 +5736,8 @@
       "date_modified": "2026-05-16T22:26:27.687939Z",
       "description": "Fully async, multithreaded, predictive, open source, 3.01 reach, 1.005 timer, 0.01% speed, 99.99% antikb, \"bypassable\" 1.8-1.21 anticheat",
       "discord_url": "https://discord.grim.ac",
-      "downloads": 389638,
-      "followers": 382,
+      "downloads": 389675,
+      "followers": 381,
       "game_versions": [
         "1.7.2",
         "1.7.3",
@@ -5843,7 +5843,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-16T22:26:27.687939Z",
-          "downloads": 1086,
+          "downloads": 1108,
           "file": {
             "filename": "grimac-bukkit-2.3.74-f3ed3b2.jar",
             "hashes": {
@@ -5983,7 +5983,7 @@
           "url": "https://paypal.me/loohpjames/5USD"
         }
       ],
-      "downloads": 188615,
+      "downloads": 188630,
       "followers": 566,
       "game_versions": [
         "1.13",
@@ -6054,7 +6054,7 @@
               "version_id": null
             }
           ],
-          "downloads": 5063,
+          "downloads": 5073,
           "file": {
             "filename": "ImageFrame-2026.1.2.0.jar",
             "hashes": {
@@ -6144,7 +6144,7 @@
           "url": "https://github.com/sponsors/spartacus04"
         }
       ],
-      "downloads": 229701,
+      "downloads": 229717,
       "followers": 206,
       "gallery": [
         {
@@ -6229,7 +6229,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-21T21:29:49.852009Z",
-          "downloads": 17683,
+          "downloads": 17701,
           "file": {
             "filename": "instantrestock_2.6.2.jar",
             "hashes": {
@@ -6327,7 +6327,7 @@
           "url": "https://www.paypal.com/paypalme/catadmirer"
         }
       ],
-      "downloads": 115697,
+      "downloads": 115699,
       "followers": 167,
       "gallery": [
         {
@@ -6389,7 +6389,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-03-08T02:13:39.126878Z",
-          "downloads": 14710,
+          "downloads": 14713,
           "file": {
             "filename": "InfuseSMP-2.4.3.jar",
             "hashes": {
@@ -6454,7 +6454,7 @@
           "url": "https://paypal.me/loohpjames/5USD"
         }
       ],
-      "downloads": 66264,
+      "downloads": 66266,
       "followers": 190,
       "game_versions": [
         "1.8",
@@ -6578,7 +6578,7 @@
               "version_id": null
             }
           ],
-          "downloads": 5816,
+          "downloads": 5818,
           "file": {
             "filename": "InteractiveChat-2026.1.0.0.jar",
             "hashes": {
@@ -6705,7 +6705,7 @@
           "url": "https://www.paypal.com/donate/?hosted_button_id=MDMJLRCACKKYS"
         }
       ],
-      "downloads": 94661,
+      "downloads": 94668,
       "followers": 142,
       "gallery": [
         {
@@ -6844,7 +6844,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-19T20:19:40.078409Z",
-          "downloads": 7624,
+          "downloads": 7631,
           "file": {
             "filename": "InventoryRollbackPlus-1.8.3.jar",
             "hashes": {
@@ -6958,7 +6958,7 @@
           "url": "https://paypal.me/JanBoerman"
         }
       ],
-      "downloads": 234599,
+      "downloads": 234618,
       "followers": 396,
       "game_versions": [
         "1.8.8",
@@ -7006,7 +7006,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-10T21:26:14.724358Z",
-          "downloads": 5394,
+          "downloads": 5401,
           "file": {
             "filename": "InvSee++.jar",
             "hashes": {
@@ -7081,14 +7081,14 @@
       "discord_url": "https://discord.gg/w5HVCDPtRp",
       "donation_urls": [
         {
-          "id": "ko-fi",
-          "platform": "Ko-fi",
-          "url": "https://ko-fi.com/emanon_dev"
-        },
-        {
           "id": "paypal",
           "platform": "Paypal",
           "url": "https://www.paypal.me/FlavioLiponi/"
+        },
+        {
+          "id": "ko-fi",
+          "platform": "Ko-fi",
+          "url": "https://ko-fi.com/emanon_dev"
         }
       ],
       "downloads": 130103,
@@ -7188,7 +7188,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2025-12-10T03:37:57.526475Z",
-          "downloads": 66684,
+          "downloads": 66695,
           "file": {
             "filename": "ItemEdit-3.7.8.jar",
             "hashes": {
@@ -7405,7 +7405,7 @@
           "url": "https://github.com/sponsors/mysticdrew"
         }
       ],
-      "downloads": 148450,
+      "downloads": 148459,
       "followers": 43,
       "game_versions": [
         "1.19.2",
@@ -7485,7 +7485,7 @@
       "date_modified": "2026-05-02T19:59:01.790817Z",
       "description": "Say goodbye to lag-induced knockback woes, delivering fair and consistent PvP battles for all players, no matter their ping!",
       "discord_url": "https://discord.gg/eVeWV8m4dh",
-      "downloads": 50966,
+      "downloads": 50971,
       "followers": 136,
       "game_versions": [
         "1.12.2",
@@ -7559,7 +7559,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-02T19:58:57.567349Z",
-          "downloads": 1219,
+          "downloads": 1223,
           "file": {
             "filename": "knockbacksync-bukkit-1.3.6-dev-b136.jar",
             "hashes": {
@@ -7668,7 +7668,7 @@
           "url": "https://ko-fi.com/lajczik"
         }
       ],
-      "downloads": 238448,
+      "downloads": 238454,
       "followers": 387,
       "gallery": [
         {
@@ -7757,7 +7757,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-01T01:57:55.756810Z",
-          "downloads": 8938,
+          "downloads": 8945,
           "file": {
             "filename": "LagFixer.jar",
             "hashes": {
@@ -7861,7 +7861,7 @@
           "url": "https://ko-fi.com/thefliff"
         }
       ],
-      "downloads": 52463,
+      "downloads": 52465,
       "followers": 30,
       "gallery": [
         {
@@ -7967,7 +7967,7 @@
       "date_modified": "2026-05-14T09:39:53.442327Z",
       "description": "LifeStealZ - The Ultimate LifeSteal SMP Plugin!",
       "discord_url": "https://strassburger.org/discord",
-      "downloads": 331355,
+      "downloads": 331363,
       "followers": 322,
       "gallery": [
         {
@@ -8046,7 +8046,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-14T09:39:53.442327Z",
-          "downloads": 2248,
+          "downloads": 2251,
           "file": {
             "filename": "lifestealz-2.21.1.jar",
             "hashes": {
@@ -8235,7 +8235,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-16T21:00:50.617926Z",
-          "downloads": 113,
+          "downloads": 115,
           "file": {
             "filename": "LoginTo-3.5.0.jar",
             "hashes": {
@@ -8320,7 +8320,7 @@
           "url": "https://github.com/sponsors/lucko"
         }
       ],
-      "downloads": 1909130,
+      "downloads": 1909242,
       "followers": 1464,
       "game_versions": [
         "1.8.8",
@@ -8413,7 +8413,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2025-10-11T12:26:55.608887Z",
-          "downloads": 244714,
+          "downloads": 244737,
           "file": {
             "filename": "LuckPerms-Bukkit-5.5.17.jar",
             "hashes": {
@@ -8527,7 +8527,7 @@
           "url": "https://github.com/sponsors/kennytv"
         }
       ],
-      "downloads": 81010,
+      "downloads": 81016,
       "followers": 194,
       "game_versions": [
         "1.2.1",
@@ -8697,7 +8697,7 @@
           "url": "https://www.patreon.com/Author87668/join"
         }
       ],
-      "downloads": 64179,
+      "downloads": 64186,
       "followers": 111,
       "gallery": [
         {
@@ -8781,7 +8781,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-16T09:16:16.716815Z",
-          "downloads": 474,
+          "downloads": 481,
           "file": {
             "filename": "MinerTrack-1.10.1.0.jar",
             "hashes": {
@@ -8861,7 +8861,7 @@
           "url": "https://github.com/sponsors/jpenilla"
         }
       ],
-      "downloads": 182129,
+      "downloads": 182136,
       "followers": 480,
       "gallery": [
         {
@@ -8953,7 +8953,7 @@
               "version_id": null
             }
           ],
-          "downloads": 5549,
+          "downloads": 5551,
           "file": {
             "filename": "minimotd-paper-2.2.3.jar",
             "hashes": {
@@ -9008,7 +9008,7 @@
           "url": "https://ko-fi.com/offsetmonkey538"
         }
       ],
-      "downloads": 69738,
+      "downloads": 69747,
       "followers": 5,
       "game_versions": [
         "1.19.2",
@@ -9200,17 +9200,17 @@
       "discord_url": "https://discord.gg/NZtfKky",
       "donation_urls": [
         {
-          "id": "github",
-          "platform": "Github",
-          "url": "https://github.com/sponsors/Multiverse"
-        },
-        {
           "id": "other",
           "platform": "Other",
           "url": "https://opencollective.com/multiverse-plugins"
+        },
+        {
+          "id": "github",
+          "platform": "Github",
+          "url": "https://github.com/sponsors/Multiverse"
         }
       ],
-      "downloads": 574037,
+      "downloads": 574073,
       "followers": 661,
       "gallery": [
         {
@@ -9312,7 +9312,13 @@
             {
               "dependency_type": "optional",
               "file_name": null,
-              "project_id": "qvdtDX3s",
+              "project_id": "WuErDeI1",
+              "version_id": null
+            },
+            {
+              "dependency_type": "optional",
+              "file_name": null,
+              "project_id": "vtawPsTo",
               "version_id": null
             },
             {
@@ -9324,17 +9330,11 @@
             {
               "dependency_type": "optional",
               "file_name": null,
-              "project_id": "WuErDeI1",
-              "version_id": null
-            },
-            {
-              "dependency_type": "optional",
-              "file_name": null,
-              "project_id": "vtawPsTo",
+              "project_id": "qvdtDX3s",
               "version_id": null
             }
           ],
-          "downloads": 13668,
+          "downloads": 13707,
           "file": {
             "filename": "multiverse-core-5.6.2.jar",
             "hashes": {
@@ -9413,17 +9413,17 @@
       "discord_url": "https://discord.gg/NZtfKky",
       "donation_urls": [
         {
-          "id": "github",
-          "platform": "Github",
-          "url": "https://github.com/sponsors/Multiverse"
-        },
-        {
           "id": "other",
           "platform": "Other",
           "url": "https://opencollective.com/multiverse-plugins"
+        },
+        {
+          "id": "github",
+          "platform": "Github",
+          "url": "https://github.com/sponsors/Multiverse"
         }
       ],
-      "downloads": 203138,
+      "downloads": 203146,
       "followers": 278,
       "game_versions": [
         "1.13",
@@ -9503,7 +9503,7 @@
               "version_id": null
             }
           ],
-          "downloads": 3686,
+          "downloads": 3695,
           "file": {
             "filename": "multiverse-inventories-5.3.3.jar",
             "hashes": {
@@ -9581,17 +9581,17 @@
       "discord_url": "https://discord.gg/NZtfKky",
       "donation_urls": [
         {
-          "id": "other",
-          "platform": "Other",
-          "url": "https://opencollective.com/multiverse-plugins"
-        },
-        {
           "id": "github",
           "platform": "Github",
           "url": "https://github.com/sponsors/Multiverse"
+        },
+        {
+          "id": "other",
+          "platform": "Other",
+          "url": "https://opencollective.com/multiverse-plugins"
         }
       ],
-      "downloads": 65160,
+      "downloads": 65163,
       "followers": 157,
       "game_versions": [
         "1.13",
@@ -9756,17 +9756,17 @@
       "discord_url": "https://discord.gg/NZtfKky",
       "donation_urls": [
         {
-          "id": "github",
-          "platform": "Github",
-          "url": "https://github.com/sponsors/Multiverse"
-        },
-        {
           "id": "other",
           "platform": "Other",
           "url": "https://opencollective.com/multiverse-plugins"
+        },
+        {
+          "id": "github",
+          "platform": "Github",
+          "url": "https://github.com/sponsors/Multiverse"
         }
       ],
-      "downloads": 103888,
+      "downloads": 103896,
       "followers": 230,
       "gallery": [
         {
@@ -9855,7 +9855,7 @@
               "version_id": null
             }
           ],
-          "downloads": 2423,
+          "downloads": 2429,
           "file": {
             "filename": "multiverse-portals-5.2.2.jar",
             "hashes": {
@@ -9932,7 +9932,7 @@
       "date_modified": "2026-05-02T18:43:41.524807Z",
       "description": "Create custom mobs and bosses with advanced skills, attributes, equipment, and more!",
       "discord_url": "https://www.mythiccraft.io/discord",
-      "downloads": 67833,
+      "downloads": 67838,
       "followers": 157,
       "game_versions": [
         "1.13",
@@ -9983,7 +9983,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-02T18:43:41.524807Z",
-          "downloads": 2852,
+          "downloads": 2855,
           "file": {
             "filename": "MythicMobs-5.12.0.jar",
             "hashes": {
@@ -10036,7 +10036,7 @@
       "date_modified": "2026-04-06T14:15:16.385892Z",
       "description": "Add custom NBT tags to Items/Tiles/Entities without NMS",
       "discord_url": "https://discord.com/invite/yk4caxM",
-      "downloads": 284133,
+      "downloads": 284145,
       "followers": 268,
       "game_versions": [
         "1.7.9",
@@ -10127,7 +10127,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-06T14:15:16.385892Z",
-          "downloads": 11811,
+          "downloads": 11827,
           "file": {
             "filename": "item-nbt-api-plugin-2.15.7.jar",
             "hashes": {
@@ -10353,7 +10353,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-11T20:53:15.324724Z",
-          "downloads": 2896,
+          "downloads": 2907,
           "file": {
             "filename": "NexusCore-1.12.2.jar",
             "hashes": {
@@ -10455,7 +10455,7 @@
           "url": "https://ko-fi.com/nightexpress"
         }
       ],
-      "downloads": 169652,
+      "downloads": 169668,
       "followers": 103,
       "game_versions": [
         "1.19.4",
@@ -10500,7 +10500,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-24T22:11:01.326344Z",
-          "downloads": 8279,
+          "downloads": 8288,
           "file": {
             "filename": "nightcore-2.15.2.jar",
             "hashes": {
@@ -10680,7 +10680,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-14T22:16:33.913152Z",
-          "downloads": 1049,
+          "downloads": 1050,
           "file": {
             "filename": "Oneblock-1.6.1a.jar",
             "hashes": {
@@ -10834,7 +10834,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-06T18:43:56.249944Z",
-          "downloads": 2600,
+          "downloads": 2605,
           "file": {
             "filename": "OneMace-1.07.jar",
             "hashes": {
@@ -10895,14 +10895,14 @@
       "discord_url": "https://discord.gg/prqzNg9tRU",
       "donation_urls": [
         {
-          "id": "github",
-          "platform": "Github",
-          "url": "https://github.com/sponsors/retrooper/"
-        },
-        {
           "id": "patreon",
           "platform": "Patreon",
           "url": "https://patreon.com/retrooper"
+        },
+        {
+          "id": "github",
+          "platform": "Github",
+          "url": "https://github.com/sponsors/retrooper/"
         },
         {
           "id": "paypal",
@@ -10910,7 +10910,7 @@
           "url": "https://paypal.me/packetevents"
         }
       ],
-      "downloads": 553558,
+      "downloads": 553597,
       "followers": 320,
       "gallery": [
         {
@@ -11141,7 +11141,7 @@
           "url": "https://github.com/sponsors/granny"
         }
       ],
-      "downloads": 79148,
+      "downloads": 79149,
       "followers": 282,
       "gallery": [
         {
@@ -11256,7 +11256,7 @@
           "url": "https://github.com/sponsors/PlaceholderAPI"
         }
       ],
-      "downloads": 141937,
+      "downloads": 141973,
       "followers": 187,
       "game_versions": [
         "1.8",
@@ -11352,7 +11352,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-02-08T12:14:01.199969Z",
-          "downloads": 77028,
+          "downloads": 77054,
           "file": {
             "filename": "PlaceholderAPI-2.12.2.jar",
             "hashes": {
@@ -11477,7 +11477,7 @@
           "url": "https://patreon.com/plasmomc"
         }
       ],
-      "downloads": 3216124,
+      "downloads": 3216281,
       "followers": 2054,
       "game_versions": [
         "1.16.4",
@@ -11554,7 +11554,7 @@
               "version_id": null
             }
           ],
-          "downloads": 7624,
+          "downloads": 7636,
           "file": {
             "filename": "PlasmoVoice-Paper-2.1.9.jar",
             "hashes": {
@@ -11629,7 +11629,7 @@
           "url": "https://ko-fi.com/ajneb97"
         }
       ],
-      "downloads": 224537,
+      "downloads": 224551,
       "followers": 139,
       "game_versions": [
         "1.8.9",
@@ -11714,7 +11714,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-08T13:13:42.976092Z",
-          "downloads": 5956,
+          "downloads": 5969,
           "file": {
             "filename": "PlayerKits2-1.22.2.jar",
             "hashes": {
@@ -11966,7 +11966,7 @@
           "url": "https://ko-fi.com/iseal"
         }
       ],
-      "downloads": 102301,
+      "downloads": 102302,
       "followers": 94,
       "gallery": [
         {
@@ -12027,7 +12027,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-07T19:20:45.233788Z",
-          "downloads": 1218,
+          "downloads": 1220,
           "file": {
             "filename": "PowerGems-3.6.3.0.jar",
             "hashes": {
@@ -12097,7 +12097,7 @@
           "url": "https://www.patreon.com/plasmomc"
         }
       ],
-      "downloads": 76813,
+      "downloads": 76815,
       "followers": 67,
       "game_versions": [
         "1.16.5",
@@ -12231,7 +12231,7 @@
           "url": "https://www.patreon.com/plasmomc"
         }
       ],
-      "downloads": 58682,
+      "downloads": 58685,
       "followers": 33,
       "game_versions": [
         "1.16.5",
@@ -12295,7 +12295,7 @@
               "version_id": null
             }
           ],
-          "downloads": 289,
+          "downloads": 292,
           "file": {
             "filename": "pv-addon-lavaplayer-lib-1.2.1.jar",
             "hashes": {
@@ -12531,6 +12531,12 @@
             {
               "dependency_type": "optional",
               "file_name": null,
+              "project_id": "fRQREgAc",
+              "version_id": null
+            },
+            {
+              "dependency_type": "optional",
+              "file_name": null,
               "project_id": "rQtkf57Y",
               "version_id": null
             },
@@ -12550,12 +12556,6 @@
               "dependency_type": "optional",
               "file_name": null,
               "project_id": "1u6JkXh5",
-              "version_id": null
-            },
-            {
-              "dependency_type": "optional",
-              "file_name": null,
-              "project_id": "fRQREgAc",
               "version_id": null
             },
             {
@@ -12630,7 +12630,7 @@
           "url": "https://ko-fi.com/lorenzo0111"
         }
       ],
-      "downloads": 47980,
+      "downloads": 47982,
       "followers": 73,
       "gallery": [
         {
@@ -12736,7 +12736,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-14T16:49:11.621460Z",
-          "downloads": 372,
+          "downloads": 373,
           "file": {
             "filename": "QualityArmory.jar",
             "hashes": {
@@ -13070,7 +13070,7 @@
       "date_modified": "2026-02-14T01:23:59.624937Z",
       "description": "A shop plugin that allows players to easily sell/buy any items from a chest without any commands.",
       "discord_url": "https://discord.gg/Bu3dVtmsD3",
-      "downloads": 189734,
+      "downloads": 189755,
       "followers": 432,
       "gallery": [
         {
@@ -13368,7 +13368,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-02-14T01:23:59.624937Z",
-          "downloads": 20966,
+          "downloads": 20969,
           "file": {
             "filename": "QuickShop-Hikari-6.2.0.11.jar",
             "hashes": {
@@ -13429,7 +13429,7 @@
       "date_modified": "2026-03-27T15:58:45.070317Z",
       "description": "SetHome is a plugin that allows you to easily create homes",
       "discord_url": "https://discord.gg/y6gGNsBTux",
-      "downloads": 209248,
+      "downloads": 209264,
       "followers": 132,
       "gallery": [
         {
@@ -13493,7 +13493,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-03-27T15:58:45.070317Z",
-          "downloads": 38785,
+          "downloads": 38801,
           "file": {
             "filename": "SetHome-6.1.jar",
             "hashes": {
@@ -13575,7 +13575,7 @@
           "url": "https://www.patreon.com/c/NikeyV1"
         }
       ],
-      "downloads": 44974,
+      "downloads": 44979,
       "followers": 30,
       "gallery": [
         {
@@ -13634,7 +13634,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-03T12:12:50.905488Z",
-          "downloads": 3282,
+          "downloads": 3286,
           "file": {
             "filename": "CombatLog.jar",
             "hashes": {
@@ -13696,7 +13696,7 @@
           "url": "https://ko-fi.com/spicymike"
         }
       ],
-      "downloads": 69211,
+      "downloads": 69219,
       "followers": 40,
       "game_versions": [
         "1.17",
@@ -13799,8 +13799,8 @@
       "date_modified": "2026-05-12T17:57:44.710145Z",
       "description": "A working voice chat in Minecraft!",
       "discord_url": "https://discord.gg/4dH2zwTmyX",
-      "downloads": 47409620,
-      "followers": 11864,
+      "downloads": 47411794,
+      "followers": 11863,
       "gallery": [
         {
           "created": "2023-01-12T13:24:04.701172Z",
@@ -14112,7 +14112,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-04T13:16:22.885614Z",
-          "downloads": 49574,
+          "downloads": 49653,
           "file": {
             "filename": "voicechat-bukkit-2.6.17.jar",
             "hashes": {
@@ -14203,7 +14203,7 @@
       "date_created": "2025-01-19T20:25:22.952895Z",
       "date_modified": "2026-05-17T10:49:20.519702Z",
       "description": "A simple TPA Plugin. With customizable Messages and Sounds.",
-      "downloads": 55727,
+      "downloads": 55730,
       "followers": 20,
       "gallery": [
         {
@@ -14250,7 +14250,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-15T12:18:13.566385Z",
-          "downloads": 840,
+          "downloads": 841,
           "file": {
             "filename": "SimpleTPA-1.4.jar",
             "hashes": {
@@ -14312,7 +14312,7 @@
           "url": "https://ko-fi.com/shanebee"
         }
       ],
-      "downloads": 178164,
+      "downloads": 178180,
       "followers": 79,
       "gallery": [
         {
@@ -14368,7 +14368,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-10T12:55:56.639362Z",
-          "downloads": 3173,
+          "downloads": 3181,
           "file": {
             "filename": "SkBee-3.23.0.jar",
             "hashes": {
@@ -14420,17 +14420,17 @@
       "discord_url": "https://skinsrestorer.net/discord",
       "donation_urls": [
         {
-          "id": "ko-fi",
-          "platform": "Ko-fi",
-          "url": "https://ko-fi.com/skinsrestorer"
-        },
-        {
           "id": "paypal",
           "platform": "Paypal",
           "url": "https://skinsrestorer.net/donate"
+        },
+        {
+          "id": "ko-fi",
+          "platform": "Ko-fi",
+          "url": "https://ko-fi.com/skinsrestorer"
         }
       ],
-      "downloads": 1041687,
+      "downloads": 1041774,
       "followers": 509,
       "gallery": [
         {
@@ -14574,7 +14574,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-11T19:28:33.761062Z",
-          "downloads": 102137,
+          "downloads": 102209,
           "file": {
             "filename": "SkinsRestorer.jar",
             "hashes": {
@@ -14710,7 +14710,7 @@
           "url": "https://opencollective.com/skriptlang"
         }
       ],
-      "downloads": 94557,
+      "downloads": 94580,
       "followers": 83,
       "gallery": [
         {
@@ -14757,7 +14757,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-01T20:38:33.891031Z",
-          "downloads": 11128,
+          "downloads": 11144,
           "file": {
             "filename": "Skript-2.15.2.jar",
             "hashes": {
@@ -14994,17 +14994,17 @@
       "discord_url": "https://dsc.gg/nighterdevelopment",
       "donation_urls": [
         {
-          "id": "ko-fi",
-          "platform": "Ko-fi",
-          "url": "https://ko-fi.com/nighterdevelopment"
-        },
-        {
           "id": "paypal",
           "platform": "Paypal",
           "url": "https://www.paypal.com/paypalme/Nighter02"
+        },
+        {
+          "id": "ko-fi",
+          "platform": "Ko-fi",
+          "url": "https://ko-fi.com/nighterdevelopment"
         }
       ],
-      "downloads": 135150,
+      "downloads": 135158,
       "followers": 122,
       "gallery": [
         {
@@ -15099,7 +15099,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-03T07:13:06.192549Z",
-          "downloads": 5488,
+          "downloads": 5499,
           "file": {
             "filename": "SmartSpawner-1.6.6.jar",
             "hashes": {
@@ -15157,7 +15157,7 @@
       "date_created": "2022-11-01T03:23:49.178089Z",
       "date_modified": "2025-08-15T16:06:07.347435Z",
       "description": "Highly configurable spawn plugin. Teleport to a custom spawnpoint by command or on specific events.",
-      "downloads": 75088,
+      "downloads": 75100,
       "followers": 69,
       "game_versions": [
         "1.8",
@@ -15381,7 +15381,7 @@
           "url": "https://github.com/sponsors/jpenilla"
         }
       ],
-      "downloads": 97005,
+      "downloads": 97015,
       "followers": 450,
       "gallery": [
         {
@@ -15448,7 +15448,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-15T02:08:16.459594Z",
-          "downloads": 1348,
+          "downloads": 1350,
           "file": {
             "filename": "squaremap-paper-mc26.1.2-1.3.13.jar",
             "hashes": {
@@ -15489,7 +15489,7 @@
       "date_created": "2022-08-15T23:23:17.532599Z",
       "date_modified": "2026-04-25T16:54:51.685339Z",
       "description": "An all-in-one solution that works",
-      "downloads": 820863,
+      "downloads": 820935,
       "followers": 1289,
       "gallery": [
         {
@@ -15676,7 +15676,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-25T16:54:51.685339Z",
-          "downloads": 42674,
+          "downloads": 42723,
           "file": {
             "filename": "TAB v6.0.2 - Vanilla.jar",
             "hashes": {
@@ -15785,7 +15785,7 @@
           "url": "https://github.com/sponsors/jpenilla"
         }
       ],
-      "downloads": 280224,
+      "downloads": 280241,
       "followers": 629,
       "gallery": [
         {
@@ -15852,7 +15852,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-15T02:44:36.586848Z",
-          "downloads": 3692,
+          "downloads": 3698,
           "file": {
             "filename": "tabtps-paper-1.3.31.jar",
             "hashes": {
@@ -15909,10 +15909,10 @@
       "client_side": "unsupported",
       "color": 4486220,
       "date_created": "2026-04-20T00:12:17.291773Z",
-      "date_modified": "2026-05-16T12:46:47.759350Z",
+      "date_modified": "2026-05-17T20:18:11.873776Z",
       "description": "TeamsAPI is a passive, server-side bridge plugin for Paper servers, inspired by Vault",
       "discord_url": "https://discord.gg/yWP95XfmBS",
-      "downloads": 66,
+      "downloads": 68,
       "followers": 1,
       "game_versions": [
         "1.16",
@@ -15976,17 +15976,17 @@
       "project_type": "mod",
       "selected_versions": {
         "26.1.2+paper": {
-          "date_published": "2026-05-16T12:46:45.601178Z",
-          "downloads": 5,
+          "date_published": "2026-05-17T20:18:08.820407Z",
+          "downloads": 1,
           "file": {
-            "filename": "teams-api-plugin-1.5.0.jar",
+            "filename": "teams-api-plugin-1.6.0.jar",
             "hashes": {
-              "sha1": "131a726c0be83c695bb057036eaff8139b3af886",
-              "sha512": "db2d03541f67ba4448a7757af4d0d833fce17826aa3ae6e1e56de8ba7c088d0fe13fb9bc70859f6f1f3f74e7d0f7bb6b3b94a857576b9f2d964d6d0d8e8bec1e"
+              "sha1": "d1cd0de8336e0720da6db97a99153c0828bd1aac",
+              "sha512": "a4372cc3717ccef35deeae86aed05496018d20d6fe91118e94f83ccfbe84ae1d9685b4c76df4da8e79292504d69e2be3201484594bfc0129c5ee4ea490e1ed85"
             },
             "primary": true,
-            "size": 93167,
-            "url": "https://cdn.modrinth.com/data/2NJKwgXC/versions/VrtMVBRI/teams-api-plugin-1.5.0.jar"
+            "size": 99234,
+            "url": "https://cdn.modrinth.com/data/2NJKwgXC/versions/QHbY0VSi/teams-api-plugin-1.6.0.jar"
           },
           "game_versions": [
             "1.16",
@@ -16028,7 +16028,7 @@
             "26.1.1",
             "26.1.2"
           ],
-          "id": "VrtMVBRI",
+          "id": "QHbY0VSi",
           "loaders": [
             "bukkit",
             "folia",
@@ -16036,9 +16036,9 @@
             "purpur",
             "spigot"
           ],
-          "name": "TeamsAPI 1.5.0",
+          "name": "TeamsAPI 1.6.0",
           "project_id": "2NJKwgXC",
-          "version_number": "1.5.0",
+          "version_number": "1.6.0",
           "version_type": "release"
         }
       },
@@ -16066,7 +16066,7 @@
           "url": "https://paypal.me/leonardrfong"
         }
       ],
-      "downloads": 40299,
+      "downloads": 40304,
       "followers": 68,
       "gallery": [
         {
@@ -16122,7 +16122,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-04T15:37:30.466807Z",
-          "downloads": 5560,
+          "downloads": 5561,
           "file": {
             "filename": "TerraformGenerator-26.1.0.jar",
             "hashes": {
@@ -16294,7 +16294,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-12T14:55:23.017815Z",
-          "downloads": 2039,
+          "downloads": 2050,
           "file": {
             "filename": "TPA-3.2.8.jar",
             "hashes": {
@@ -16638,7 +16638,7 @@
           "url": "https://www.patreon.com/c/PluginDEV/membership"
         }
       ],
-      "downloads": 75193,
+      "downloads": 75202,
       "followers": 53,
       "gallery": [
         {
@@ -16717,7 +16717,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-03-21T19:12:57.780087Z",
-          "downloads": 15585,
+          "downloads": 15593,
           "file": {
             "filename": "timber-1.8.2.jar",
             "hashes": {
@@ -16792,7 +16792,7 @@
       "date_modified": "2026-04-27T00:02:05.183135Z",
       "description": "A modern drop-in Vault fork, with Folia support, and enhanced APIs.",
       "discord_url": "https://discord.gg/WNdwzpy",
-      "downloads": 81293,
+      "downloads": 81321,
       "followers": 137,
       "game_versions": [
         "1.9",
@@ -16878,7 +16878,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-04-27T00:02:05.183135Z",
-          "downloads": 7023,
+          "downloads": 7047,
           "file": {
             "filename": "VaultUnlocked-2.19.1.jar",
             "hashes": {
@@ -16982,7 +16982,7 @@
           "url": "https://ko-fi.com/miraculixx"
         }
       ],
-      "downloads": 48195929,
+      "downloads": 48199959,
       "followers": 4742,
       "gallery": [
         {
@@ -17068,7 +17068,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-15T14:40:28.070111Z",
-          "downloads": 15153,
+          "downloads": 15310,
           "file": {
             "filename": "veinminer-paper-2.8.2.jar",
             "hashes": {
@@ -17121,7 +17121,7 @@
           "url": "https://ko-fi.com/miraculixx"
         }
       ],
-      "downloads": 13877076,
+      "downloads": 13877487,
       "followers": 1065,
       "gallery": [
         {
@@ -17192,7 +17192,7 @@
               "version_id": null
             }
           ],
-          "downloads": 17038,
+          "downloads": 17194,
           "file": {
             "filename": "veinminer-enchant-2.8.2.jar",
             "hashes": {
@@ -17246,7 +17246,7 @@
           "url": "https://github.com/sponsors/kennytv"
         }
       ],
-      "downloads": 1410296,
+      "downloads": 1410372,
       "followers": 715,
       "game_versions": [
         "1.10",
@@ -17349,7 +17349,7 @@
               "version_id": null
             }
           ],
-          "downloads": 28120,
+          "downloads": 28149,
           "file": {
             "filename": "ViaBackwards-5.9.1.jar",
             "hashes": {
@@ -17460,7 +17460,7 @@
           "url": "https://ko-fi.com/florianreuth"
         }
       ],
-      "downloads": 445915,
+      "downloads": 445934,
       "followers": 177,
       "game_versions": [
         "1.7.10",
@@ -17560,9 +17560,9 @@
           "date_published": "2026-05-05T18:43:57.886148Z",
           "dependencies": [
             {
-              "dependency_type": "optional",
+              "dependency_type": "required",
               "file_name": null,
-              "project_id": "YlKdE5VK",
+              "project_id": "NpvuJQoq",
               "version_id": null
             },
             {
@@ -17572,13 +17572,13 @@
               "version_id": null
             },
             {
-              "dependency_type": "required",
+              "dependency_type": "optional",
               "file_name": null,
-              "project_id": "NpvuJQoq",
+              "project_id": "YlKdE5VK",
               "version_id": null
             }
           ],
-          "downloads": 12416,
+          "downloads": 12432,
           "file": {
             "filename": "ViaRewind-4.1.1.jar",
             "hashes": {
@@ -17692,7 +17692,7 @@
           "url": "https://github.com/sponsors/kennytv"
         }
       ],
-      "downloads": 2064730,
+      "downloads": 2064850,
       "followers": 1080,
       "game_versions": [
         "1.8.9",
@@ -17785,12 +17785,6 @@
             {
               "dependency_type": "optional",
               "file_name": null,
-              "project_id": "TbHIxhx5",
-              "version_id": null
-            },
-            {
-              "dependency_type": "optional",
-              "file_name": null,
               "project_id": "YlKdE5VK",
               "version_id": null
             },
@@ -17799,9 +17793,15 @@
               "file_name": null,
               "project_id": "NpvuJQoq",
               "version_id": null
+            },
+            {
+              "dependency_type": "optional",
+              "file_name": null,
+              "project_id": "TbHIxhx5",
+              "version_id": null
             }
           ],
-          "downloads": 43330,
+          "downloads": 43378,
           "file": {
             "filename": "ViaVersion-5.9.1.jar",
             "hashes": {
@@ -17921,7 +17921,7 @@
           "url": "https://ko-fi.com/justdoom"
         }
       ],
-      "downloads": 327202,
+      "downloads": 327225,
       "followers": 354,
       "gallery": [
         {
@@ -18035,7 +18035,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-02-04T04:16:19.848030Z",
-          "downloads": 21920,
+          "downloads": 21929,
           "file": {
             "filename": "VillagerInABukkit-paper-1.5.0.jar",
             "hashes": {
@@ -18082,17 +18082,17 @@
       "description": "Voice messages in minecraft chat",
       "donation_urls": [
         {
-          "id": "other",
-          "platform": "Other",
-          "url": "https://boosty.to/dimaskama/donate"
-        },
-        {
           "id": "paypal",
           "platform": "Paypal",
           "url": "https://www.paypal.com/donate/?hosted_button_id=FZ9PA86A62QLJ"
+        },
+        {
+          "id": "other",
+          "platform": "Other",
+          "url": "https://boosty.to/dimaskama/donate"
         }
       ],
-      "downloads": 153875,
+      "downloads": 153910,
       "followers": 194,
       "game_versions": [
         "1.21.1",
@@ -18140,7 +18140,7 @@
               "version_id": null
             }
           ],
-          "downloads": 9593,
+          "downloads": 9598,
           "file": {
             "filename": "voicemessages-paper-1.0.12.jar",
             "hashes": {
@@ -18199,7 +18199,7 @@
       "date_modified": "2026-05-15T14:50:50.276785Z",
       "description": "WildRTP - Another RTP Plugin build on Performance & Features",
       "discord_url": "https://discord.gg/Mbq2P92XqC",
-      "downloads": 65693,
+      "downloads": 65694,
       "followers": 56,
       "game_versions": [
         "1.13",
@@ -18271,7 +18271,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-02T18:01:25.105259Z",
-          "downloads": 2900,
+          "downloads": 2901,
           "file": {
             "filename": "WildRTP-3.4.jar",
             "hashes": {
@@ -18344,18 +18344,18 @@
       "discord_url": "https://discord.gg/enginehub",
       "donation_urls": [
         {
-          "id": "other",
-          "platform": "Other",
-          "url": "https://opencollective.com/enginehub"
-        },
-        {
           "id": "github",
           "platform": "Github",
           "url": "https://github.com/sponsors/EngineHub"
+        },
+        {
+          "id": "other",
+          "platform": "Other",
+          "url": "https://opencollective.com/enginehub"
         }
       ],
-      "downloads": 7414450,
-      "followers": 4235,
+      "downloads": 7415159,
+      "followers": 4234,
       "game_versions": [
         "1.17.1",
         "1.18.2",
@@ -18405,7 +18405,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-05-04T11:32:44.505155Z",
-          "downloads": 42776,
+          "downloads": 42885,
           "file": {
             "filename": "worldedit-bukkit-7.4.3.jar",
             "hashes": {
@@ -18468,7 +18468,7 @@
           "url": "https://github.com/sponsors/EngineHub"
         }
       ],
-      "downloads": 510242,
+      "downloads": 510313,
       "followers": 548,
       "game_versions": [
         "1.21",
@@ -18504,7 +18504,7 @@
       "selected_versions": {
         "26.1.2+paper": {
           "date_published": "2026-03-24T09:04:34.181505Z",
-          "downloads": 68208,
+          "downloads": 68241,
           "file": {
             "filename": "worldguard-bukkit-7.0.16.jar",
             "hashes": {
@@ -18699,7 +18699,7 @@
         "qualityarmory",
         "simple-combatlog"
       ],
-      "total_hits": 1725
+      "total_hits": 1733
     },
     "paper-26.1.2-worldgen": {
       "config": {

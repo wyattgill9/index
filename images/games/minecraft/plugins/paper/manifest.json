@@ -61,6 +61,10 @@
       {
         "slug": "bluemap",
         "pluginName": "BlueMap"
+      },
+      {
+        "slug": "skript",
+        "pluginName": "Skript"
       }
     ]
   },
