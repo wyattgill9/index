@@ -13,15 +13,16 @@ It uses Paper `26.1.2` with a generated Paper plugin catalog entry for:
 - TerraformGenerator for custom overworld generation
 - CombatLog for PvP logout protection
 - Simple Voice Chat and Distant Horizons Support
+- BlueMap for a 3D browser map on TCP `8100`
 
 The example also sets:
 
 - a vanilla world border at `0,0` with a `12000` block diameter
 - `server.properties` gameplay defaults for a public factions server
 - `bukkit.yml` spawn and autosave policy
-- `spigot.yml` entity, hopper, TNT, tracking, and message policy
-- Paper `paper-global.yml` and `paper-world-defaults.yml` performance and
-  exploit-hardening policy
+- `spigot.yml` entity, hopper, high-TNT, tracking, and message policy
+- Paper `paper-global.yml` and `paper-world-defaults.yml` performance,
+  cannon, and raid policy
 
 The plugin URLs and hashes are not owned by this example. They come from
 `images/games/minecraft/plugins/paper/manifest.json`, regenerated from the repo
@@ -34,6 +35,9 @@ nix run .#update-mods -- --manifest images/games/minecraft/plugins/paper/manifes
 The world border is applied after startup through local RCON. The RCON port is
 not opened in the firewall by default; it exists so ix can apply the border and
 reload managed Paper plugins during a switch.
+
+BlueMap opens TCP `8100` for the rendered 3D web map. The Minecraft and BlueMap
+ports are the only public TCP ports in this example.
 
 ## Use
 

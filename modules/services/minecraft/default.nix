@@ -365,6 +365,8 @@ let
       nbtFormats.nbtZlib
     else
       {
+        # BlueMap uses HOCON .conf files; JSON is valid HOCON.
+        conf = pkgs.formats.json { };
         toml = pkgs.formats.toml { };
         json = pkgs.formats.json { };
         yaml = pkgs.formats.yaml { };
@@ -807,7 +809,7 @@ in
     configFiles = mkOption {
       type = types.attrsOf formatValueType;
       default = { };
-      description = "Config files to place under config/. Keys are relative paths (format inferred from extension: .toml, .json, .yaml, .yml, .properties, .snbt, .nbt, .nbt.gz, .nbt.zlib). Values are Nix attrsets.";
+      description = "Config files to place under config/. Keys are relative paths (format inferred from extension: .conf, .toml, .json, .yaml, .yml, .properties, .snbt, .nbt, .nbt.gz, .nbt.zlib). Values are Nix attrsets.";
     };
 
     properties = mkOption {

@@ -45,6 +45,7 @@ index.lib.mkFleet {
               "TradePost"
               "PvPIndexFactions"
               "CombatLog"
+              "BlueMap"
             ];
 
             # Uncomment and add real Minecraft UUIDs to derive whitelist.json
@@ -77,6 +78,7 @@ index.lib.mkFleet {
               combatlogplugin = { };
               simple-voice-chat = { };
               distant-horizons-support = { };
+              bluemap = { };
             };
 
             properties = {
@@ -181,7 +183,9 @@ index.lib.mkFleet {
                 unsupported-settings = {
                   allow-headless-pistons = false;
                   allow-permanent-block-break-exploits = false;
-                  allow-piston-duplication = false;
+                  # Factions raids need TNT cannons and dupers to behave like
+                  # players expect; Paper keeps this under unsupported settings.
+                  allow-piston-duplication = true;
                   allow-unsafe-end-portal-teleportation = false;
                   perform-username-validation = true;
                 };
@@ -232,6 +236,7 @@ index.lib.mkFleet {
 
                 misc = {
                   disable-sprint-interruption-on-attack = false;
+                  prevent-tnt-from-moving-in-water = false;
                   redstone-implementation = "VANILLA";
                   update-pathfinding-on-block-update = true;
                 };
@@ -275,7 +280,8 @@ index.lib.mkFleet {
                 wither-spawn-sound-radius = 0;
                 item-despawn-rate = 6000;
                 mob-spawn-range = 6;
-                max-tnt-per-tick = 500;
+                # Disable Spigot's per-tick TNT throttle for large raid cannon bursts.
+                max-tnt-per-tick = -1;
                 view-distance = "default";
                 simulation-distance = "default";
                 verbose = false;
@@ -297,7 +303,7 @@ index.lib.mkFleet {
                   animals = 24;
                   monsters = 32;
                   raiders = 48;
-                  misc = 16;
+                  misc = 0;
                   water = 16;
                   villagers = 32;
                   flying-monsters = 48;
@@ -308,7 +314,7 @@ index.lib.mkFleet {
                   players = 128;
                   animals = 64;
                   monsters = 64;
-                  misc = 32;
+                  misc = 128;
                   display = 128;
                   other = 64;
                 };

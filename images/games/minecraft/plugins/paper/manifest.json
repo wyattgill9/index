@@ -57,6 +57,10 @@
       {
         "slug": "distant-horizons-support",
         "pluginName": "DHSupport"
+      },
+      {
+        "slug": "bluemap",
+        "pluginName": "BlueMap"
       }
     ]
   },

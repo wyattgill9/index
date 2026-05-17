@@ -611,6 +611,7 @@ let
             "combatlogplugin"
             "simple-voice-chat"
             "distant-horizons-support"
+            "bluemap"
           ]
           && !(builtins.hasAttr "fastasyncworldedit" factionsExample.cfg.plugins);
         message = "factions-server example should use the curated Paper plugin catalog slugs";
@@ -625,8 +626,13 @@ let
       }
       {
         assertion =
-          factionsExample.config.networking.firewall.allowedTCPPorts == [ factionsExample.cfg.port ];
-        message = "factions-server example should keep RCON private while exposing Minecraft";
+          let
+            ports = factionsExample.config.networking.firewall.allowedTCPPorts;
+          in
+          builtins.elem factionsExample.cfg.port ports
+          && builtins.elem 8100 ports
+          && !(builtins.elem factionsExample.cfg.rcon.port ports);
+        message = "factions-server example should keep RCON private while exposing Minecraft and BlueMap";
       }
     ];
 
@@ -1245,11 +1251,14 @@ let
       grep -q '^Vault$' ${factionsExample.managed.dropins}/vaultunlocked.jar.plugin-name
       grep -q '^EternalEconomy$' ${factionsExample.managed.dropins}/eternaleconomy.jar.plugin-name
       grep -q '^CombatLog$' ${factionsExample.managed.dropins}/combatlogplugin.jar.plugin-name
+      grep -q '^BlueMap$' ${factionsExample.managed.dropins}/bluemap.jar.plugin-name
       grep -q '^max-world-size=6000$' ${factionsExample.managed.serverFiles}/server.properties
-      grep -q 'max-tnt-per-tick: 500' ${factionsExample.managed.serverFiles}/spigot.yml
+      grep -q 'max-tnt-per-tick: -1' ${factionsExample.managed.serverFiles}/spigot.yml
       grep -q 'query-plugins: false' ${factionsExample.managed.serverFiles}/bukkit.yml
+      grep -q '"port": 8100' ${factionsExample.managed.serverFiles}/plugins/BlueMap/webserver.conf
+      grep -q '"accept-download": true' ${factionsExample.managed.serverFiles}/plugins/BlueMap/core.conf
       grep -q 'optimize-explosions: true' ${factionsExample.managed.config}/paper-world-defaults.yml
-      grep -q 'allow-piston-duplication: false' ${factionsExample.managed.config}/paper-global.yml
+      grep -q 'allow-piston-duplication: true' ${factionsExample.managed.config}/paper-global.yml
       grep -q 'worldborder set 12000' ${factionsExample.service.serviceConfig.ExecStart}
     '';
 

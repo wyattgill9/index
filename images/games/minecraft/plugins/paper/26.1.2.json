@@ -1,4 +1,9 @@
 {
+  "bluemap": {
+    "hash": "sha512-plP6O+JPxgbA6hmRVkbSv7r/Zx4exFU4833z3DOX/d7MEHpBJc8bmze3MbonNgFxu42a+Uf3p7dnQEUp3CTzmA==",
+    "pluginName": "BlueMap",
+    "url": "https://cdn.modrinth.com/data/swbUV1cr/versions/jPyegm5Q/bluemap-5.20-paper.jar"
+  },
   "combatlogplugin": {
     "hash": "sha512-7tmc9SSx4gFiaKp6zTrTZg7b26xmKZiFcXgOALWDnwq9VOF6MvJmnbov3IoAUVhkXd2QgGxKQMw0TEWkga7Jzw==",
     "pluginName": "CombatLog",
