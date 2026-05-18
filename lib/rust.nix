@@ -320,6 +320,7 @@ let
               inherit (git) url;
               rev = git.sha;
               sha256 = gitHashForPackage checkedOutputHashes pkg;
+              nativeBuildInputs = lib.optional (lib.hasPrefix "ssh://" git.url) pkgs.openssh;
             };
           in
           pkgs.runCommand "${pkg.name}-${pkg.version}"
