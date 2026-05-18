@@ -28,6 +28,7 @@ let
       exec ${lib.getExe shellWorkspace.shell} "$@"
     '';
     meta.mainProgram = "ix-workspace-shell";
+    passthru.shellPath = "/bin/ix-workspace-shell";
   };
 in
 {

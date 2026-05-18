@@ -22,12 +22,12 @@ let
   # Thin wrapper to keep call sites as plain lists; delegates to ix.evalImageConfig
   # so tests exercise the same evaluation path as production image builds.
   evalConfig = modules: ix.evalImageConfig { inherit modules; };
-  tryEvalToplevel =
+  failedAssertionsFor =
     modules:
     let
       config = evalConfig modules;
     in
-    builtins.tryEval (builtins.unsafeDiscardStringContext config.system.build.toplevel.drvPath);
+    builtins.filter (assertion: !assertion.assertion) config.assertions;
 
   minecraft =
     let
@@ -931,7 +931,7 @@ let
       activationScript = config.system.activationScripts.ix-extended-attributes.text;
     };
 
-  portClaimConflict = tryEvalToplevel [
+  portClaimConflictFailures = failedAssertionsFor [
     {
       services.remote-desktop = {
         enable = true;
@@ -945,7 +945,7 @@ let
     }
   ];
 
-  portClaimNamespaceAllowed = tryEvalToplevel [
+  portClaimNamespaceAllowedFailures = failedAssertionsFor [
     {
       ix.networking.portClaims = {
         left = {
@@ -963,7 +963,7 @@ let
     }
   ];
 
-  portClaimAddressFamilyAllowed = tryEvalToplevel [
+  portClaimAddressFamilyAllowedFailures = failedAssertionsFor [
     {
       services.minecraft-bedrock = {
         enable = true;
@@ -997,6 +997,10 @@ let
       {
         assertion = base.config.users.users.root.shell.meta.mainProgram == "ix-workspace-shell";
         message = "base profile should make root enter the workspace shell wrapper";
+      }
+      {
+        assertion = base.config.users.users.root.shell.shellPath == "/bin/ix-workspace-shell";
+        message = "base profile workspace shell wrapper should be accepted as a NixOS shell package";
       }
       {
         assertion = builtins.elem base.cfg.shellWorkspace.shell base.config.environment.systemPackages;
@@ -1219,15 +1223,17 @@ let
 
     networking = [
       {
-        assertion = !portClaimConflict.success;
+        assertion = lib.any (
+          failure: lib.hasInfix "ix.networking.portClaims has same-namespace port collisions" failure.message
+        ) portClaimConflictFailures;
         message = "ix.networking.portClaims should fail eval when two services claim the same-namespace socket";
       }
       {
-        assertion = portClaimNamespaceAllowed.success;
+        assertion = portClaimNamespaceAllowedFailures == [ ];
         message = "ix.networking.portClaims should allow the same port in separate network namespaces";
       }
       {
-        assertion = portClaimAddressFamilyAllowed.success;
+        assertion = portClaimAddressFamilyAllowedFailures == [ ];
         message = "ix.networking.portClaims should allow the same UDP port on separate IPv4 and IPv6 bind addresses";
       }
     ];

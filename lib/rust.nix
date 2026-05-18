@@ -427,6 +427,8 @@ let
           printf '%s\n' 'directory = "${vendorDir}"'
         } > "$CARGO_HOME/config.toml"
       fi
+    ''
+    + lib.optionalString (gitSourceConfig != "") ''
 
       {
         ${gitSourceConfig}
