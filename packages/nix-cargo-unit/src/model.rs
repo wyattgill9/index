@@ -1,6 +1,9 @@
+use std::borrow::Cow;
+
 use color_eyre::eyre::{bail, ensure, eyre, Result as EyreResult};
 use serde::Deserialize;
 use sha2::Digest as _;
+use url::Url;
 
 #[derive(Debug, Deserialize)]
 pub struct UnitGraph {
@@ -277,9 +280,9 @@ impl UnitGraph {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct PackageId<'a> {
-    pub name: &'a str,
+    pub name: Cow<'a, str>,
     pub version: &'a str,
 }
 
@@ -291,18 +294,21 @@ pub fn parse_pkg_id(pkg_id: &str) -> Option<PackageId<'_>> {
     {
         let (scheme_loc, fragment) = pkg_id.rsplit_once('#')?;
         if let Some((name, version)) = fragment.split_once('@') {
-            return Some(PackageId { name, version });
+            return Some(PackageId {
+                name: Cow::Borrowed(name),
+                version,
+            });
         }
 
-        let location = scheme_loc
-            .strip_prefix("git+")
-            .or_else(|| scheme_loc.strip_prefix("path+file://"))
-            .or_else(|| scheme_loc.strip_prefix("registry+"))
-            .or_else(|| scheme_loc.strip_prefix("sparse+"))?;
-        let name = location
-            .rsplit('/')
-            .next()
-            .and_then(|name| name.strip_suffix(".git").or(Some(name)))?;
+        let name = if let Some(location) = scheme_loc.strip_prefix("path+file://") {
+            package_name_from_path_location(location)?
+        } else {
+            let location = scheme_loc
+                .strip_prefix("git+")
+                .or_else(|| scheme_loc.strip_prefix("registry+"))
+                .or_else(|| scheme_loc.strip_prefix("sparse+"))?;
+            package_name_from_url_location(location)?
+        };
 
         return Some(PackageId {
             name,
@@ -312,9 +318,27 @@ pub fn parse_pkg_id(pkg_id: &str) -> Option<PackageId<'_>> {
 
     let mut parts = pkg_id.split_whitespace();
     Some(PackageId {
-        name: parts.next()?,
+        name: Cow::Borrowed(parts.next()?),
         version: parts.next()?,
     })
+}
+
+fn package_name_from_path_location(location: &str) -> Option<Cow<'_, str>> {
+    let name = location
+        .rsplit('/')
+        .next()
+        .and_then(|name| name.strip_suffix(".git").or(Some(name)))?;
+    Some(Cow::Borrowed(name))
+}
+
+fn package_name_from_url_location(location: &str) -> Option<Cow<'_, str>> {
+    let url = Url::parse(location).ok()?;
+    let segment = url
+        .path_segments()?
+        .filter(|segment| !segment.is_empty())
+        .next_back()?;
+    let name = segment.strip_suffix(".git").unwrap_or(segment);
+    Some(Cow::Owned(name.to_string()))
 }
 
 impl Target {
@@ -339,8 +363,11 @@ impl Target {
 }
 
 impl Unit {
-    pub fn package_name(&self) -> &str {
-        parse_pkg_id(&self.pkg_id).map_or(&self.target.name, |package| package.name)
+    pub fn package_name(&self) -> Cow<'_, str> {
+        parse_pkg_id(&self.pkg_id).map_or_else(
+            || Cow::Borrowed(self.target.name.as_str()),
+            |package| package.name,
+        )
     }
 
     pub fn package_version(&self) -> &str {
@@ -634,6 +661,17 @@ mod tests {
 
         assert_eq!(package.name, "serde");
         assert_eq!(package.version, "1.0.228");
+    }
+
+    #[test]
+    fn git_package_ids_with_version_fragments_ignore_query_params_in_inferred_names() {
+        let package = parse_pkg_id(
+            "git+https://github.com/rust-netlink/rtnetlink?rev=eb685374ba7f7a1201754f6b2b40c491d3d50cb3#0.20.0",
+        )
+        .unwrap();
+
+        assert_eq!(package.name, "rtnetlink");
+        assert_eq!(package.version, "0.20.0");
     }
 
     #[test]

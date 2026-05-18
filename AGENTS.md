@@ -74,6 +74,8 @@ Use blank lines as paragraph breaks inside function bodies. Each paragraph shoul
 
 For snippets in docs, comments, presets, or task descriptions that readers may see without IDE inlay hints, include explicit types on important bindings and use real repo APIs rather than invented simplified ones. In source files, use inference where it reads cleanly.
 
+For Rust tasks, start from a well-maintained crate when the problem is parsing, normalization, graph traversal, serialization, archive formats, protocol handling, or other domain logic with existing ecosystem coverage. Hand-written logic is fine for tiny glue around a crate API, but do not reimplement URL, TOML, semver, lockfile, or Cargo-style parsing unless the crate boundary is measurably worse for this repo.
+
 ## Sane defaults
 
 Helpers, modules, packages, templates, examples, and generated commands should be in a good state by default. Defaults should be checked, typed, reproducible, reasonably locked down, and fit for the common production-shaped path. Callers should opt into weaker behavior with a named reason.

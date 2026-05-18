@@ -76,11 +76,13 @@ impl CargoLockSources {
     }
 
     fn source_for_unit(&self, unit: &Unit) -> Result<String> {
+        let unit_name = unit.package_name();
+        let unit_version = unit.package_version();
         let unit_source = external_source_from_pkg_id(&unit.pkg_id).ok_or_else(|| {
             eyre!(
                 "external unit {} {} has package id without a registry, sparse, or git source: {}",
-                unit.package_name(),
-                unit.package_version(),
+                unit_name,
+                unit_version,
                 unit.pkg_id
             )
         })?;
@@ -89,8 +91,8 @@ impl CargoLockSources {
             .packages
             .iter()
             .filter(|package| {
-                package.name == unit.package_name()
-                    && package.version == unit.package_version()
+                package.name == unit_name.as_ref()
+                    && package.version == unit_version
                     && cargo_lock_source_matches_pkg_id(&unit_source, &package.source)
             })
             .collect();
@@ -99,14 +101,14 @@ impl CargoLockSources {
             [package] => Ok(package.source.clone()),
             [] => Err(eyre!(
                 "external unit {} {} has no matching Cargo.lock source for package id {}",
-                unit.package_name(),
-                unit.package_version(),
+                unit_name,
+                unit_version,
                 unit.pkg_id
             )),
             packages => Err(eyre!(
                 "external unit {} {} matches multiple Cargo.lock sources: {}",
-                unit.package_name(),
-                unit.package_version(),
+                unit_name,
+                unit_version,
                 packages
                     .iter()
                     .map(|package| package.source.as_str())
@@ -1158,7 +1160,7 @@ fn cargo_package_exports(unit: &Unit) -> String {
     let patch = version_parts.next().unwrap_or("0");
 
     for (name, value) in [
-        ("CARGO_PKG_NAME", package_name),
+        ("CARGO_PKG_NAME", package_name.as_ref()),
         ("CARGO_PKG_VERSION", version),
         ("CARGO_PKG_VERSION_MAJOR", major),
         ("CARGO_PKG_VERSION_MINOR", minor),
@@ -1486,17 +1488,18 @@ fn relative_path_string(path: &Path, root: &Path) -> Result<String> {
 }
 
 fn source_name(base: SourceBase, unit: &Unit, source_key: &str, relative: &str) -> String {
+    let package_name = unit.package_name();
     let hash = stable_hash(&format!(
         "{}\0{}\0{}\0{}\0{}",
         base.label(),
-        unit.package_name(),
+        package_name,
         unit.package_version(),
         source_key,
         relative
     ));
     format!(
         "cargo-unit-source-{}-{}-{hash}",
-        store_name_component(unit.package_name()),
+        store_name_component(package_name.as_ref()),
         store_name_component(unit.package_version())
     )
 }
@@ -2238,6 +2241,51 @@ mod tests {
         assert!(rendered.contains(&format!("vendorSources.\"{locked_source}#snafu@0.9.0\"")));
         assert!(!rendered
             .contains("vendorSources.\"git+https://github.com/shepmaster/snafu.git#snafu@0.9.0\""));
+    }
+
+    #[test]
+    fn git_vendor_sources_match_unit_graph_version_only_fragments() {
+        let graph: UnitGraph = serde_json::from_str(
+            r#"{
+              "version": 1,
+              "units": [
+                {
+                  "pkg_id": "git+https://github.com/rust-netlink/rtnetlink?rev=eb685374ba7f7a1201754f6b2b40c491d3d50cb3#0.20.0",
+                  "target": {
+                    "kind": ["lib"],
+                    "crate_types": ["lib"],
+                    "name": "rtnetlink",
+                    "src_path": "/vendor/rtnetlink/src/lib.rs",
+                    "edition": "2021"
+                  },
+                  "profile": { "name": "release", "opt_level": "3" },
+                  "mode": "build",
+                  "dependencies": []
+                }
+              ],
+              "roots": [0]
+            }"#,
+        )
+        .unwrap();
+
+        let locked_source =
+            "git+https://github.com/rust-netlink/rtnetlink?rev=eb685374ba7f7a1201754f6b2b40c491d3d50cb3#eb685374ba7f7a1201754f6b2b40c491d3d50cb3";
+        let rendered = render_units_nix(
+            &graph,
+            &RenderOptions {
+                workspace_root: PathBuf::from("/workspace"),
+                vendor_root: Some(PathBuf::from("/vendor")),
+                cargo_lock_sources: cargo_lock_sources(&[("rtnetlink", "0.20.0", locked_source)]),
+                content_addressed: false,
+                toolchain_id: None,
+                deny_unused_crate_dependencies: false,
+            },
+        )
+        .unwrap();
+
+        assert!(rendered.contains(&format!(
+            "vendorSources.\"{locked_source}#rtnetlink@0.20.0\""
+        )));
     }
 
     #[cfg(unix)]
