@@ -4,7 +4,7 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 
 use askama::Template as _;
-use color_eyre::eyre::{eyre, Result, WrapErr as _};
+use color_eyre::eyre::{Result, WrapErr as _, eyre};
 use serde::Deserialize;
 use sha2::Digest as _;
 
@@ -623,6 +623,7 @@ fn render_rustc_build_phase(
     }
 
     push_rustc_args(&mut script, unit, &prepared.hashes[index]);
+    append_target_linker_arg(&mut script, unit);
     script.push_str(
         "${pkgs.lib.concatStringsSep \"\\n\" (map (arg: \"rustc_args+=( ${pkgs.lib.escapeShellArg arg} )\") extraRustcArgs)}\n",
     );
@@ -809,6 +810,29 @@ fn push_codegen(script: &mut String, key: &str, value: &str) {
 
 fn push_arg(script: &mut String, value: &str) {
     let _ = writeln!(script, "rustc_args+=( {} )", shell::quote(value));
+}
+
+fn append_target_linker_arg(script: &mut String, unit: &Unit) {
+    let Some(platform) = &unit.platform else {
+        return;
+    };
+    let env_name = cargo_target_linker_env_name(platform);
+    let _ = writeln!(script, "if [ \"${{{env_name}+x}}\" = x ]; then");
+    let _ = writeln!(script, "  rustc_args+=( -C \"linker=${{{env_name}}}\" )");
+    script.push_str("fi\n");
+}
+
+fn cargo_target_linker_env_name(target: &str) -> String {
+    let mut env_name = String::from("CARGO_TARGET_");
+    for byte in target.bytes() {
+        match byte {
+            b'a'..=b'z' => env_name.push(char::from(byte.to_ascii_uppercase())),
+            b'A'..=b'Z' | b'0'..=b'9' | b'_' => env_name.push(char::from(byte)),
+            _ => env_name.push('_'),
+        }
+    }
+    env_name.push_str("_LINKER");
+    env_name
 }
 
 fn append_build_script_flag_reader(script: &mut String, run_ref: &str) {
@@ -2194,8 +2218,10 @@ mod tests {
         assert!(rendered.contains(
             "vendorSources.\"registry+https://github.com/rust-lang/crates.io-index#itoa@1.0.15\""
         ));
-        assert!(rendered
-            .contains("vendorSources.\"sparse+https://example.invalid/index/#itoa@1.0.15\""));
+        assert!(
+            rendered
+                .contains("vendorSources.\"sparse+https://example.invalid/index/#itoa@1.0.15\"")
+        );
     }
 
     #[test]
@@ -2239,8 +2265,11 @@ mod tests {
         .unwrap();
 
         assert!(rendered.contains(&format!("vendorSources.\"{locked_source}#snafu@0.9.0\"")));
-        assert!(!rendered
-            .contains("vendorSources.\"git+https://github.com/shepmaster/snafu.git#snafu@0.9.0\""));
+        assert!(
+            !rendered.contains(
+                "vendorSources.\"git+https://github.com/shepmaster/snafu.git#snafu@0.9.0\""
+            )
+        );
     }
 
     #[test]
@@ -2268,8 +2297,7 @@ mod tests {
         )
         .unwrap();
 
-        let locked_source =
-            "git+https://github.com/rust-netlink/rtnetlink?rev=eb685374ba7f7a1201754f6b2b40c491d3d50cb3#eb685374ba7f7a1201754f6b2b40c491d3d50cb3";
+        let locked_source = "git+https://github.com/rust-netlink/rtnetlink?rev=eb685374ba7f7a1201754f6b2b40c491d3d50cb3#eb685374ba7f7a1201754f6b2b40c491d3d50cb3";
         let rendered = render_units_nix(
             &graph,
             &RenderOptions {
@@ -2485,6 +2513,57 @@ version = "0.1.0"
     }
 
     #[test]
+    fn target_linker_environment_is_forwarded_to_rustc() {
+        let graph: UnitGraph = serde_json::from_str(
+            r#"{
+              "version": 1,
+              "units": [
+                {
+                  "pkg_id": "path+file:///workspace#hello@0.1.0",
+                  "target": {
+                    "kind": ["bin"],
+                    "crate_types": ["bin"],
+                    "name": "hello",
+                    "src_path": "/workspace/src/main.rs",
+                    "edition": "2024"
+                  },
+                  "profile": { "name": "release", "opt_level": "3" },
+                  "mode": "build",
+                  "platform": "x86_64-apple-darwin",
+                  "dependencies": []
+                }
+              ],
+              "roots": [0]
+            }"#,
+        )
+        .unwrap();
+
+        let rendered = render_units_nix(
+            &graph,
+            &RenderOptions {
+                workspace_root: PathBuf::from("/workspace"),
+                vendor_root: None,
+                cargo_lock_sources: CargoLockSources::default(),
+                content_addressed: false,
+                toolchain_id: None,
+                deny_unused_crate_dependencies: false,
+            },
+        )
+        .unwrap();
+
+        assert!(
+            rendered.contains("if [ \"${CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER+x}\" = x ]; then")
+        );
+        assert!(
+            rendered.contains(
+                "rustc_args+=( -C \"linker=${CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER}\" )"
+            )
+        );
+        assert!(rendered.contains("--target"));
+        assert!(rendered.contains("x86_64-apple-darwin"));
+    }
+
+    #[test]
     fn empty_shell_env_values_do_not_close_generated_nix_strings() {
         assert_eq!(shell_env_value(""), "\"\"");
     }
@@ -2571,7 +2650,9 @@ links = "native_ffi"
         assert!(rendered.contains("export CARGO_FEATURE_SIMD_SUPPORT=1"));
         assert!(rendered.contains("\"$RUSTC\" --print cfg --target \"$TARGET\""));
         assert!(rendered.contains("cargo_cfg_env=\"CARGO_CFG_$(printf '%s' \"$cargo_cfg_key\""));
-        assert!(rendered.contains("export \"$cargo_cfg_env=''${!cargo_cfg_env},$cargo_cfg_value\""));
+        assert!(
+            rendered.contains("export \"$cargo_cfg_env=''${!cargo_cfg_env},$cargo_cfg_value\"")
+        );
         fs::remove_dir_all(workspace).unwrap();
     }
 
@@ -2769,8 +2850,11 @@ version = "0.1.0"
         )
         .unwrap();
 
-        assert!(rendered
-            .contains("cargo_metadata_env=\"DEP_NATIVE_FFI_$(printf '%s' \"$cargo_metadata_key\""));
+        assert!(
+            rendered.contains(
+                "cargo_metadata_env=\"DEP_NATIVE_FFI_$(printf '%s' \"$cargo_metadata_key\""
+            )
+        );
         assert!(rendered.contains("export \"$cargo_metadata_env=$cargo_metadata_value\""));
         fs::remove_dir_all(workspace).unwrap();
     }

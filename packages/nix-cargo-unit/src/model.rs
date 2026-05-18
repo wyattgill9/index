@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use color_eyre::eyre::{bail, ensure, eyre, Result as EyreResult};
+use color_eyre::eyre::{Result as EyreResult, bail, ensure, eyre};
 use serde::Deserialize;
 use sha2::Digest as _;
 use url::Url;

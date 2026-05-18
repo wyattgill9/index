@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use clap::Parser as _;
 use color_eyre::eyre::WrapErr as _;
 use model::UnitGraph;
-use render::{render_units_nix, CargoLockSources, RenderOptions};
+use render::{CargoLockSources, RenderOptions, render_units_nix};
 
 #[derive(Debug, clap::Parser)]
 #[command(
