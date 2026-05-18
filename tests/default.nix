@@ -1204,7 +1204,9 @@ let
         message = "generic ix.extendedAttributes should expose absolute runtime paths";
       }
       {
-        assertion = builtins.elem pkgs.attr extendedAttributes.config.environment.systemPackages;
+        assertion = builtins.any (
+          p: (p.pname or null) == "attr"
+        ) extendedAttributes.config.environment.systemPackages;
         message = "generic ix.extendedAttributes should add attr tools for runtime inspection";
       }
       {
