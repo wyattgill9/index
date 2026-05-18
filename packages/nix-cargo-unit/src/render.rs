@@ -624,9 +624,7 @@ fn render_rustc_build_phase(
 
     push_rustc_args(&mut script, unit, &prepared.hashes[index]);
     append_target_linker_arg(&mut script, unit);
-    script.push_str(
-        "${pkgs.lib.concatStringsSep \"\\n\" (map (arg: \"rustc_args+=( ${pkgs.lib.escapeShellArg arg} )\") extraRustcArgs)}\n",
-    );
+    append_extra_rustc_args(&mut script, unit);
 
     for dep_index in &prepared.transitive_unit_deps[index] {
         let dep = &graph.units[*dep_index];
@@ -833,6 +831,14 @@ fn cargo_target_linker_env_name(target: &str) -> String {
     }
     env_name.push_str("_LINKER");
     env_name
+}
+
+fn append_extra_rustc_args(script: &mut String, unit: &Unit) {
+    let platform = unit
+        .platform
+        .as_ref()
+        .map_or_else(|| "null".to_string(), |platform| nix_attr(platform));
+    let _ = writeln!(script, "${{renderExtraRustcArgs {platform}}}");
 }
 
 fn append_build_script_flag_reader(script: &mut String, run_ref: &str) {
@@ -2560,6 +2566,65 @@ version = "0.1.0"
         ));
         assert!(rendered.contains("--target"));
         assert!(rendered.contains("x86_64-apple-darwin"));
+    }
+
+    #[test]
+    fn extra_rustc_args_are_requested_for_the_unit_platform() {
+        let graph: UnitGraph = serde_json::from_str(
+            r#"{
+              "version": 1,
+              "units": [
+                {
+                  "pkg_id": "path+file:///workspace#host@0.1.0",
+                  "target": {
+                    "kind": ["lib"],
+                    "crate_types": ["lib"],
+                    "name": "host",
+                    "src_path": "/workspace/src/lib.rs",
+                    "edition": "2024"
+                  },
+                  "profile": { "name": "release", "opt_level": "3" },
+                  "mode": "build",
+                  "dependencies": []
+                },
+                {
+                  "pkg_id": "path+file:///workspace#hello@0.1.0",
+                  "target": {
+                    "kind": ["bin"],
+                    "crate_types": ["bin"],
+                    "name": "hello",
+                    "src_path": "/workspace/src/main.rs",
+                    "edition": "2024"
+                  },
+                  "profile": { "name": "release", "opt_level": "3" },
+                  "mode": "build",
+                  "platform": "x86_64-apple-darwin",
+                  "dependencies": [
+                    { "index": 0, "extern_crate_name": "host" }
+                  ]
+                }
+              ],
+              "roots": [1]
+            }"#,
+        )
+        .unwrap();
+
+        let rendered = render_units_nix(
+            &graph,
+            &RenderOptions {
+                workspace_root: PathBuf::from("/workspace"),
+                vendor_root: None,
+                cargo_lock_sources: CargoLockSources::default(),
+                content_addressed: false,
+                toolchain_id: None,
+                deny_unused_crate_dependencies: false,
+            },
+        )
+        .unwrap();
+
+        assert!(rendered.contains("extraRustcArgsForPlatform ? _platform: []"));
+        assert!(rendered.contains("${renderExtraRustcArgs null}"));
+        assert!(rendered.contains("${renderExtraRustcArgs \"x86_64-apple-darwin\"}"));
     }
 
     #[test]

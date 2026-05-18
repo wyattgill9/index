@@ -10,9 +10,18 @@
   extraEnv ? {},
   extraPolicyChecks ? {},
   extraRustcArgs ? [],
+  extraRustcArgsForPlatform ? _platform: [],
 }:
 
 let
+  renderRustcArg = arg: "rustc_args+=( ${pkgs.lib.escapeShellArg arg} )";
+
+  renderExtraRustcArgs =
+    platform:
+    pkgs.lib.concatStringsSep "\n" (
+      map renderRustcArg (extraRustcArgs ++ extraRustcArgsForPlatform platform)
+    );
+
   sourceRootPath =
     root:
     if builtins.hasContext (builtins.toString root) then

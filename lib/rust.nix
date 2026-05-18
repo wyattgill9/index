@@ -107,9 +107,15 @@ let
       };
     };
 
-  rustcArgsForPolicy =
-    policy:
-    lib.optionals policy.linker.useMold [
+  platformCanUseMold =
+    platform:
+    if platform == null then pkgs.stdenv.hostPlatform.isLinux else lib.hasInfix "-linux-" platform;
+
+  rustcArgsForPolicy = policy: rustcArgsForPolicyForPlatform policy null;
+
+  rustcArgsForPolicyForPlatform =
+    policy: platform:
+    lib.optionals (policy.linker.useMold && platformCanUseMold platform) [
       "-C"
       "link-arg=-fuse-ld=mold"
     ];
@@ -675,6 +681,7 @@ in
     resolveVendorSources
     resolveVendorDir
     rustcArgsForPolicy
+    rustcArgsForPolicyForPlatform
     rustFlagsStringForPolicy
     vendorConfigScript
     withPolicyChecks

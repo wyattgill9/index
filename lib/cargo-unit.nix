@@ -216,7 +216,7 @@ let
         inherit workspaceRoot;
         extraNativeBuildInputs = args.nativeBuildInputs ++ rust.nativeBuildInputsForPolicy args.policy;
         extraEnv = args.env;
-        extraRustcArgs = rust.rustcArgsForPolicy args.policy;
+        extraRustcArgsForPlatform = rust.rustcArgsForPolicyForPlatform args.policy;
         extraPolicyChecks = rust.policyChecksFor (
           rawArgs
           // {
