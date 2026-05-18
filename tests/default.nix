@@ -948,9 +948,37 @@ let
     }
   ];
 
+  base =
+    let
+      config = evalConfig [ ];
+    in
+    {
+      inherit config;
+      cfg = config.ix.profiles.base;
+    };
+
   # --- Per-image assertion groups -------------------------------------------
 
   groups = {
+    base = [
+      {
+        assertion = base.cfg.shellWorkspace.enable;
+        message = "base profile should enable the ix shell workspace by default";
+      }
+      {
+        assertion = base.cfg.shellWorkspace.directory == "/work/ix";
+        message = "base profile should use /work/ix as the default shell workspace";
+      }
+      {
+        assertion = base.config.users.users.root.shell.meta.mainProgram == "ix-workspace-shell";
+        message = "base profile should make root enter the workspace shell wrapper";
+      }
+      {
+        assertion = builtins.elem base.cfg.shellWorkspace.shell base.config.environment.systemPackages;
+        message = "base profile should install the configured workspace shell";
+      }
+    ];
+
     factions-server = [
       {
         assertion = factionsExample.config.ix.image.tag == "factions-server";

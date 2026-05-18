@@ -56,6 +56,7 @@
         };
         tools = {
           ixFleet = ./tools/ix-fleet.py;
+          ixShellSyncIgnored = ./tools/ix-shell-sync-ignored.py;
           updateMods = ./tools/update-mods.py;
         };
       };

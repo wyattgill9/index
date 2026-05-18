@@ -65,6 +65,15 @@ let
     python = pythonWithPydantic;
   };
 
+  ixShellSyncIgnored = ix.writePythonApplication pkgs {
+    name = "ix-shell-sync-ignored";
+    src = paths.tools.ixShellSyncIgnored;
+    runtimeInputs = [
+      pkgs.git
+      pkgs.gnutar
+    ];
+  };
+
   benchFilesystem = import paths.bench.filesystem { inherit ix pkgs; };
 
   repoPackages = ix.packageSetFor pkgs;
@@ -122,6 +131,7 @@ in
     bench-filesystem = mkApp benchFilesystem "Benchmark file-system behavior from inside an ix VM";
     update-mods = mkApp updateMods "Regenerate Minecraft mod catalogs";
     ix-fleet = mkApp ixFleet "Render ix fleet plans and commands";
+    ix-shell-sync-ignored = mkApp ixShellSyncIgnored "Copy git-ignored files into an ix shell workspace";
     nix-cargo-unit = mkApp repoPackages.nix-cargo-unit "Render Cargo unit graphs as Nix derivations";
     python-mcp-server = mkApp repoPackages.python-mcp-server "Run a Python MCP server";
   };

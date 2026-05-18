@@ -9,24 +9,53 @@
   pkgs,
   ...
 }:
-{
-  options.ix.profiles.base.enable = lib.mkEnableOption "base runtime tools";
+let
+  cfg = config.ix.profiles.base;
 
-  config = lib.mkIf config.ix.profiles.base.enable {
-    environment.systemPackages = builtins.attrValues {
-      inherit (pkgs)
-        bpftrace
-        btop
-        file
-        gdb
-        jq
-        lldb
-        lsof
-        ncdu
-        pv
-        strace
-        tcpdump
-        ;
+  inherit (cfg) shellWorkspace;
+  shellWrapper = pkgs.writeTextFile {
+    name = "ix-workspace-shell";
+    executable = true;
+    destination = "/bin/ix-workspace-shell";
+    text = ''
+      #!${pkgs.runtimeShell}
+      set -eu
+
+      workdir="''${IX_WORKDIR:-${shellWorkspace.directory}}"
+      mkdir -p -- "$workdir"
+      cd -- "$workdir"
+
+      exec ${lib.getExe shellWorkspace.shell} "$@"
+    '';
+    meta.mainProgram = "ix-workspace-shell";
+  };
+in
+{
+  options.ix.profiles.base = {
+    enable = lib.mkEnableOption "base runtime tools";
+
+    shellWorkspace = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = ''
+          Make interactive root shells enter a writable image workspace before
+          starting the configured shell.
+        '';
+      };
+
+      directory = lib.mkOption {
+        type = lib.types.str;
+        default = "/work/ix";
+        description = "Directory created and entered by the base shell wrapper.";
+      };
+
+      shell = lib.mkOption {
+        type = lib.types.package;
+        default = pkgs.nushell;
+        defaultText = lib.literalExpression "pkgs.nushell";
+        description = "Shell executed after entering the image workspace.";
+      };
     };
 
     # Cubic halves cwnd on any loss, so a residential last-mile at
@@ -49,5 +78,30 @@
       "net.ipv4.tcp_congestion_control" = "bbr";
       "net.core.default_qdisc" = "fq";
     };
+  };
+
+  config = lib.mkIf config.ix.profiles.base.enable {
+    environment.systemPackages =
+      builtins.attrValues {
+        inherit (pkgs)
+          bpftrace
+          btop
+          file
+          gdb
+          jq
+          lldb
+          lsof
+          ncdu
+          pv
+          strace
+          tcpdump
+          ;
+      }
+      ++ lib.optionals shellWorkspace.enable [
+        shellWorkspace.shell
+        shellWrapper
+      ];
+
+    users.users.root.shell = lib.mkIf shellWorkspace.enable shellWrapper;
   };
 }
