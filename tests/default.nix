@@ -2026,9 +2026,9 @@ let
     survival-server = ''
       test -L ${survivalExample.managed.velocityPlugins}/Geyser-Velocity.jar
       test -L ${survivalExample.managed.velocityPlugins}/floodgate-velocity.jar
-      grep -q "bind = '0.0.0.0:25565'" ${survivalExample.managed.velocityConfig}/velocity.toml
-      grep -q "player-info-forwarding-mode = 'modern'" ${survivalExample.managed.velocityConfig}/velocity.toml
-      grep -q "survival = '127.0.0.1:25566'" ${survivalExample.managed.velocityConfig}/velocity.toml
+      grep -q 'bind = "0.0.0.0:25565"' ${survivalExample.managed.velocityConfig}/velocity.toml
+      grep -q 'player-info-forwarding-mode = "modern"' ${survivalExample.managed.velocityConfig}/velocity.toml
+      grep -q 'survival = "127.0.0.1:25566"' ${survivalExample.managed.velocityConfig}/velocity.toml
       grep -q 'auth-type: floodgate' ${survivalExample.managed.velocityConfig}/plugins/geyser/config.yml
       grep -q 'port: 19132' ${survivalExample.managed.velocityConfig}/plugins/geyser/config.yml
       grep -q 'send-floodgate-data: false' ${survivalExample.managed.velocityConfig}/plugins/floodgate/proxy-config.yml

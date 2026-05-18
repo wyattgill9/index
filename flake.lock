@@ -3,7 +3,7 @@
     "ixCliAarch64Darwin": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-SgLGCCs7/bHjdD9IcwVFnHEM8jXj+k668h+9ZgPdxoo=",
+        "narHash": "sha256-S91DPDZujxDOUKrLNEMHMa+Mng+Eln/c6PW9FRB9t5M=",
         "type": "file",
         "url": "https://ix.dev/cli/darwin-arm64/ix"
       },
@@ -15,7 +15,7 @@
     "ixCliX86_64Darwin": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-8CIpfu2yq+P+aCzCy2jdcPfiEmreXbKXaz0RiggjHOo=",
+        "narHash": "sha256-wmWjgN1mMADA5NDWihmoOUgFjUxd0L1/4Wn4It0V81E=",
         "type": "file",
         "url": "https://ix.dev/cli/darwin-x86_64/ix"
       },
@@ -27,7 +27,7 @@
     "ixCliX86_64Linux": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-pLw+BhmBkwmKiE5dx6tpBDvC7YkW3RhGd2U5xV267dA=",
+        "narHash": "sha256-mQtFhDHIA+vntl0RhRs0w6WFNasbm82I2TWY9hTBnjM=",
         "type": "file",
         "url": "https://ix.dev/cli/linux-x86_64/ix"
       },
@@ -38,11 +38,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1777578337,
-        "narHash": "sha256-Ad49moKWeXtKBJNy2ebiTQUEgdLyvGmTeykAQ9xM+Z4=",
+        "lastModified": 1778869304,
+        "narHash": "sha256-30sZNZoA1cqF5JNO9fVX+wgiQYjB7HJqqJ4ztCDeBZE=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "15f4ee454b1dce334612fa6843b3e05cf546efab",
+        "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
         "type": "github"
       },
       "original": {
@@ -82,11 +82,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1778987862,
-        "narHash": "sha256-V3qGt9P1eJP/r/1ONablphfGiH0RP4agQhrRANpDYx8=",
+        "lastModified": 1779074409,
+        "narHash": "sha256-6aXy8Ga41iLVM8ibddFU1O5+wYWcBGNEfZzZuL91eIc=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "6f44d8874ac29806c8d5cae42bf8e19ebb5ce0d3",
+        "rev": "2a77b5b1dc952f214e8102acdef1622b68515560",
         "type": "github"
       },
       "original": {

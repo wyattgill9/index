@@ -26,6 +26,10 @@ let
       substituteInPlace Cargo.toml \
         --replace-fail "    'tools/packet-inspector'," "" \
         --replace-fail "    'tools/rust-mc-bot'," ""
+      substituteInPlace rust-toolchain.toml \
+        --replace-fail 'nightly-2025-02-22' 'nightly-2025-06-26'
+      substituteInPlace crates/hyperion/src/common/util/mojang.rs \
+        --replace-fail 'Duration::from_mins(10)' 'Duration::from_secs(10 * 60)'
 
       cp ${./Cargo.lock} Cargo.lock
     '';
@@ -48,8 +52,8 @@ let
       "hyperion-proxy"
     ];
     outputHashes = {
-      "git+https://github.com/TestingPlant/bvh-data#9bffb03a4b894a7884c9ec0da986bdde732ac704" =
-        "sha256-QjsyP9XdR53JDNFC8IX1qgTlJQZmanAZU+246QG4v9s=";
+      "git+https://github.com/TestingPlant/bvh-data#02f0ac2321f0e125bfec425acfc6619ecbbd2eb7" =
+        "sha256-yM14VrK8Rjbl1iKnwb/k7EiCXIl3XK59AS4s3IMREv0=";
       "git+https://github.com/TestingPlant/valence?branch=feat-bytes#fb792dcb6669b64c5dc2366eb3d074b293def046" =
         "sha256-rpuJSz8KxEwG5qeT4HYVtTxHJ24nrYZJwDurv+mjPxM=";
       "git+https://github.com/nvzqz/divan#bca5c9676a35751d0a8164df7d79bda70f23286b" =
@@ -59,12 +63,17 @@ let
       pkg-config
       pkgs.cmake
     ];
+    buildInputs = [
+      openssl
+      zlib
+    ];
     env = {
       OPENSSL_NO_VENDOR = "1";
       OPENSSL_LIB_DIR = "${lib.getLib openssl}/lib";
       OPENSSL_INCLUDE_DIR = "${lib.getDev openssl}/include";
       ZLIB_LIB_DIR = "${lib.getLib zlib}/lib";
       ZLIB_INCLUDE_DIR = "${lib.getDev zlib}/include";
+      NIX_LDFLAGS = "-L${lib.getLib openssl}/lib -L${lib.getLib zlib}/lib";
     };
     policy = {
       denyUnusedCrateDependencies = false;

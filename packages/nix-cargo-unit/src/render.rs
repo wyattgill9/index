@@ -4,7 +4,7 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 
 use askama::Template as _;
-use color_eyre::eyre::{Result, WrapErr as _, eyre};
+use color_eyre::eyre::{eyre, Result, WrapErr as _};
 use serde::Deserialize;
 use sha2::Digest as _;
 
@@ -1020,6 +1020,7 @@ fn render_build_script_run_phase(
             "false"
         })
     )?;
+    script.push_str("export NUM_JOBS=''${NIX_BUILD_CORES:-1}\n");
     script.push_str(&cargo_package_exports(run_unit));
     script.push_str(&cargo_manifest_links_export(run_unit));
     append_cargo_feature_exports(&mut script, run_unit);
@@ -2224,10 +2225,8 @@ mod tests {
         assert!(rendered.contains(
             "vendorSources.\"registry+https://github.com/rust-lang/crates.io-index#itoa@1.0.15\""
         ));
-        assert!(
-            rendered
-                .contains("vendorSources.\"sparse+https://example.invalid/index/#itoa@1.0.15\"")
-        );
+        assert!(rendered
+            .contains("vendorSources.\"sparse+https://example.invalid/index/#itoa@1.0.15\""));
     }
 
     #[test]
@@ -2271,11 +2270,8 @@ mod tests {
         .unwrap();
 
         assert!(rendered.contains(&format!("vendorSources.\"{locked_source}#snafu@0.9.0\"")));
-        assert!(
-            !rendered.contains(
-                "vendorSources.\"git+https://github.com/shepmaster/snafu.git#snafu@0.9.0\""
-            )
-        );
+        assert!(!rendered
+            .contains("vendorSources.\"git+https://github.com/shepmaster/snafu.git#snafu@0.9.0\""));
     }
 
     #[test]
@@ -2557,10 +2553,8 @@ version = "0.1.0"
         )
         .unwrap();
 
-        assert!(
-            rendered
-                .contains("if [ \"''${CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER+x}\" = x ]; then")
-        );
+        assert!(rendered
+            .contains("if [ \"''${CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER+x}\" = x ]; then"));
         assert!(rendered.contains(
             "rustc_args+=( -C \"linker=''${CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER}\" )"
         ));
@@ -2714,9 +2708,7 @@ links = "native_ffi"
         assert!(rendered.contains("export CARGO_FEATURE_SIMD_SUPPORT=1"));
         assert!(rendered.contains("\"$RUSTC\" --print cfg --target \"$TARGET\""));
         assert!(rendered.contains("cargo_cfg_env=\"CARGO_CFG_$(printf '%s' \"$cargo_cfg_key\""));
-        assert!(
-            rendered.contains("export \"$cargo_cfg_env=''${!cargo_cfg_env},$cargo_cfg_value\"")
-        );
+        assert!(rendered.contains("export \"$cargo_cfg_env=''${!cargo_cfg_env},$cargo_cfg_value\""));
         fs::remove_dir_all(workspace).unwrap();
     }
 
@@ -2914,11 +2906,8 @@ version = "0.1.0"
         )
         .unwrap();
 
-        assert!(
-            rendered.contains(
-                "cargo_metadata_env=\"DEP_NATIVE_FFI_$(printf '%s' \"$cargo_metadata_key\""
-            )
-        );
+        assert!(rendered
+            .contains("cargo_metadata_env=\"DEP_NATIVE_FFI_$(printf '%s' \"$cargo_metadata_key\""));
         assert!(rendered.contains("export \"$cargo_metadata_env=$cargo_metadata_value\""));
         fs::remove_dir_all(workspace).unwrap();
     }
