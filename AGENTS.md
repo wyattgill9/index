@@ -154,7 +154,7 @@ Use one of these shapes:
 
 ## Registry access
 
-Do not assume every `registry.ix.dev` image is public. The `ix` namespace is system-owned, so shared bootstrap refs such as `registry.ix.dev/ix/test-cluster-bootstrap:<tag>` are expected to be public. User images live under `registry.ix.dev/<username>/<image>:<tag>` and default to private; private images require the owner’s auth and should behave like not-found for other users. When debugging image pulls, distinguish a public system bootstrap image from a user-owned private image before treating access as a registry outage.
+Do not assume every `registry.ix.dev` image is public. The `ix` namespace is system-owned, so shared bootstrap refs such as `registry.ix.dev/ix/test-cluster-bootstrap:<tag>` are expected to be public. User images live under `registry.ix.dev/<username>/<image>:<tag>` and default to private; private images require the owner's auth and should behave like not-found for other users. When debugging image pulls, distinguish a public system bootstrap image from a user-owned private image before treating access as a registry outage.
 
 The shared fleet bootstrap image is defined at `images/system/test-cluster-bootstrap`. It is an ordinary image that extends the repo base profile; keep source-switch tools such as `gnutar`, `zstd`, and `gzip` in `modules/profiles/base.nix` so any VM that has been switched once can be switched again. Build the bootstrap with `nix build .#test-cluster-bootstrap --print-out-paths --no-link`; upload it only with an admin ix profile, using an explicit system namespace ref such as `ix image push <archive>.tar registry.ix.dev/ix/test-cluster-bootstrap:<tag>`. TODO: replace full payload uploads with CAS/CDC-aware transfer for both bootstrap image publishing and `ix switch --source`, so routine updates send only changed chunks and then update the registry or switch input reference.
 
@@ -344,7 +344,7 @@ mkImage = args: (evalImageConfig args).ix.build.ociImage;
 - Modules declare options and config. They never `imports` another module.
 - Top-level options live under `services.<name>` for services, `ix.profiles.<name>` for profiles. Never reach into another module's namespace.
 - Everything in `config` is wrapped in `mkIf cfg.enable`. The base profile is the only exception: it ships an enable flag so users can opt out.
-- Module options take strings, paths, or packages — not factory arguments. Versioning belongs in `versions.nix`, not in a function wrapping the module.
+- Module options take strings, paths, or packages. Per-version data goes in `versions.nix`; a module file should accept plain values, never a factory wrapper.
 - Public option names should describe the user's domain, not the storage mechanism. Prefer `services.minecraft.plugins` for Bukkit-family plugins and `services.minecraft.mods` for Fabric/NeoForge/Sponge mods; avoid vague plumbing names such as `extraJars` or `dropins` unless the storage mechanism is itself the concept.
 - Cross-module helpers come from `specialArgs.ix`. No `..` paths.
 - Modules that render a structured config file expose typed settings backed by `pkgs.formats.*` with a freeform submodule (RFC 0042). The repo's `services.minecraft.configFiles` slot is the canonical pattern: keys are relative file paths, values are plain attrsets, and the format is inferred from the extension. Do not introduce stringly `extraConfig` options on new modules; concatenating strings can't merge same-key assignments, defeats `mkDefault`/`mkForce`, and makes values uninspectable.
