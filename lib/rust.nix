@@ -176,6 +176,29 @@ let
       Add outputHashes."${pkg.source}".
     '');
 
+  fetchgitWithSsh =
+    args:
+    pkgs.fetchgit (
+      args
+      // {
+        nativeBuildInputs =
+          (args.nativeBuildInputs or [ ]) ++ lib.optional (lib.hasPrefix "ssh://" args.url) pkgs.openssh;
+      }
+    );
+
+  importCargoLockWithSsh = import (pkgs.path + "/pkgs/build-support/rust/import-cargo-lock.nix") {
+    inherit lib;
+    inherit (pkgs)
+      cargo
+      fetchurl
+      jq
+      python3Packages
+      runCommand
+      writers
+      ;
+    fetchgit = fetchgitWithSsh;
+  };
+
   importCargoLockOutputHashes =
     {
       cargoLock,
@@ -250,7 +273,7 @@ let
     if vendorDir != null then
       vendorDir
     else
-      pkgs.rustPlatform.importCargoLock {
+      importCargoLockWithSsh {
         lockFile = cargoLockFile cargoLock;
         outputHashes = importCargoLockOutputHashes { inherit cargoLock outputHashes; };
       };
