@@ -28,6 +28,7 @@ let
     cargoExtraConfig = args.cargoExtraConfig or "";
     vendorDir = args.vendorDir or null;
     vendorSources = args.vendorSources or null;
+    sourceOverrides = args.sourceOverrides or { };
     outputHashes = args.outputHashes or { };
     contentAddressed = args.contentAddressed or false;
     policy =
@@ -81,7 +82,12 @@ let
     let
       args = commonArgs rawArgs;
       vendorDir = rust.resolveVendorDir {
-        inherit (args) cargoLock outputHashes vendorDir;
+        inherit (args)
+          cargoLock
+          outputHashes
+          sourceOverrides
+          vendorDir
+          ;
       };
     in
     pkgs.runCommand "cargo-unit-graph.json"
@@ -123,7 +129,12 @@ let
     let
       args = commonArgs rawArgs;
       vendorDir = rust.resolveVendorDir {
-        inherit (args) cargoLock outputHashes vendorDir;
+        inherit (args)
+          cargoLock
+          outputHashes
+          sourceOverrides
+          vendorDir
+          ;
       };
       unitGraphJson = rawArgs.unitGraphJson or (generateUnitGraph rawArgs);
       toolchainId = builtins.baseNameOf (builtins.toString args.rustToolchain);
@@ -195,10 +206,20 @@ let
       args = commonArgs rawArgs;
       workspaceRoot = workspaceRootFor rawArgs;
       vendorDir = rust.resolveVendorDir {
-        inherit (args) cargoLock outputHashes vendorDir;
+        inherit (args)
+          cargoLock
+          outputHashes
+          sourceOverrides
+          vendorDir
+          ;
       };
       vendorSources = rust.resolveVendorSources {
-        inherit (args) cargoLock outputHashes vendorSources;
+        inherit (args)
+          cargoLock
+          outputHashes
+          sourceOverrides
+          vendorSources
+          ;
       };
       unitGraphJson = generateUnitGraph (rawArgs // { inherit vendorDir; });
       unitsNix = generateUnitsNix (

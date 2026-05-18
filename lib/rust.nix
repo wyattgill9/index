@@ -176,48 +176,6 @@ let
       Add outputHashes."${pkg.source}".
     '');
 
-  fetchgitWithSsh =
-    args:
-    pkgs.fetchgit (
-      args
-      // {
-        nativeBuildInputs =
-          (args.nativeBuildInputs or [ ]) ++ lib.optional (lib.hasPrefix "ssh://" args.url) pkgs.openssh;
-      }
-    );
-
-  importCargoLockWithSsh = import (pkgs.path + "/pkgs/build-support/rust/import-cargo-lock.nix") {
-    inherit lib;
-    inherit (pkgs)
-      cargo
-      fetchurl
-      jq
-      python3Packages
-      runCommand
-      writers
-      ;
-    fetchgit = fetchgitWithSsh;
-  };
-
-  importCargoLockOutputHashes =
-    {
-      cargoLock,
-      outputHashes,
-    }:
-    let
-      checkedOutputHashes = checkedGitOutputHashes cargoLock outputHashes;
-      duplicateNameVersions = duplicateGitNameVersions cargoLock;
-    in
-    assert lib.assertMsg (duplicateNameVersions == [ ]) ''
-      Cargo.lock contains multiple git dependencies with the same name-version: ${lib.concatStringsSep ", " duplicateNameVersions}
-      nixpkgs importCargoLock accepts name-version keyed git hashes, so cargo-unit cannot generate an aggregate vendor dir for this lock without losing source identity.
-    '';
-    builtins.listToAttrs (
-      map (
-        pkg: lib.nameValuePair "${pkg.name}-${pkg.version}" (gitHashForPackage checkedOutputHashes pkg)
-      ) (gitPackages cargoLock)
-    );
-
   exportRustFlagsScript =
     policy:
     let
@@ -268,15 +226,36 @@ let
     {
       cargoLock,
       outputHashes,
+      sourceOverrides ? { },
       vendorDir,
     }:
     if vendorDir != null then
       vendorDir
     else
-      importCargoLockWithSsh {
-        lockFile = cargoLockFile cargoLock;
-        outputHashes = importCargoLockOutputHashes { inherit cargoLock outputHashes; };
-      };
+      let
+        packages = dependencyPackages cargoLock;
+        sources = resolveVendorSources {
+          inherit cargoLock outputHashes sourceOverrides;
+        };
+        duplicateNameVersions = duplicateGitNameVersions cargoLock;
+        vendorEntries = builtins.filter (entry: entry != null) (
+          map (
+            pkg:
+            if !(pkg ? source) then
+              null
+            else
+              {
+                name = "${pkg.name}-${pkg.version}";
+                path = sources.${packageSourceKey pkg};
+              }
+          ) packages
+        );
+      in
+      assert lib.assertMsg (duplicateNameVersions == [ ]) ''
+        Cargo.lock contains multiple git dependencies with the same name-version: ${lib.concatStringsSep ", " duplicateNameVersions}
+        cargo-unit cannot generate an aggregate vendor dir for this lock without losing source identity.
+      '';
+      pkgs.linkFarm "cargo-vendor-dir" vendorEntries;
 
   registryDownloadUrls = {
     "registry+https://github.com/rust-lang/crates.io-index" =
@@ -313,6 +292,7 @@ let
     {
       cargoLock,
       outputHashes,
+      sourceOverrides ? { },
       vendorSources ? null,
     }:
     if vendorSources != null then
@@ -339,12 +319,13 @@ let
           pkg:
           let
             git = parseGitSource pkg.source;
-            tree = pkgs.fetchgit {
-              inherit (git) url;
-              rev = git.sha;
-              sha256 = gitHashForPackage checkedOutputHashes pkg;
-              nativeBuildInputs = lib.optional (lib.hasPrefix "ssh://" git.url) pkgs.openssh;
-            };
+            tree =
+              sourceOverrides.${pkg.source} or (pkgs.fetchgit {
+                inherit (git) url;
+                rev = git.sha;
+                sha256 = gitHashForPackage checkedOutputHashes pkg;
+                nativeBuildInputs = lib.optional (lib.hasPrefix "ssh://" git.url) pkgs.openssh;
+              });
           in
           pkgs.runCommand "${pkg.name}-${pkg.version}"
             {
