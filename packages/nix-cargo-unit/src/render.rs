@@ -817,8 +817,8 @@ fn append_target_linker_arg(script: &mut String, unit: &Unit) {
         return;
     };
     let env_name = cargo_target_linker_env_name(platform);
-    let _ = writeln!(script, "if [ \"${{{env_name}+x}}\" = x ]; then");
-    let _ = writeln!(script, "  rustc_args+=( -C \"linker=${{{env_name}}}\" )");
+    let _ = writeln!(script, "if [ \"''${{{env_name}+x}}\" = x ]; then");
+    let _ = writeln!(script, "  rustc_args+=( -C \"linker=''${{{env_name}}}\" )");
     script.push_str("fi\n");
 }
 
@@ -2552,13 +2552,12 @@ version = "0.1.0"
         .unwrap();
 
         assert!(
-            rendered.contains("if [ \"${CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER+x}\" = x ]; then")
+            rendered
+                .contains("if [ \"''${CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER+x}\" = x ]; then")
         );
-        assert!(
-            rendered.contains(
-                "rustc_args+=( -C \"linker=${CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER}\" )"
-            )
-        );
+        assert!(rendered.contains(
+            "rustc_args+=( -C \"linker=''${CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER}\" )"
+        ));
         assert!(rendered.contains("--target"));
         assert!(rendered.contains("x86_64-apple-darwin"));
     }
